@@ -29,4 +29,7 @@ int  ReadFile(const char *path,std::string &buffer)
 }
 
 
-
+int main (int argvc , char **argv)
+{
+	return 0;
+}
