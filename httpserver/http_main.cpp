@@ -30,6 +30,7 @@ int  ReadFile(const char *path,std::string &buffer)
 }
 void HTTPResponseToClient(int connectfd, std::string &text)
 {
+	
 	return;
 }
 void HTTPRequestHandler(int connectfd)
@@ -46,9 +47,9 @@ void HTTPRequestHandler(int connectfd)
 
 	while (true)
 	{
-		length = read(connectfd, buffer,MAXLINE);
+		length = read(connectfd, buffer,MAXLINE); //read data from cache area
 
-		if (length >0)
+		if (length > 0)
 		{
 			total_length += length;
 			if (total_length > max_length )	
@@ -60,7 +61,7 @@ void HTTPRequestHandler(int connectfd)
 
 		if (length < 0 && errno == EINTR) //if read() failed and was caused by interrupted calling, retry read())
 		{
-			continue; //I dont know how to define retry times...
+			continue; //I dont know how to dealing with retry times...
 		
 		}
 
