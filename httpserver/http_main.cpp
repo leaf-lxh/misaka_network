@@ -28,9 +28,26 @@ int  ReadFile(const char *path,std::string &buffer)
 
 	return 1;
 }
-void HTTPResponseToClient(int connectfd, std::string &text)
+void HTTPResponseToClient(int connectfd, const std::string &text)
 {
-	
+	size_t writed = 0;
+	size_t write_size = 0;
+	size_t total_length = text.length();
+	while (true)
+	{
+		write_size = total_length - writed;
+		if ( write_size >= MAXLINE)
+		{
+			write_size = MAXLINE;
+		}
+			
+		writed += write(connectfd,text.substr(writed, writed + writed_size).c_str(), write_size);
+		
+		if (writed >= total_length)
+		{
+			break;
+		}
+	}	
 	return;
 }
 void HTTPRequestHandler(int connectfd)
