@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="HTTPHandler">
+      <UniqueIdentifier>{a508a1f3-9c31-4f54-a2cc-a5f22f5fc9aa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="script">
+      <UniqueIdentifier>{35dfea3a-ed94-49ca-a9d4-627f2f06af6f}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="HTTPHandler\HTTPHandler.cpp">
+      <Filter>HTTPHandler</Filter>
+    </ClCompile>
+    <ClCompile Include="script\script.cpp">
+      <Filter>script</Filter>
+    </ClCompile>
+    <ClCompile Include="http_main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="HTTPHandler\HTTPHandler.h">
+      <Filter>HTTPHandler</Filter>
+    </ClInclude>
+    <ClInclude Include="script\script.h">
+      <Filter>script</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

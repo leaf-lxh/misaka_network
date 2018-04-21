@@ -11,7 +11,7 @@
 int  ReadFile(const char *path,std::string &buffer)
 {
 	using std::fstream;
-	fstream file(path,fstream::in) //read only
+	fstream file(path, fstream::in); //read only
 	
 	if(!file.good())
 	{
@@ -41,7 +41,7 @@ void HTTPResponseToClient(int connectfd, const std::string &text)
 			write_size = MAXLINE;
 		}
 			
-		writed += write(connectfd,text.substr(writed, writed + writed_size).c_str(), write_size);
+		writed += write(connectfd,text.substr(writed, writed + write_size).c_str(), write_size);
 		
 		if (writed >= total_length)
 		{
@@ -56,42 +56,59 @@ void HTTPRequestHandler(int connectfd)
 	ssize_t length = 0;
 	size_t max_length = 10240000; //10MB 
 	size_t received_total_length = 0;
-	size_t reponse_length = 0;
+	size_t response_length = 0;
 	std::string receive;
 	std::string response;
 
-	httppraser praser;
+	int retry_times = 5;
+
+	HTTPHandler http_handler;
 
 	while (true)
 	{
-		length = read(connectfd, buffer,MAXLINE); //read data from cache area
+		//从缓冲区读取数据
+		length = read(connectfd, buffer,MAXLINE); 
 
 		if (length > 0)
 		{
-			total_length += length;
-			if (total_length > max_length )	
+			received_total_length += length;
+
+			//如果读取的数据大小超过了max_length,那么停止接收数据，并抛掉这个请求，因为长度过长
+			if (received_total_length > max_length )
 			{
-				return; //If the data we received is bigger than max_length,then we drop this request.
+				return; 
 			}
 			receive += buffer;
 		}
 
-		if (length < 0 && errno == EINTR) //if read() failed and was caused by interrupted calling, retry read())
+		//如果read失败，并且errno == EINTR(因系统中断导致)，则尝试重新read
+		if (length < 0 && errno == EINTR) 
 		{
-			continue; //I dont know how to dealing with retry times...
+			if (retry_times == 0)
+			{
+				//如果尝试次数==0，则抛掉这个请求
+				return;
+			}
+
+			//剩余尝试次数减一并重试read()
+			--retry_times;
+			continue; 
 		
 		}
 
+		//如果读取长度小于等于0则意味着没有剩余数据可供读取
 		if (length <= 0)
 		{
 			break;
 		}
 	}
-	if (total_length == 0)
+
+	//啥也没收到，抛掉这个请求
+	if (received_total_length == 0)
 	{
-		return; //nothing received,drop this request.
+		return; 
 	}		
-	response_length = praser.HandleRequest(receive,response);
+	response_length = http_handler.HandleRequest(receive,response);
 	if (response_length)
 	{
 		HTTPResponseToClient(connectfd, response);
@@ -102,32 +119,35 @@ void HTTPRequestHandler(int connectfd)
 int main (int argvc , char **argv)
 {
 	int server_port = 80;
-	int listenfd = 0;
-	int connectfd = 0;
-	pid_t childpid = 0;
+	int listen_fd = 0;
+	int connect_fd = 0;
+	pid_t child_pid = 0;
 
 	struct sockaddr_in serveraddr = {};
 	struct sockaddr_in clientaddr = {};
+	socklen_t s_length = sizeof(sockaddr_in);
+
+
 
 	serveraddr.sin_family = AF_INET;
 	serveraddr.sin_addr.s_addr = htonl(INADDR_ANY);
 	serveraddr.sin_port = htons(server_port);
 
-	listenfd = socket(AF_INET, SOCK_STREAM, 0);
-	bind(listenfd, (SA*)&serveraddr, sizeof(serveraddr));
-	listen(listenfd, LISTENQ);
+	listen_fd = socket(AF_INET, SOCK_STREAM, 0);
+	bind(listen_fd, (SA*)&serveraddr, sizeof(serveraddr));
+	listen(listen_fd, LISTENQ);
 	
 	while (true)
 	{
-		connectfd = accept(listenfd, &clientaddr, sizeof(clientaddr));
-		childpid = fork();
+		connect_fd = accept(listen_fd, (SA*)&clientaddr, &s_length);
+		child_pid = fork();
 		
-		if (childpid == 0)
+		if (child_pid == 0)
 		{
-			close(listenfd);
-			HTTPRequestMainHandler();
+			close(listen_fd);
+			HTTPRequestHandler(connect_fd);
 		}
-		close(connectfd);		
+		close(connect_fd);		
 	}
 
 	return 0;
