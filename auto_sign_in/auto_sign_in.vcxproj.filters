@@ -5,8 +5,14 @@
     <ClCompile Include="modules\md5.cpp">
       <Filter>modules\md5</Filter>
     </ClCompile>
-    <ClCompile Include="MySQL_connect.cpp">
+    <ClCompile Include="modules\MySQL_connect.cpp">
       <Filter>modules\MySQL</Filter>
+    </ClCompile>
+    <ClCompile Include="modules\auto_sign_in.cpp">
+      <Filter>modules\auto_sign_in</Filter>
+    </ClCompile>
+    <ClCompile Include="modules\HTTPRequest.cpp">
+      <Filter>modules\HTTPRequest</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -19,13 +25,25 @@
     <Filter Include="modules\MySQL">
       <UniqueIdentifier>{1785a425-f8fa-430f-8a14-d650cc321d9b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="modules\HTTPRequest">
+      <UniqueIdentifier>{d83b3aa0-5ad6-423b-8374-2d71f6a78249}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="modules\auto_sign_in">
+      <UniqueIdentifier>{d9d89eef-fd2c-4d58-b518-6c9232d6d019}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="modules\md5.h">
       <Filter>modules\md5</Filter>
     </ClInclude>
-    <ClInclude Include="MySQL_connect.h">
+    <ClInclude Include="modules\MySQL_connect.h">
       <Filter>modules\MySQL</Filter>
+    </ClInclude>
+    <ClInclude Include="modules\auto_sign_in.h">
+      <Filter>modules\auto_sign_in</Filter>
+    </ClInclude>
+    <ClInclude Include="modules\HTTPRequest.h">
+      <Filter>modules\HTTPRequest</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
