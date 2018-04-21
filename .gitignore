@@ -3,6 +3,7 @@
 
 #vs2017 linux debug temp files
 httpserver/bin/
+*.db
 
 # User-specific files
 *.suo
