@@ -63,12 +63,14 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="modules\auto_sign_in.cpp" />
+    <ClCompile Include="modules\FileIO.cpp" />
     <ClCompile Include="modules\HTTPRequest.cpp" />
     <ClCompile Include="modules\md5.cpp" />
     <ClCompile Include="modules\MySQL_connect.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="modules\auto_sign_in.h" />
+    <ClInclude Include="modules\FileIO.h" />
     <ClInclude Include="modules\HTTPRequest.h" />
     <ClInclude Include="modules\md5.h" />
     <ClInclude Include="modules\MySQL_connect.h" />

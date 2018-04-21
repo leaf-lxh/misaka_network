@@ -3,10 +3,10 @@
 #include <string>
 #include <sstream>
 
-class mysql_connect
+class MySQLConnect
 {
 public:
-	int mysql_connect_init(std::string &username, std::string &password);
+	bool init(std::string &username, std::string &password);
 
 private:
 

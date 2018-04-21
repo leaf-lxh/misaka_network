@@ -14,6 +14,9 @@
     <ClCompile Include="modules\HTTPRequest.cpp">
       <Filter>modules\HTTPRequest</Filter>
     </ClCompile>
+    <ClCompile Include="modules\FileIO.cpp">
+      <Filter>modules\FileIO</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="modules">
@@ -31,6 +34,9 @@
     <Filter Include="modules\auto_sign_in">
       <UniqueIdentifier>{d9d89eef-fd2c-4d58-b518-6c9232d6d019}</UniqueIdentifier>
     </Filter>
+    <Filter Include="modules\FileIO">
+      <UniqueIdentifier>{6cd5d363-6c7d-4560-ab4d-e3f6ec071a30}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="modules\md5.h">
@@ -44,6 +50,9 @@
     </ClInclude>
     <ClInclude Include="modules\HTTPRequest.h">
       <Filter>modules\HTTPRequest</Filter>
+    </ClInclude>
+    <ClInclude Include="modules\FileIO.h">
+      <Filter>modules\FileIO</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
