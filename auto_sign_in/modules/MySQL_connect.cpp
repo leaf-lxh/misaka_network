@@ -1,7 +1,7 @@
 #include <mysql/mysql.h>
 #include "MySQL_connect.h"
 
-//进行mysql_connect类的初始化，返回能否登录成功
+//杩涜mysql_connect绫荤殑鍒濆鍖栵紝杩斿洖鑳藉惁鐧诲綍鎴愬姛
 bool MySQLConnect::init(std::string & username, std::string & password)
 {
 	return 0;

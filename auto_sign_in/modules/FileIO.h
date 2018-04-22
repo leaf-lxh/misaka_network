@@ -14,7 +14,7 @@ public:
 	std::string log_path = "/var/log/lxh/";
 
 	std::string config_name = "lxh.config";
-	std::string log_name = "lxh.log";
+	std::string log_name = "lxh.log"; 
 
 	bool ReadConfig(ConfigStruct &cs);
 	bool WriteConfig(ConfigStruct &cs);

@@ -1,6 +1,7 @@
-#include <iostream>
+ï»¿#include <iostream>
 #include <sstream>
 #include "modules/MySQL_connect.h"
+#include "modules/FileIO.h"
 
 std::string config_path = "./config/";
 std::string log_path = "./log/";
@@ -11,23 +12,23 @@ bool MySQLTestLogin()
 	std::string username = "";
 	std::string password = "";
 
-	std::cout << "³ÌÐò¿ªÊ¼ÔËÐÐ£¬ÄãÐèÒª×öÒ»Ð©×¼±¸¹¤×÷" << std::endl;
-	std::cout << "Ê×ÏÈÐèÒª½øÐÐÊý¾Ý¿âµÄÒ»Ð©ÅäÖÃ" << std::endl;
+	std::cout << "ç¨‹åºå¼€å§‹è¿è¡Œï¼Œä½ éœ€è¦åšä¸€äº›å‡†å¤‡å·¥ä½œ" << std::endl;
+	std::cout << "é¦–å…ˆéœ€è¦è¿›è¡Œæ•°æ®åº“çš„ä¸€äº›é…ç½®" << std::endl;
 
-	std::cout << "Ê¹ÓÃµÄÓÃ»§Îª£º";
+	std::cout << "ä½¿ç”¨çš„ç”¨æˆ·ä¸ºï¼š";
 	getline(std::cin, username);
-	std::cout << "¸ÃÓÃ»§ÃÜÂëÎª£º";
+	std::cout << "è¯¥ç”¨æˆ·å¯†ç ä¸ºï¼š";
 	getline(std::cin, password);
 
-	std::cout << "²âÊÔÄÜ·ñ³É¹¦µÇÂ¼mysqlÊý¾Ý¿â" << std::endl;
+	std::cout << "æµ‹è¯•èƒ½å¦æˆåŠŸç™»å½•mysqlæ•°æ®åº“" << std::endl;
 	MySQLConnect mysql_test;
 	if (!mysql_test.init(username, password))
 	{
-		std::cout << "µÇÂ¼Ê§°Ü£¬Çë¼ì²éÓÃ»§ÃûºÍÃÜÂëÊÇ·ñÕýÈ·" << std::endl << "³ÌÐòÒÑÍË³ö" << std::endl;
+		std::cout << "ç™»å½•å¤±è´¥ï¼Œè¯·æ£€æŸ¥ç”¨æˆ·åå’Œå¯†ç æ˜¯å¦æ­£ç¡®" << std::endl << "ç¨‹åºå·²é€€å‡º" << std::endl;
 		return false;
 	}
 
-	std::cout << "²âÊÔµÇÂ¼³É¹¦" << std::endl;
+	std::cout << "æµ‹è¯•ç™»å½•æˆåŠŸ" << std::endl;
 	return true;
 }
 
@@ -35,41 +36,53 @@ void GetStartSignInTime()
 {
 	std::stringstream ConvertStream;
 	std::string RawInput = "";
-	int value = 0;
+	SignInFileIO fileio;
 
-	int hour = -1;
-	int minute = -1;
+	ConfigStruct cs = { -1,-1 };
 
-	
-	
-	while (hour<0 || hour>59)
+	std::cout << "æ˜¯å¦éœ€è¦è®¾ç½®ç­¾åˆ°æ—¶é—´[y/n]ï¼š" << std::unitbuf;
+	getline(std::cin, RawInput);
+	if (RawInput == "y" || RawInput == "Y")
 	{
-		std::cout << "Ç©µ½Ê±¼äÉèÖÃ" << std::endl << "Ê±[0-59]£º";
-		getline(std::cin,RawInput);
+		while (cs.hour < 0 || cs.hour>59)
+		{
+			std::cout << "æ—¶[0-59]ï¼š" << std::unitbuf;
+			std::cin.clear();
+			getline(std::cin, RawInput);
+			ConvertStream.clear();
 
-		ConvertStream << RawInput;
-		ConvertStream >> hour;
+			ConvertStream << RawInput;
+			ConvertStream >> cs.hour;
+		}
+
+		while (cs.minute < 0 || cs.minute>59)
+		{
+			std::cout << "åˆ†[0-59]ï¼š" << std::unitbuf;
+			std::cin.clear();
+			getline(std::cin, RawInput);
+			ConvertStream.clear();
+
+			ConvertStream << RawInput;
+			ConvertStream >> cs.minute;
+		}
+		fileio.WriteConfig(cs);
+	}
+	else
+	{
+		fileio.ReadConfig(cs);
+		std::cout << "å°†ä½¿ç”¨é…ç½®æ–‡ä»¶ä¸­çš„æ—¶é—´ï¼š" << cs.hour << "æ—¶" << cs.minute << "åˆ†" << std::endl;
 	}
 
-	while (minute<0 || minute>59)
-	{
-		std::cout <<  "·Ö[0-59]£º";
-		getline(std::cin, RawInput);
-		ConvertStream.clear();
-
-		ConvertStream << RawInput;
-		ConvertStream >> minute;
-	}
 }
 int main()
 {
-	
-	if (!MySQLTestLogin())
+
+	/*if (!MySQLTestLogin())
 	{
 		return 0;
 	}
-	
+	*/
 	GetStartSignInTime();
-	
-    return 0;
+
+	return 0;
 }

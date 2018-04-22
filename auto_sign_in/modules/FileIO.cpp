@@ -7,23 +7,24 @@
 
 bool SignInFileIO::ReadConfig(ConfigStruct & cs)
 {
-	//³õÊ¼»¯ÅäÖÃ½á¹¹
+	//åˆå§‹åŒ–é…ç½®ç»“æ„
 	cs.hour = -1;
 	cs.minute = -1;
 
-	//ÅĞ¶ÏÄ¿Â¼ÊÇ·ñ´æÔÚ,²»´æÔÚÔò´´½¨£¬´´½¨²»ÁËÔò·µ»Øfalse
+	//åˆ¤æ–­ç›®å½•æ˜¯å¦å­˜åœ¨,ä¸å­˜åœ¨åˆ™åˆ›å»ºï¼Œåˆ›å»ºä¸äº†åˆ™è¿”å›false
 	if (!access(config_path.c_str(), F_OK))
 	{
-		if (mkdir(config_path.c_str(), 644))
+		if (!mkdir(config_path.c_str(), 644))
 		{
 			return false;
 		}
 	}
 
-	//×¼±¸¶ÁÈ¡ÎÄ¼ş
+
+	//å‡†å¤‡è¯»å–æ–‡ä»¶
 	std::fstream file;
 	std::string FileContent = "";
-	file.open(config_path, std::fstream::app);//Ê¹ÓÃappendÄ£Ê½£¬Èç¹ûÎÄ¼ş²»´æÔÚÒ²¿ÉÒÔ´´½¨
+	file.open(config_path+config_name, std::fstream::app);//ä½¿ç”¨appendæ¨¡å¼ï¼Œå¦‚æœæ–‡ä»¶ä¸å­˜åœ¨ä¹Ÿå¯ä»¥åˆ›å»º
 
 	std::stringstream ss;
 	if (!file.good())
@@ -31,7 +32,7 @@ bool SignInFileIO::ReadConfig(ConfigStruct & cs)
 		return false;
 	}
 
-	//ÖğĞĞ¶ÁÈ¡ÅäÖÃ£¬²¢´æ´¢µ½´«½øÀ´µÄConfigStructÖĞÈ¥
+	//é€è¡Œè¯»å–é…ç½®ï¼Œå¹¶å­˜å‚¨åˆ°ä¼ è¿›æ¥çš„ConfigStructä¸­å»
 	while (getline(file, FileContent))
 	{
 		
@@ -49,18 +50,20 @@ bool SignInFileIO::ReadConfig(ConfigStruct & cs)
 			ss >> cs.minute;
 		}
 	}
-	//Èç¹û¶ÁÈ¡µÄÊı¾İÓĞÎÊÌâÔòÉèÖÃÎªÄ¬ÈÏÊ±¼ä
+	//å¦‚æœè¯»å–çš„æ•°æ®æœ‰é—®é¢˜åˆ™è®¾ç½®ä¸ºé»˜è®¤æ—¶é—´
 	if (cs.hour<0 || cs.hour>23)
 	{
+		WriteLog("Config.hour setting error. Changed to defult value 2");
 		cs.hour = 2;
 	}
 
 	if (cs.minute < 0 || cs.minute>59)
 	{
+		WriteLog("Config.minute setting error. Changed to defult value 0");
 		cs.minute = 0;
 	}
 	
-	//¹Ø±Õ´ò¿ªµÄÎÄ¼ş²¢½«±£´æÅäÖÃ
+	//å…³é—­æ‰“å¼€çš„æ–‡ä»¶å¹¶å°†ä¿å­˜é…ç½®
 	file.close();
 	WriteConfig(cs);
 	return true;
