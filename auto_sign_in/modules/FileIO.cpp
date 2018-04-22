@@ -31,6 +31,7 @@ bool SignInFileIO::ReadConfig(ConfigStruct & cs)
 		return false;
 	}
 
+	//逐行读取配置，并存储到传进来的ConfigStruct中去
 	while (getline(file, FileContent))
 	{
 		
@@ -48,7 +49,7 @@ bool SignInFileIO::ReadConfig(ConfigStruct & cs)
 			ss >> cs.minute;
 		}
 	}
-
+	//如果读取的数据有问题则设置为默认时间
 	if (cs.hour<0 || cs.hour>23)
 	{
 		cs.hour = 2;
@@ -58,8 +59,11 @@ bool SignInFileIO::ReadConfig(ConfigStruct & cs)
 	{
 		cs.minute = 0;
 	}
+	
+	//关闭打开的文件并将保存配置
+	file.close();
 	WriteConfig(cs);
-	return false;
+	return true;
 }
 
 bool SignInFileIO::WriteConfig(ConfigStruct & cs)
