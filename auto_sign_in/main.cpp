@@ -47,7 +47,6 @@ void GetStartSignInTime()
 		while (cs.hour < 0 || cs.hour>59)
 		{
 			std::cout << "时[0-59]：" << std::unitbuf;
-			std::cin.clear();
 			getline(std::cin, RawInput);
 			ConvertStream.clear();
 
@@ -58,7 +57,6 @@ void GetStartSignInTime()
 		while (cs.minute < 0 || cs.minute>59)
 		{
 			std::cout << "分[0-59]：" << std::unitbuf;
-			std::cin.clear();
 			getline(std::cin, RawInput);
 			ConvertStream.clear();
 
@@ -66,11 +64,12 @@ void GetStartSignInTime()
 			ConvertStream >> cs.minute;
 		}
 		fileio.WriteConfig(cs);
+		std::cout << "时间：" << cs.hour << "时" << cs.minute << "分" << std::endl;
 	}
 	else
 	{
 		fileio.ReadConfig(cs);
-		std::cout << "将使用配置文件中的时间：" << cs.hour << "时" << cs.minute << "分" << std::endl;
+		std::cout << "签到时间为：" << cs.hour << "时" << cs.minute << "分" << std::endl;
 	}
 
 }
@@ -83,6 +82,5 @@ int main()
 	}
 	*/
 	GetStartSignInTime();
-
 	return 0;
 }
