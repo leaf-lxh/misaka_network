@@ -76,11 +76,11 @@ void GetStartSignInTime()
 int main()
 {
 
-	/*if (!MySQLTestLogin())
+	if (!MySQLTestLogin())
 	{
 		return 0;
 	}
-	*/
+	
 	GetStartSignInTime();
 	return 0;
 }
