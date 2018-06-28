@@ -1,35 +1,26 @@
-#include <string>
-#include <fstream>
+#include "./HTTPHandler.h"
+
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+
+int HTTPHandler::StartListen(unsigned short port)
+{
+	int socket_fd = 0;
+	int accept_fd = 0;
 
 
-size_t HTTPHandler::HandleRequest(const std::string &receive,std::string &response)
-{
-	size_t response_length = 0;
-	
-	return response_length;
-}
-//根据\r\n\r\n将收到的数据中的Header与Content分离开，分别存储到当前对象中的request_headers和request_headers变量中去
-//找不到\r\n\r\n时，返回false，反之为true
-bool HTTPHandler::FormatRequest (const std::string &receive)
-{
-	
-	return count_header;
-}
+	socket_fd = socket(AF_INET,SOCK_STREAM,0);
 
-size_t HTTPHandler::CreateResponseContent(const char *file_name, std::string &content_buffer)
-{
-	size_t content_length = 0;
-	
-	return content_length;
-}
+	struct sockaddr_in server_addr = {};
+	struct sockaddr_in client_addr = {};
 
-bool ReadFile(const char *path,std::string &buffer)
-{
-	std::fstream file;
-	return true;
-}
+	server_addr.sin_port = htons(port);
+	server_addr.sin_family = AF_INET;
+	server_addr.sin_addr.s_addr = INADDR_ANY;
 
-bool WriteFile(const char *path,std::string &buffer)
-{
-	return true;
+
+	bind(socket_fd,(sockaddr*)&server_addr,sizeof(sockaddr_in));
+
+	return
 }

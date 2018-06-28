@@ -6,23 +6,26 @@
 std::string config_path = "./config/";
 std::string log_path = "./log/";
 
+std::string mysql_host = "localhost";
+unsigned int mysql_port = 2333;
+std::string mysql_username = "";
+std::string mysql_password = "";
 
 bool MySQLTestLogin()
 {
-	std::string username = "";
-	std::string password = "";
+
 
 	std::cout << "程序开始运行，你需要做一些准备工作" << std::endl;
 	std::cout << "首先需要进行数据库的一些配置" << std::endl;
 
 	std::cout << "使用的用户为：";
-	getline(std::cin, username);
+	getline(std::cin, mysql_username);
 	std::cout << "该用户密码为：";
-	getline(std::cin, password);
+	getline(std::cin, mysql_password);
 
 	std::cout << "测试能否成功登录mysql数据库" << std::endl;
 	MySQLConnect mysql_test;
-	if (!mysql_test.init(username, password))
+	if (!mysql_test.init(mysql_host,mysql_port,mysql_username, mysql_password))
 	{
 		std::cout << "登录失败，请检查用户名和密码是否正确" << std::endl << "程序已退出" << std::endl;
 		return false;
@@ -75,12 +78,14 @@ void GetStartSignInTime()
 }
 int main()
 {
-
+	/*
 	if (!MySQLTestLogin())
 	{
 		return 0;
 	}
 	
 	GetStartSignInTime();
+	*/
+	
 	return 0;
 }
