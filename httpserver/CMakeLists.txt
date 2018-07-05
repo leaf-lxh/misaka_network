@@ -9,10 +9,10 @@ aux_source_directory (. SRCS_ROOT_DIR)
 
 #添加子目录
 add_subdirectory (HTTPHandler)
-add_subdirectory (scripts)
-
-#指明编译时需要链接的库
-target_link_libraries (LIBS_HTTPHandler)
+add_subdirectory (script)
 
 #生成目标文件
-add_executable (httpserver SRCS_ROOT_DIR)
+add_executable (httpserver ${SRCS_ROOT_DIR})
+
+#指明编译时需要链接的库
+target_link_libraries (httpserver LIBS_HTTPHandler)
