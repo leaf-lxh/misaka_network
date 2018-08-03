@@ -4,6 +4,8 @@
 #include <unistd.h>
 
 #include <string>
+#include <iostream>
+#include <fstream>
 
 #define LISTENQ 1024
 
@@ -22,6 +24,12 @@ void testFunction(int connectFD, sockaddr_in* client, socklen_t len)
 	{
 		response += recevied;
 	}
+
+	std::fstream file;
+	file.open("./out.log", std::fstream::app);
+	file << response << std::endl;
+	file.close();
+
 	send(connectFD, response.c_str(), response.length(), 0);
 }
 
@@ -42,9 +50,11 @@ int main()
 	listen(socketFD, LISTENQ);
 
 	int connectFD = 0;
+
 	while (true)
 	{
 		connectFD = accept(socketFD, (sockaddr*)&clientAddr, &clientlen);
+		std::cout << connectFD << std::endl;
 		if (!connectFD)
 		{
 			if (fork() == 0)
