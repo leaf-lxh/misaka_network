@@ -26,7 +26,7 @@ void testFunction(int connectFD, sockaddr_in* client, socklen_t len)
 	}
 
 	std::fstream file;
-	file.open("./out.log", std::fstream::app);
+	file.open("./out.log", std::fstream::app | std::fstream::out);
 	file << response << std::endl;
 	file.close();
 
@@ -55,7 +55,7 @@ int main()
 	{
 		connectFD = accept(socketFD, (sockaddr*)&clientAddr, &clientlen);
 		std::cout << connectFD << std::endl;
-		if (!connectFD)
+		if (connectFD>0)
 		{
 			if (fork() == 0)
 			{
