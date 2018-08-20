@@ -2,16 +2,27 @@
 #include "HTTPRequest.h"
 #include "md5.h"
 
-int SignIn::SendSignInRequest(std::string BDUSS,std::string STOKEN)
+SignIn::SignIn(std::string BDUSS, std::string STOKEN)
+{
+
+}
+
+int SignIn::SendSignInRequest()
 {
     return 0;
 }
 
+std::vector<std::string> SignIn::GetUnsignedList()
+{
+
+}
 
 int SignIn::GetILikeTiebaList()
 {
     
 }
+
+
 
 
 bool SignIn::GetFID(std::string kw)
