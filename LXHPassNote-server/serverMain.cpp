@@ -7,6 +7,8 @@
 #include <iostream>
 #include <fstream>
 
+#include"modules/services.h"
+
 #define LISTENQ 1024
 
 void testFunction(int connectFD, sockaddr_in* client, socklen_t len)
@@ -31,8 +33,44 @@ void testFunction(int connectFD, sockaddr_in* client, socklen_t len)
 	file.close();
 
 	send(connectFD, response.c_str(), response.length(), 0);
+	delete recevied;
 }
 
+
+
+void ServiceDispatch(int connectFD)
+{
+	std::string response;
+	std::string received;
+	char *buffer = new char[4096];
+
+	while (recv(connectFD,buffer,4096,0) > 0)
+	{
+		received += buffer;
+	}
+
+	std::string serviceName;
+	size_t result = GetValueByKey(serviceName, "Service", received);
+	if (result == std::string::npos)
+	{
+		response =
+			"Status 404\r\n"
+			"Reason:Service error\r\n\r\n";
+	}
+	else
+	{
+		if (serviceName == "Login")
+		{
+			LoginService thisSession;
+			thisSession.Login(received,response);
+		}
+	}
+
+	send(connectFD, response.c_str(), response.length(), 0);
+
+
+
+}
 
 int main()
 {
@@ -46,7 +84,7 @@ int main()
 	serverAddr.sin_family = AF_INET;
 	serverAddr.sin_port = htons(30000);
 	
-	bind(socketFD, (sockaddr*)&clientAddr, sizeof(clientAddr));
+	bind(socketFD, (sockaddr*)&serverAddr, sizeof(serverAddr));
 	listen(socketFD, LISTENQ);
 
 	int connectFD = 0;
