@@ -19,36 +19,44 @@ public:
 
 	std::string lastErrorString;
 
+
 	/************************************************************************************************************************
 	*测试连接MySQL-server，应在调用本类其他函数之前调用本函数
 	*参数：info|一个包含连接用的信息的结构
 	*返回：布尔值，无错误返回true。反之false，错误信息查看lastErrorString
 	*************************************************************************************************************************/
-	bool TestConnect(MySQLInfo info);
+	bool Connect(MySQLInfo info);
 	
-	void Query(const char* query);
+	/************************************************************************************************************************
+	*关闭一个建立的连接
+	*参数：无
+	*返回：无
+	*************************************************************************************************************************/
+	void  CloseConnection();
 
-	void UseDatabase(const char* db);
+	void Query(const std::string query);
 
+	void UseDatabase(const std::string db);
 
-	unsigned long long InsertData(const char* tableName, const char* columnName, const char* value);
+	/************************************************************************************************************************
+	*执行INSERT语句
+	*参数：tableName             |目标表名
+	*      columnName            |与value对应的列表头，可以为空字符串
+	*      value                 |数据
+	*返回：unsigned long long    |影响的行数，如果执行失败则返回ULLONG_MAX
+	*************************************************************************************************************************/
+	unsigned long long InsertData(const std::string tableName, const std::string columnName, const std::string value);
 
-	std::vector<std::vector<std::string>> SelectData(const char* column, const char* tableName, const char* condition);
+	std::vector<std::vector<const std::string>> SelectData(const std::string column, const std::string tableName, const std::string condition);
 
-	unsigned long long UpdateData(const char* tableName, const char* changes, const char* condition);
+	unsigned long long UpdateData(const std::string tableName, const std::string changes, const std::string condition);
 
-	unsigned long long DeleteData(const char* tableName, const char* condition);
+	unsigned long long DeleteData(const std::string tableName, const std::string condition);
 
 
 	
 private:
-	MySQLInfo _info;
-
-	MYSQL* Connect(MYSQL *mysql, MySQLInfo info, const char* db);
-	void  Close(MYSQL* p);
-
-
-
+	MYSQL _HMYSQL;
 };
 
 
