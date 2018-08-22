@@ -47,7 +47,15 @@ public:
 	*************************************************************************************************************************/
 	unsigned long long InsertData(const std::string tableName, const std::string columnName, const std::string value);
 
-	std::vector<std::vector<const std::string>> SelectData(const std::string column, const std::string tableName, const std::string condition);
+	/************************************************************************************************************************
+	*执行SELECT语句
+	*参数：column                |所限定的列
+	*      tableName             |目标表名
+	*      condition             |条件
+	*      buffer                |用于存储结果
+	*返回：unsigned long long    |查询所返回结果的行数，若发生错误返回(unsigned long long)-1
+	*************************************************************************************************************************/
+	unsigned long long SelectData(const std::string column, const std::string tableName, const std::string condition, std::vector<std::vector<const std::string>> &buffer);
 
 	unsigned long long UpdateData(const std::string tableName, const std::string changes, const std::string condition);
 

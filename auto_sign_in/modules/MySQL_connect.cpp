@@ -38,7 +38,7 @@ void MySQLConnect::CloseConnection()
 *参数：tableName             |目标表名
 *      columnName            |与value对应的列表头，可以为空字符串
 *      value                 |数据
-*返回：unsigned long long    |影响的行数，如果执行失败则返回ULLONG_MAX
+*返回：unsigned long long    |影响的行数，如果执行失败则返回(unsigned long long)-1
 *************************************************************************************************************************/
 unsigned long long MySQLConnect::InsertData(const std::string tableName, const std::string columnName, const std::string value)
 {
@@ -61,7 +61,16 @@ unsigned long long MySQLConnect::InsertData(const std::string tableName, const s
 	return mysql_affected_rows(&_HMYSQL);
 }
 
-std::vector<std::vector<const std::string>> MySQLConnect::SelectData(const std::string column, const std::string tableName, const std::string condition)
+
+/************************************************************************************************************************
+*执行SELECT语句
+*参数：column                |所限定的列
+*      tableName             |目标表名
+*      condition             |条件
+*      buffer                |用于存储结果
+*返回：unsigned long long    |查询所返回结果的行数，若发生错误返回(unsigned long long)-1
+*************************************************************************************************************************/
+unsigned long long MySQLConnect::SelectData(const std::string column, const std::string tableName, const std::string condition, std::vector<std::vector<const std::string>> &buffer)
 {
 	std::string queryString = "SELECT";
 	queryString += ' ';
@@ -78,8 +87,49 @@ std::vector<std::vector<const std::string>> MySQLConnect::SelectData(const std::
 		queryString += condition;
 	}
 	
+	if (mysql_query(&_HMYSQL, queryString.c_str()))
+	{
+		lastErrorString = mysql_error(&_HMYSQL);
+		return (unsigned long long) - 1;
+	}
+
+	MYSQL_RES* results = mysql_store_result(&_HMYSQL);
+	unsigned long long rowCount = 0;
+	if (results == nullptr)
+	{
+		
+			rowCount = (unsigned long long) - 1;
+			return rowCount;
+	}
 	
-	return std::vector<std::vector<const std::string>>();
+	rowCount = mysql_num_rows(results);
+	if (rowCount != 0)
+	{
+
+		MYSQL_ROW row = mysql_fetch_row(results);
+		if (row == nullptr)
+		{
+			lastErrorString = mysql_error(&_HMYSQL);
+			return (unsigned long long) - 1;
+		}
+
+		unsigned long long columnCount = mysql_num_fields(results);
+		buffer = {};
+		std::vector<const std::string> singleRowBuf = {};
+		do
+		{
+			for (unsigned long long columnIndex = 0; columnIndex < columnCount; columnIndex++)
+			{
+				singleRowBuf.push_back(row[columnIndex]);
+			}
+			buffer.push_back(singleRowBuf);
+
+			singleRowBuf = {};
+			row = mysql_fetch_row(results);
+		} while (row != nullptr);
+	}
+
+	return rowCount;
 }
 
 unsigned long long MySQLConnect::UpdateData(const std::string tableName, const std::string changes, const std::string condition)
