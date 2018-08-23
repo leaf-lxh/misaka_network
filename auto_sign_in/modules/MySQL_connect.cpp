@@ -25,7 +25,7 @@ bool MySQLConnect::Connect(MySQLInfo info)
 {
 	
 	mysql_init(&_HMYSQL);
-	if (mysql_real_connect(&_HMYSQL, info.host.c_str(), info.username.c_str(), info.password.c_str(), NULL, info.port, NULL, NULL) == NULL)
+	if (mysql_real_connect(&_HMYSQL, info.host.c_str(), info.username.c_str(), info.password.c_str(), nullptr, info.port, nullptr, 0) == NULL)
 	{
 		lastErrorString = mysql_error(&_HMYSQL);
 		return false;
