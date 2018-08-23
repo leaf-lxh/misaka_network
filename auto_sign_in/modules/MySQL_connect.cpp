@@ -100,7 +100,7 @@ unsigned long long MySQLConnect::InsertData(const std::string tableName, const s
 *      buffer                |用于存储结果
 *返回：unsigned long long    |查询所返回结果的行数，若发生错误返回(unsigned long long)-1
 *************************************************************************************************************************/
-unsigned long long MySQLConnect::SelectData(const std::string column, const std::string tableName, const std::string condition, std::vector<std::vector<const std::string> > &buffer)
+unsigned long long MySQLConnect::SelectData(const std::string column, const std::string tableName, const std::string condition, std::vector<std::vector<std::string> > &buffer)
 {
 	std::string queryString = "SELECT";
 	queryString += ' ';
@@ -145,7 +145,7 @@ unsigned long long MySQLConnect::SelectData(const std::string column, const std:
 
 		unsigned long long columnCount = mysql_num_fields(results);
 		buffer = {};
-		std::vector<const std::string> singleRowBuf;
+		std::vector<std::string> singleRowBuf;
 		do
 		{
 			for (unsigned long long columnIndex = 0; columnIndex < columnCount; columnIndex++)
