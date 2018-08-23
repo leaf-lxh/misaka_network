@@ -26,7 +26,7 @@ bool MySQLConnect::Connect(MySQLInfo info)
 {
 	
 	mysql_init(&_HMYSQL);
-	if (mysql_real_connect(&_HMYSQL, info.host.c_str(), info.username.c_str(), info.password.c_str(), NULL, info.port, NULL, NULL) == nullptr)
+	if (mysql_real_connect(&_HMYSQL, info.host.c_str(), info.username.c_str(), info.password.c_str(), NULL, info.port, NULL, NULL) == NULL)
 	{
 		lastErrorString = mysql_error(&_HMYSQL);
 		return false;
@@ -101,7 +101,7 @@ unsigned long long MySQLConnect::InsertData(const std::string tableName, const s
 *      buffer                |用于存储结果
 *返回：unsigned long long    |查询所返回结果的行数，若发生错误返回(unsigned long long)-1
 *************************************************************************************************************************/
-unsigned long long MySQLConnect::SelectData(const std::string column, const std::string tableName, const std::string condition, std::vector<std::vector<const std::string>> &buffer)
+unsigned long long MySQLConnect::SelectData(const std::string column, const std::string tableName, const std::string condition, std::vector<std::vector<const std::string> > &buffer)
 {
 	std::string queryString = "SELECT";
 	queryString += ' ';
@@ -126,7 +126,7 @@ unsigned long long MySQLConnect::SelectData(const std::string column, const std:
 
 	MYSQL_RES* results = mysql_store_result(&_HMYSQL);
 	unsigned long long rowCount = 0;
-	if (results == nullptr)
+	if (results == NULL)
 	{
 		
 			rowCount = (unsigned long long) - 1;
@@ -138,7 +138,7 @@ unsigned long long MySQLConnect::SelectData(const std::string column, const std:
 	{
 
 		MYSQL_ROW row = mysql_fetch_row(results);
-		if (row == nullptr)
+		if (row == NULL)
 		{
 			lastErrorString = mysql_error(&_HMYSQL);
 			return (unsigned long long) - 1;
@@ -157,7 +157,7 @@ unsigned long long MySQLConnect::SelectData(const std::string column, const std:
 
 			singleRowBuf = {};
 			row = mysql_fetch_row(results);
-		} while (row != nullptr);
+		} while (row != NULL);
 	}
 
 	return rowCount;

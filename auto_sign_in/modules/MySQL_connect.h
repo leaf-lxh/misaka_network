@@ -61,7 +61,7 @@ public:
 	*      buffer                |用于存储结果
 	*返回：unsigned long long    |查询所返回结果的行数，若发生错误返回(unsigned long long)-1
 	*************************************************************************************************************************/
-	unsigned long long SelectData(const std::string column, const std::string tableName, const std::string condition, std::vector<std::vector<const std::string>> &buffer);
+	unsigned long long SelectData(const std::string column, const std::string tableName, const std::string condition, std::vector<std::vector<const std::string> > &buffer);
 
 	/************************************************************************************************************************
 	*更新目标表的数据
