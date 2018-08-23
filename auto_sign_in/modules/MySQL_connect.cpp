@@ -1,4 +1,3 @@
-#include <mysql/mysql.h>
 #include "MySQL_connect.h"
 
 #include <string>
@@ -146,7 +145,7 @@ unsigned long long MySQLConnect::SelectData(const std::string column, const std:
 
 		unsigned long long columnCount = mysql_num_fields(results);
 		buffer = {};
-		std::vector<const std::string> singleRowBuf = {};
+		std::vector<const std::string> singleRowBuf;
 		do
 		{
 			for (unsigned long long columnIndex = 0; columnIndex < columnCount; columnIndex++)

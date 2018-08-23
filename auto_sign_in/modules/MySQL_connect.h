@@ -2,6 +2,8 @@
 #include <vector>
 #include <sstream>
 
+#include <mysql/mysql.h>
+
 struct MySQLInfo
 {
 	std::string host;
