@@ -3,6 +3,20 @@
 
 #include <string>
 
+//本类的构造函数，用于初始化mysqllib
+MySQLConnect::MySQLConnect()
+{
+	mysql_library_init(0, NULL, NULL);
+}
+
+
+//本类的析构函数，用于释放mysql库占用的内存
+MySQLConnect::~MySQLConnect()
+{
+	mysql_library_end();
+}
+
+
 /************************************************************************************************************************
 *与MySQL-server建立连接，应在调用本类其他函数之前调用本函数
 *参数：info |一个包含连接用信息的MySQLInfo结构
@@ -30,6 +44,23 @@ bool MySQLConnect::Connect(MySQLInfo info)
 void MySQLConnect::CloseConnection()
 {
 	mysql_close(&_HMYSQL);
+}
+
+
+/************************************************************************************************************************
+*执行一个MySQL语句
+*参数：query|欲执行的MySQL语句
+*返回：bool |无错误为true,反之为false,具体错误查看lastErrorString
+*************************************************************************************************************************/
+bool MySQLConnect::Query(const std::string query)
+{
+	if (mysql_query(&_HMYSQL, query.c_str()))
+	{
+		lastErrorString = mysql_error(&_HMYSQL);
+		return false;
+	}
+
+	return true;
 }
 
 
@@ -132,27 +163,67 @@ unsigned long long MySQLConnect::SelectData(const std::string column, const std:
 	return rowCount;
 }
 
+
+/************************************************************************************************************************
+*更新目标表的数据
+*参数：tableName|目标表名
+*      changes  |变动
+*      condition|条件，可为空字符串
+*返回：unsigned long long    |影响的行数，如果执行失败则返回(unsigned long long)-1
+*************************************************************************************************************************/
 unsigned long long MySQLConnect::UpdateData(const std::string tableName, const std::string changes, const std::string condition)
 {
+	std::string queryString = "UPDATE";
+	queryString += ' ';
+	queryString += tableName;
+	queryString += ' ';
+	queryString += "SET";
+	queryString += ' ';
+	queryString += changes;
+	if (condition != "")
+	{
+		queryString += ' ';
+		queryString += "WHERE";
+		queryString += ' ';
+		queryString += condition;
+	}
 	
-	return 0;
+
+	if (mysql_query(&_HMYSQL, queryString.c_str()))
+	{
+		lastErrorString = mysql_error(&_HMYSQL);
+		return (unsigned long long) - 1;
+	}
+
+	return mysql_affected_rows(&_HMYSQL);
 }
 
+
+/************************************************************************************************************************
+*删除目标表中的数据
+*参数：tableName|目标表名
+*      condition|条件，可为空字符串
+*返回：unsigned long long    |影响的行数，如果执行失败则返回(unsigned long long)-1
+*************************************************************************************************************************/
 unsigned long long MySQLConnect::DeleteData(const std::string tableName, const std::string condition)
 {
-	return 0;
+	std::string queryString = "DELETE FROM";
+	queryString += ' ';
+	queryString += tableName;
+	if (condition != "")
+	{
+		queryString += ' ';
+		queryString += condition;
+	}
+	
+	if (mysql_query(&_HMYSQL, queryString.c_str()))
+	{
+		lastErrorString = mysql_error(&_HMYSQL);
+		return (unsigned long long) - 1;
+	}
+	return mysql_affected_rows(&_HMYSQL);
 }
 
-MySQLConnect::MySQLConnect()
-{
-	mysql_library_init(0, NULL, NULL);
-}
-
-//本类的析构函数，用于释放mysql库占用的内存
-MySQLConnect::~MySQLConnect()
-{
-	mysql_library_end();
-}
 
 
 
