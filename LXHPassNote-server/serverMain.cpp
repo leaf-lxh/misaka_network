@@ -11,13 +11,13 @@
 
 #define LISTENQ 1024
 
-void testFunction(int connectFD, sockaddr_in* client, socklen_t len)
+void testFunction(int connectFD, sockaddr_in* client)
 {
 	std::string response = "Hello! ";
-	char * buf = new char[256];
-	inet_ntop(AF_INET, client, buf, len);
+	char * clientAddr = new char[INET_ADDRSTRLEN];
+	inet_ntop(AF_INET, &client->sin_addr.s_addr, clientAddr, INET_ADDRSTRLEN);
 
-	response += buf;
+	response += clientAddr;
 	response += "\nYour content:\n";
 	ssize_t recv_len = 0;
 
@@ -97,7 +97,7 @@ int main()
 		{
 			if (fork() == 0)
 			{
-				testFunction(connectFD,&clientAddr,clientlen);
+				testFunction(connectFD,&clientAddr);
 			}
 			close(connectFD);
 		}
