@@ -4,38 +4,139 @@
 #include <netdb.h>
 #include "HTTPRequest.h"
 
-std::string HTTPRequest::HTTPOpenRequest(std::string requestURL, std::vector<std::string> additionalHeaders, std::string method, char * additionalData, unsigned long long dataLength)
-{
+#include <regex>
+#include <sstream>
 
-	return std::string();
+
+/************************************************************************************************************************
+*进行HTTP请求。不支持HTTPS
+*参数：requestURL              |请求的URL，应严格按照格式http://host/directory
+*      additionalHeaders       |附加的Headers //应为additionalData添加Content-type和Content-encoding
+*      method                  |请求方式
+*      additionalData          |随Headers发送的附加的数据
+*      dataLength              |additionalData的长度
+*      port                    |HTTP服务器的端口
+*返回：bool                    |请求成功返回true,反正为false,具体错误查看lastErrorString
+*************************************************************************************************************************/
+bool HTTPRequest::HTTPOpenRequest(std::string requestURL, std::vector<std::string> additionalHeaders, std::string method, std::vector<char> additionalData, unsigned short port)
+{
+	std::smatch result;
+	std::regex format("http://(.*?)/(.*)");
+	std::string host;
+	std::string requestDirectory = "/";
+	if (std::regex_match(requestURL, result, format))
+	{
+		host = result[1];
+		
+		if (result.length() == 3)
+		{
+			requestDirectory += result[2];
+		}
+	}
+	else
+	{
+		lastErrorString = "Wrong format for requestURL.";
+		return false;
+	}
+
+	std::string data(additionalData.begin(), additionalData.end());
+	std::string headers = method + " " + requestDirectory + " HTTP/1.1" + "\r\n";
+	headers += "Hosts: " + host + "\r\n";
+	if (additionalData.empty() == false)
+	{	
+		headers += "Content-length: ";
+
+		std::stringstream stream;
+		std::string temp;
+		stream << additionalData.size();
+		stream >> temp;
+		headers += temp + "\r\n";
+	}
+	for (auto &element : additionalHeaders)
+	{
+		headers += element + "\r\n";
+	}
+	headers += "\r\n";
+	headers += data;
+
+	return request(host,port,headers);
 }
 
-std::vector<std::string> HTTPRequest::SplitResponse(std::string response)
+std::vector<char> HTTPRequest::GetResponseHeaders()
 {
-	return std::vector<std::string>();
+	return std::vector<char>();
 }
+
+std::vector<char> HTTPRequest::GetResponseMessageBody()
+{
+	return std::vector<char>();
+}
+
 
 std::string HTTPRequest::GetHeaderFieldValue(std::string fieldName)
 {
 	return std::string();
 }
 
-std::string HTTPRequest::URLencode(std::string text)
+std::vector<char> HTTPRequest::URLencode(std::vector<char> text)
+{
+	return std::vector<char>();
+}
+
+std::vector<char> HTTPRequest::URLdecode(std::vector<char> text)
+{
+	return std::vector<char>();
+}
+
+std::vector<char> HTTPRequest::UnicodeEscapeToUTF8(std::string text)
+{
+	return std::vector<char>();
+}
+
+std::string HTTPRequest::UTF8ToUnicodeEscape(std::vector<char> text)
 {
 	return std::string();
 }
 
-std::string HTTPRequest::URLdecode(std::string text)
+bool HTTPRequest::request(std::string host, unsigned short port, std::string & data)
 {
-	return std::string();
-}
+	_response.clear();
+	int socketFD = socket(AF_INET, SOCK_STREAM, 0);
 
-std::string HTTPRequest::UnicodeEscapeToUTF8(std::string text)
-{
-	return std::string();
-}
+	sockaddr_in server = {};
+	server.sin_family = AF_INET;
+	server.sin_port = htons(port);
+	hostent *p = gethostbyname(host.c_str());
+	if (p->h_addr_list[0] != nullptr)
+	{
+		char ip[INET_ADDRSTRLEN];
+		inet_ntop(AF_INET, p->h_addr_list[0], ip, INET_ADDRSTRLEN);
+		inet_pton(AF_INET, ip, &server.sin_addr.s_addr);
+	}
+	else
+	{
+		lastErrorString = "Unable to find ip address for " + host;
+		return false;
+	}
 
-std::string HTTPRequest::UTF8ToUnicodeEscape(std::string text)
-{
-	return std::string();
+	if (connect(socketFD, (sockaddr*)&server, sizeof(server)))
+	{
+		lastErrorString = "connect() error";
+		return false;
+	}
+
+	if (send(socketFD, data.data(), data.size(), 0) == -1)
+	{
+		lastErrorString = "send() error";
+		return false;
+	}
+
+	ssize_t receivedLength = 0;
+	char received[65535];
+	while ((receivedLength = recv(socketFD, received, 65535, 0)) > 0)
+	{
+		std::vector<char> buffer(received, received + receivedLength);
+		_response.insert(_response.end(), buffer.begin(), buffer.end());
+	}
+	return true;
 }
