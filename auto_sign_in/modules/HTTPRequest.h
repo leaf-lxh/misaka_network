@@ -11,17 +11,15 @@ public:
 
 	std::string lastErrorString;
 	
-
-
 	/************************************************************************************************************************
-	*进行HTTP请求，不支持HTTPS
+	*进行HTTP请求。不支持HTTPS
 	*参数：requestURL              |请求的URL，应严格按照格式http://host/directory
-	*      additionalHeaders       |附加的Headers
+	*      additionalHeaders       |附加的Headers //应为additionalData添加Content-type和Content-encoding,每条header应加后缀\r\n
 	*      method                  |请求方式
 	*      additionalData          |随Headers发送的附加的数据
 	*      dataLength              |additionalData的长度
 	*      port                    |HTTP服务器的端口
-	*返回：string                  |本次请求后服务器返回的所有数据
+	*返回：bool                    |请求成功返回true,反正为false,具体错误查看lastErrorString
 	*************************************************************************************************************************/
 	bool HTTPOpenRequest(std::string requestURL, std::vector<std::string> additionalHeaders, std::string method, std::vector<char> additionalData, unsigned short port);
 
@@ -41,5 +39,13 @@ public:
 	
 private:
 	std::vector<char> _response;
+
+	/************************************************************************************************************************
+	*向指定的host:port发送数据
+	*参数： host|目标服务器的域名或IP地址
+	*       port|目标服务端口
+	*       data|欲发送的数据
+	*返回： bool 无错误返回true。 失败返回false，具体错误查看lastErrorString
+	*************************************************************************************************************************/
 	bool request(std::string host,unsigned short port,std::string &data);
 };
