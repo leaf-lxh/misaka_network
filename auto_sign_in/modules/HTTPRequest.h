@@ -23,9 +23,19 @@ public:
 	*************************************************************************************************************************/
 	bool HTTPOpenRequest(std::string requestURL, std::vector<std::string> additionalHeaders, std::string method, std::vector<char> additionalData, unsigned short port);
 
-	std::vector<char> GetResponseHeaders();
+	/************************************************************************************************************************
+	*以\r\n\r\n将respouse headers与response body的分开，并返回respouse headers(不包含结尾的\r\n\r\n)
+	*参数：无
+	*返回：std::string |成功返回respouse headers，失败返回整个response
+	*************************************************************************************************************************/
+	std::string GetResponseHeaders();
 
-	std::vector<char> GetResponseMessageBody();
+	/************************************************************************************************************************
+	*以\r\n\r\n将respouse headers与response body的分开，并返回response body
+	*参数：无
+	*返回：std::string |成功返回response body，失败返回整个response
+	*************************************************************************************************************************/
+	std::string GetResponseMessageBody();
 
 	std::string GetHeaderFieldValue(std::string fieldName);
 

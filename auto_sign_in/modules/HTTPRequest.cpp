@@ -6,6 +6,7 @@
 
 #include <regex>
 #include <sstream>
+#include <algorithm>
 
 
 /************************************************************************************************************************
@@ -28,7 +29,7 @@ bool HTTPRequest::HTTPOpenRequest(std::string requestURL, std::vector<std::strin
 	{
 		host = result[1];
 		
-		if (result.length() == 3)
+		if (result.size() == 3)
 		{
 			requestDirectory += result[2];
 		}
@@ -41,7 +42,7 @@ bool HTTPRequest::HTTPOpenRequest(std::string requestURL, std::vector<std::strin
 
 	std::string data(additionalData.begin(), additionalData.end());
 	std::string headers = method + " " + requestDirectory + " HTTP/1.1" + "\r\n";
-	headers += "Hosts: " + host + "\r\n";
+	headers += "Host: " + host + "\r\n";
 	if (additionalData.empty() == false)
 	{	
 		headers += "Content-length: ";
@@ -62,14 +63,38 @@ bool HTTPRequest::HTTPOpenRequest(std::string requestURL, std::vector<std::strin
 	return request(host,port,headers);
 }
 
-std::vector<char> HTTPRequest::GetResponseHeaders()
+/************************************************************************************************************************
+*以\r\n\r\n将respouse headers与response body的分开，并返回respouse headers(不包含结尾的\r\n\r\n)
+*参数：无
+*返回：std::string |成功返回respouse headers，失败返回整个response
+*************************************************************************************************************************/
+std::string HTTPRequest::GetResponseHeaders()
 {
-	return std::vector<char>();
+	
+	std::string str(_response.begin(), _response.end());
+	size_t pos = str.find("\r\n\r\n");
+	if (pos != str.npos)
+	{
+		str = str.substr(0, pos);
+	}
+	
+	return str;
 }
-
-std::vector<char> HTTPRequest::GetResponseMessageBody()
+/************************************************************************************************************************
+*以\r\n\r\n将respouse headers与response body的分开，并返回response body
+*参数：无
+*返回：std::string |成功返回response body，失败返回整个response
+*************************************************************************************************************************/
+std::string HTTPRequest::GetResponseMessageBody()
 {
-	return std::vector<char>();
+	std::string str(_response.begin(), _response.end());
+	size_t pos = str.find("\r\n\r\n");
+	if (pos != str.npos)
+	{
+		str = str.substr(pos + 4, str.size());
+	}
+	
+	return str;
 }
 
 
