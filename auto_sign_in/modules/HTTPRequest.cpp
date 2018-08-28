@@ -139,7 +139,7 @@ bool HTTPRequest::request(std::string host, unsigned short port, std::string & d
 	server.sin_family = AF_INET;
 	server.sin_port = htons(port);
 	hostent *p = gethostbyname(host.c_str());
-	if (p->h_addr_list[0] != nullptr)
+	if (p != nullptr && p->h_addr_list[0] != nullptr)
 	{
 		char ip[INET_ADDRSTRLEN];
 		inet_ntop(AF_INET, p->h_addr_list[0], ip, INET_ADDRSTRLEN);
