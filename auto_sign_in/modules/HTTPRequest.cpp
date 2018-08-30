@@ -97,23 +97,25 @@ std::string HTTPRequest::GetResponseMessageBody()
 	return str;
 }
 
-
-std::string HTTPRequest::GetHeaderFieldValue(std::string fieldName, std::string headers)
+/************************************************************************************************************************
+*获取header对应的value(header: value\r\n)，返回所有匹配的结果
+*参数：fieldName                |欲获取value的header名
+*      headers                  |被搜索的文本
+*返回：std::vector<std::string> |无匹配的结果返回空std::vector<std::string>
+*************************************************************************************************************************/
+std::vector<std::string> HTTPRequest::GetHeaderFieldValue(std::string fieldName, std::string headers)
 {
-	std::smatch results;
-	std::regex headerFormat("(.*?)\r\n");
-	std::regex_search(headers, results, headerFormat);
+	std::vector<std::string> results;
 	
 	std::smatch value;
-	std::regex keyValueFormat(fieldName + ": (.*)\r\n");
-	for (auto &header : results)
+	std::regex keyValueFormat(fieldName + ": (.*?)\r\n");
+	std::regex_iterator <std::string::const_iterator> begin(headers.cbegin(), headers.cend(), keyValueFormat);
+	for (auto index = begin; index != std::sregex_iterator(); index++)
 	{
-		if (std::regex_match(results, value, keyValueFormat))
-		{
-			return value[1];
-		}
+		
+		results.push_back(index->str(1));
 	}
-	return "";
+	return results;
 }
 
 std::vector<char> HTTPRequest::URLencode(std::vector<char> text)

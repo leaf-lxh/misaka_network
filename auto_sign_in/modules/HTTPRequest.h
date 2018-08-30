@@ -37,7 +37,13 @@ public:
 	*************************************************************************************************************************/
 	std::string GetResponseMessageBody();
 
-	std::string GetHeaderFieldValue(std::string fieldName, std::string headers);
+	/************************************************************************************************************************
+	*获取header对应的value(header: value\r\n)，返回所有匹配的结果
+	*参数：fieldName                |欲获取value的header名
+	*      headers                  |被搜索的文本
+	*返回：std::vector<std::string> |无匹配的结果返回空std::vector<std::string>
+	*************************************************************************************************************************/
+	std::vector<std::string> GetHeaderFieldValue(std::string fieldName, std::string headers);
 
 	std::vector<char> URLencode(std::vector<char>);
 
