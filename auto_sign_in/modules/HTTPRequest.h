@@ -12,32 +12,32 @@ public:
 	std::string lastErrorString;
 	
 	/************************************************************************************************************************
-	*½øĞĞHTTPÇëÇó¡£²»Ö§³ÖHTTPS
-	*²ÎÊı£ºrequestURL              |ÇëÇóµÄURL£¬Ó¦ÑÏ¸ñ°´ÕÕ¸ñÊ½http://host/directory
-	*      additionalHeaders       |¸½¼ÓµÄHeaders //Ó¦ÎªadditionalDataÌí¼ÓContent-typeºÍContent-encoding,Ã¿ÌõheaderÓ¦¼Óºó×º\r\n
-	*      method                  |ÇëÇó·½Ê½
-	*      additionalData          |ËæHeaders·¢ËÍµÄ¸½¼ÓµÄÊı¾İ
-	*      dataLength              |additionalDataµÄ³¤¶È
-	*      port                    |HTTP·şÎñÆ÷µÄ¶Ë¿Ú
-	*·µ»Ø£ºbool                    |ÇëÇó³É¹¦·µ»Øtrue,·´ÕıÎªfalse,¾ßÌå´íÎó²é¿´lastErrorString
+	*è¿›è¡ŒHTTPè¯·æ±‚ã€‚ä¸æ”¯æŒHTTPS
+	*å‚æ•°ï¼šrequestURL              |è¯·æ±‚çš„URLï¼Œåº”ä¸¥æ ¼æŒ‰ç…§æ ¼å¼http://host/directory
+	*      additionalHeaders       |é™„åŠ çš„Headers //åº”ä¸ºadditionalDataæ·»åŠ Content-typeå’ŒContent-encoding,æ¯æ¡headeråº”åŠ åç¼€\r\n
+	*      method                  |è¯·æ±‚æ–¹å¼
+	*      additionalData          |éšHeaderså‘é€çš„é™„åŠ çš„æ•°æ®
+	*      dataLength              |additionalDataçš„é•¿åº¦
+	*      port                    |HTTPæœåŠ¡å™¨çš„ç«¯å£
+	*è¿”å›ï¼šbool                    |è¯·æ±‚æˆåŠŸè¿”å›true,åæ­£ä¸ºfalse,å…·ä½“é”™è¯¯æŸ¥çœ‹lastErrorString
 	*************************************************************************************************************************/
 	bool HTTPOpenRequest(std::string requestURL, std::vector<std::string> additionalHeaders, std::string method, std::vector<char> additionalData, unsigned short port);
 
 	/************************************************************************************************************************
-	*ÒÔ\r\n\r\n½«respouse headersÓëresponse bodyµÄ·Ö¿ª£¬²¢·µ»Ørespouse headers(²»°üº¬½áÎ²µÄ\r\n\r\n)
-	*²ÎÊı£ºÎŞ
-	*·µ»Ø£ºstd::string |³É¹¦·µ»Ørespouse headers£¬Ê§°Ü·µ»ØÕû¸öresponse
+	*ä»¥\r\n\r\nå°†respouse headersä¸response bodyçš„åˆ†å¼€ï¼Œå¹¶è¿”å›respouse headers(ä¸åŒ…å«ç»“å°¾çš„\r\n\r\n)
+	*å‚æ•°ï¼šæ— 
+	*è¿”å›ï¼šstd::string |æˆåŠŸè¿”å›respouse headersï¼Œå¤±è´¥è¿”å›æ•´ä¸ªresponse
 	*************************************************************************************************************************/
 	std::string GetResponseHeaders();
 
 	/************************************************************************************************************************
-	*ÒÔ\r\n\r\n½«respouse headersÓëresponse bodyµÄ·Ö¿ª£¬²¢·µ»Øresponse body
-	*²ÎÊı£ºÎŞ
-	*·µ»Ø£ºstd::string |³É¹¦·µ»Øresponse body£¬Ê§°Ü·µ»ØÕû¸öresponse
+	*ä»¥\r\n\r\nå°†respouse headersä¸response bodyçš„åˆ†å¼€ï¼Œå¹¶è¿”å›response body
+	*å‚æ•°ï¼šæ— 
+	*è¿”å›ï¼šstd::string |æˆåŠŸè¿”å›response bodyï¼Œå¤±è´¥è¿”å›æ•´ä¸ªresponse
 	*************************************************************************************************************************/
 	std::string GetResponseMessageBody();
 
-	std::string GetHeaderFieldValue(std::string fieldName);
+	std::string GetHeaderFieldValue(std::string fieldName, std::string headers);
 
 	std::vector<char> URLencode(std::vector<char>);
 
@@ -51,11 +51,11 @@ private:
 	std::vector<char> _response;
 
 	/************************************************************************************************************************
-	*ÏòÖ¸¶¨µÄhost:port·¢ËÍÊı¾İ
-	*²ÎÊı£º host|Ä¿±ê·şÎñÆ÷µÄÓòÃû»òIPµØÖ·
-	*       port|Ä¿±ê·şÎñ¶Ë¿Ú
-	*       data|Óû·¢ËÍµÄÊı¾İ
-	*·µ»Ø£º bool ÎŞ´íÎó·µ»Øtrue¡£ Ê§°Ü·µ»Øfalse£¬¾ßÌå´íÎó²é¿´lastErrorString
+	*å‘æŒ‡å®šçš„host:portå‘é€æ•°æ®
+	*å‚æ•°ï¼š host|ç›®æ ‡æœåŠ¡å™¨çš„åŸŸåæˆ–IPåœ°å€
+	*       port|ç›®æ ‡æœåŠ¡ç«¯å£
+	*       data|æ¬²å‘é€çš„æ•°æ®
+	*è¿”å›ï¼š bool æ— é”™è¯¯è¿”å›trueã€‚ å¤±è´¥è¿”å›falseï¼Œå…·ä½“é”™è¯¯æŸ¥çœ‹lastErrorString
 	*************************************************************************************************************************/
 	bool request(std::string host,unsigned short port,std::string &data);
 };

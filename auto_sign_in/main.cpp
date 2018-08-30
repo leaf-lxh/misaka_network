@@ -1,4 +1,4 @@
-﻿#include <iostream>
+#include <iostream>
 #include <sstream>
 #include "modules/MySQL_connect.h"
 #include "modules/FileIO.h"
