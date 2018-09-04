@@ -130,6 +130,58 @@ std::vector<char> HTTPRequest::URLdecode(std::vector<char> text)
 
 std::vector<char> HTTPRequest::UnicodeEscapeToUTF8(std::string text)
 {
+	std::vector<char> convertedStr;
+	std::regex format16("\\u[0-9a-fA-F]{4}");
+	std::regex format32("\\U[0-9a-fA-F]{8}");
+	for (auto index = text.begin(); index != text.end(); index++)
+	{
+		if (*index = '\\')
+		{
+			std::smatch result;
+			std::string assumedUnicodeEscape(index, index + 8);
+			if (std::regex_search(assumedUnicodeEscape, result, format16) || std::regex_search(assumedUnicodeEscape, result, format32))
+			{
+				index += result[1].length() + 2;
+				unsigned int value = 0;
+				std::stringstream ss;
+				ss << std::hex << result[1];
+				ss >> value;
+
+				if (0 <= value <= 0x7F)
+				{
+
+				}
+				else if(0x80 <= value <= 0x7FF)
+				{
+
+				}
+				else if (0x800 <= value <= 0xD7FF || 0xE000 <= value <= 0xFFFF)
+				{
+
+				}
+				else if(0x10000 <= value <= 0x10FFFF)
+				{
+
+				}
+				else
+				{
+					convertedStr.push_back(*index);
+					index++;
+				}
+			}
+			else
+			{
+				convertedStr.push_back(*index);
+				index++;
+			}
+		}
+		else
+		{
+			convertedStr.push_back(*index);
+			index++;
+		}
+	}
+
 	return std::vector<char>();
 }
 
