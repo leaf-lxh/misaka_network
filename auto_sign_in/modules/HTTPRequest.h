@@ -49,7 +49,12 @@ public:
 
 	std::vector<char> URLdecode(std::vector<char>);
 
-	std::vector<char> UnicodeEscapeToUTF8(std::string text);
+	/************************************************************************************************************************
+	*将Unicode-escaped字符串转为UTF8字节,输入 \u4E2D\u6587 返回 E4 B8 AD E6 96 87
+	*参数：text                       |Unicode-escaped字符串
+	*返回：std::vector<unsigned char> |UTF8字节
+	*************************************************************************************************************************/
+	std::vector<unsigned char> UnicodeEscapeToUTF8(std::string text);
 
 	std::string UTF8ToUnicodeEscape(std::vector<char>);
 	

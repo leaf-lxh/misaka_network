@@ -128,17 +128,38 @@ std::vector<char> HTTPRequest::URLdecode(std::vector<char> text)
 	return std::vector<char>();
 }
 
-std::vector<char> HTTPRequest::UnicodeEscapeToUTF8(std::string text)
+/************************************************************************************************************************
+*将Unicode-escaped字符串转为UTF8字节,输入 \u4E2D\u6587 返回 E4 B8 AD E6 96 87
+*参数：text                       |Unicode-escaped字符串
+*返回：std::vector<unsigned char> |UTF8字节
+*************************************************************************************************************************/
+std::vector<unsigned char> HTTPRequest::UnicodeEscapeToUTF8(std::string text)
 {
-	std::vector<char> convertedStr;
-	std::regex format16("\\u[0-9a-fA-F]{4}");
-	std::regex format32("\\U[0-9a-fA-F]{8}");
-	for (auto index = text.begin(); index != text.end(); index++)
+	std::vector<unsigned char> convertedStr;
+	std::regex format16("\\\\u([0-9a-fA-F]{4})");
+	std::regex format32("\\\\U([0-9a-fA-F]{8})");
+	for (auto index = text.begin(); index != text.end();)
 	{
-		if (*index = '\\')
+		if (*index == '\\')
 		{
+			size_t step = 0;
+			if (text.end() - index >= 10)
+			{
+				step = 10;
+			}
+			else if (text.end() - index < 10 && text.end() - index >= 6)
+			{
+				step = 6;
+			}
+			else
+			{
+				convertedStr.push_back(*index);
+				index++;
+				continue;
+			}
+
 			std::smatch result;
-			std::string assumedUnicodeEscape(index, index + 8);
+			std::string assumedUnicodeEscape(index, index + step);
 			if (std::regex_search(assumedUnicodeEscape, result, format16) || std::regex_search(assumedUnicodeEscape, result, format32))
 			{
 				index += result[1].length() + 2;
@@ -147,21 +168,51 @@ std::vector<char> HTTPRequest::UnicodeEscapeToUTF8(std::string text)
 				ss << std::hex << result[1];
 				ss >> value;
 
-				if (0 <= value <= 0x7F)
+				if (0 <= value && value <= 0x7F)
 				{
-
+					convertedStr.push_back(value);
 				}
-				else if(0x80 <= value <= 0x7FF)
+				else if (0x80 <= value && value <= 0x7FF)
 				{
+					unsigned int first = (value & 0x7C0) >> 5;
+					unsigned int second = value & 0x3F;
 
+					first += 0xC0;
+					second += 0x80;
+
+					convertedStr.push_back(first);
+					convertedStr.push_back(second);
 				}
-				else if (0x800 <= value <= 0xD7FF || 0xE000 <= value <= 0xFFFF)
+				else if (0x800 <= value && value <= 0xD7FF || 0xE000 <= value && value <= 0xFFFF)
 				{
+					unsigned int first = (value & 0xF000) >> 12;
+					unsigned int second = (value & 0xFC0) >> 6;
+					unsigned int third = value & 0x3F;
 
+					first += 0xE0;
+					second += 0x80;
+					third += 0x80;
+
+					convertedStr.push_back(first);
+					convertedStr.push_back(second);
+					convertedStr.push_back(third);
 				}
-				else if(0x10000 <= value <= 0x10FFFF)
+				else if (0x10000 <= value && value <= 0x10FFFF)
 				{
+					unsigned int first = (value & 0x1C0000) >> 18;
+					unsigned int second = (value & 0x3F000) >> 12;
+					unsigned int third = (value & 0xFC0) >> 6;
+					unsigned int fourth = value & 0x3F;
 
+					first += 0xF0;
+					second += 0x80;
+					third += 0x80;
+					fourth += 0x80;
+
+					convertedStr.push_back(first);
+					convertedStr.push_back(second);
+					convertedStr.push_back(third);
+					convertedStr.push_back(fourth);
 				}
 				else
 				{
@@ -182,7 +233,7 @@ std::vector<char> HTTPRequest::UnicodeEscapeToUTF8(std::string text)
 		}
 	}
 
-	return std::vector<char>();
+	return convertedStr;
 }
 
 std::string HTTPRequest::UTF8ToUnicodeEscape(std::vector<char> text)
