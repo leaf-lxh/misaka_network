@@ -7,6 +7,7 @@
 #include <regex>
 #include <sstream>
 #include <algorithm>
+#include <iomanip>
 
 
 /************************************************************************************************************************
@@ -118,13 +119,40 @@ std::vector<std::string> HTTPRequest::GetHeaderFieldValue(std::string fieldName,
 	return results;
 }
 
-std::vector<char> HTTPRequest::URLencode(std::vector<char> text)
+/************************************************************************************************************************
+*根据urlencode规则将字节组转为编码后的字符串 例：传入mid=233&csrf=233 输出mid%3d233%26csrf%3d233
+*参数：text        | 欲被编码的字节组
+*返回：std::string | 编码后的字符串
+*************************************************************************************************************************/
+std::string HTTPRequest::URLencode(std::vector<char> text)
 {
-	return std::vector<char>();
+	std::string convertedBytes;
+	std::string temp;
+	std::stringstream stream;
+	for (auto index : text)
+	{
+		if (!((index >= 0x41 && index <= 0x5A) || (index >= 0x61 && index <= 0x7A) || (index >= 0x30 && index <= 0x39)) && (index != '-' && index != '_'&& index != '.' && index != '`'))
+		{
+			stream << std::setfill('0') << std::setw(2)<< std::hex << (static_cast<unsigned int>(index) & 0xFF);
+			stream >> temp;
+			convertedBytes += '%' + temp;
+			stream.clear();
+		}
+		else
+		{
+			convertedBytes += index;
+		}
+	}
+
+	return convertedBytes;
 }
 
-std::vector<char> HTTPRequest::URLdecode(std::vector<char> text)
+std::vector<char> HTTPRequest::URLdecode(std::string text)
 {
+	std::vector<char> convertedBytes;
+	std::stringstream stream;
+
+	//for()
 	return std::vector<char>();
 }
 
