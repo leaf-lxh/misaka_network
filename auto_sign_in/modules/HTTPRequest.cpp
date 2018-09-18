@@ -20,7 +20,7 @@
 *      port                    |HTTP服务器的端口
 *返回：bool                    |请求成功返回true,反正为false,具体错误查看lastErrorString
 *************************************************************************************************************************/
-bool HTTPRequest::HTTPOpenRequest(std::string requestURL, std::vector<std::string> additionalHeaders, std::string method, std::vector<char> additionalData, unsigned short port)
+bool HTTPRequest::HTTPOpenRequest(std::string requestURL, std::vector<std::string> additionalHeaders, std::string method, std::vector<unsigned char> additionalData, unsigned short port)
 {
 	std::smatch result;
 	std::regex format("http://(.*?)/(.*)");
@@ -124,13 +124,14 @@ std::vector<std::string> HTTPRequest::GetHeaderFieldValue(std::string fieldName,
 *参数：text        | 欲被编码的字节组
 *返回：std::string | 编码后的字符串
 *************************************************************************************************************************/
-std::string HTTPRequest::URLencode(std::vector<char> text)
+std::string HTTPRequest::URLencode(std::vector<unsigned char> text)
 {
 	std::string convertedBytes;
 	std::string temp;
 	std::stringstream stream;
 	for (auto index : text)
 	{
+
 		if (!((index >= 0x41 && index <= 0x5A) || (index >= 0x61 && index <= 0x7A) || (index >= 0x30 && index <= 0x39)) && (index != '-' && index != '_'&& index != '.' && index != '`'))
 		{
 			stream << std::setfill('0') << std::setw(2)<< std::hex << (static_cast<unsigned int>(index) & 0xFF);
@@ -147,13 +148,48 @@ std::string HTTPRequest::URLencode(std::vector<char> text)
 	return convertedBytes;
 }
 
-std::vector<char> HTTPRequest::URLdecode(std::string text)
+/************************************************************************************************************************
+*根据URL编码规则将传入的字符串进行解码
+*参数：text                                     | 欲被解码的字符串
+*返回：std::vector<unsigned char> | 解码后的字节组
+*************************************************************************************************************************/
+std::vector<unsigned char> HTTPRequest::URLdecode(std::string text)
 {
-	std::vector<char> convertedBytes;
+	std::vector<unsigned char> convertedBytes;
 	std::stringstream stream;
 
-	//for()
-	return std::vector<char>();
+	std::regex format("%([0-9a-fA-F]{2})");
+	
+	for (auto index = text.cbegin(); index != text.cend(); )
+	{
+		if (*index ==  '%')
+		{
+			std::string assumedEncodedString(index, index + 3);
+			std::smatch result;
+			if (std::regex_match(assumedEncodedString, result, format))
+			{
+				unsigned int byteValue;
+				stream << std::hex << result[1];
+				stream >> byteValue;
+				stream.clear();
+
+				convertedBytes.push_back(byteValue);
+				index += 3;
+			}
+			else
+			{
+				convertedBytes.push_back(*index);
+				index++;
+			}
+		}
+		else
+		{
+			convertedBytes.push_back(*index);
+			index++;
+		}
+	}
+	
+	return convertedBytes;
 }
 
 /************************************************************************************************************************
@@ -264,7 +300,7 @@ std::vector<unsigned char> HTTPRequest::UnicodeEscapeToUTF8(std::string text)
 	return convertedStr;
 }
 
-std::string HTTPRequest::UTF8ToUnicodeEscape(std::vector<char> text)
+std::string HTTPRequest::UTF8ToUnicodeEscape(std::vector<unsigned char> text)
 {
 	return std::string();
 }
@@ -308,12 +344,12 @@ bool HTTPRequest::request(std::string host, unsigned short port, std::string & d
 		lastErrorString = "send() error";
 		return false;
 	}
-
+	
 	ssize_t receivedLength = 0;
 	char received[65535];
 	while ((receivedLength = recv(socketFD, received, 65535, 0)) > 0)
 	{
-		std::vector<char> buffer(received, received + receivedLength);
+		std::vector<unsigned char> buffer(received, received + receivedLength);
 		_response.insert(_response.end(), buffer.begin(), buffer.end());
 	}
 	return true;

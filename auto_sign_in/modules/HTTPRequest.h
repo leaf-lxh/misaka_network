@@ -21,7 +21,7 @@ public:
 	*      port                    |HTTP服务器的端口
 	*返回：bool                    |请求成功返回true,反正为false,具体错误查看lastErrorString
 	*************************************************************************************************************************/
-	bool HTTPOpenRequest(std::string requestURL, std::vector<std::string> additionalHeaders, std::string method, std::vector<char> additionalData, unsigned short port);
+	bool HTTPOpenRequest(std::string requestURL, std::vector<std::string> additionalHeaders, std::string method, std::vector<unsigned char> additionalData, unsigned short port);
 
 	/************************************************************************************************************************
 	*以\r\n\r\n将respouse headers与response body的分开，并返回respouse headers(不包含结尾的\r\n\r\n)
@@ -50,9 +50,14 @@ public:
 	*参数：text        | 欲被编码的字节组
 	*返回：std::string | 编码后的字符串
 	*************************************************************************************************************************/
-	std::string URLencode(std::vector<char> text);
+	std::string URLencode(std::vector<unsigned char> text);
 
-	std::vector<char> URLdecode(std::string text);
+	/************************************************************************************************************************
+	*根据URL编码规则将传入的字符串进行解码
+	*参数：text                                     | 欲被解码的字符串
+	*返回：std::vector<unsigned char> | 解码后的字节组
+	*************************************************************************************************************************/
+	std::vector<unsigned char> URLdecode(std::string text);
 
 	/************************************************************************************************************************
 	*将Unicode-escaped字符串转为UTF8字节,输入 \u4E2D\u6587 返回 E4 B8 AD E6 96 87
@@ -61,10 +66,10 @@ public:
 	*************************************************************************************************************************/
 	std::vector<unsigned char> UnicodeEscapeToUTF8(std::string text);
 
-	std::string UTF8ToUnicodeEscape(std::vector<char>);
+	std::string UTF8ToUnicodeEscape(std::vector<unsigned char>);
 	
 private:
-	std::vector<char> _response;
+	std::vector<unsigned char> _response;
 
 	/************************************************************************************************************************
 	*向指定的host:port发送数据
