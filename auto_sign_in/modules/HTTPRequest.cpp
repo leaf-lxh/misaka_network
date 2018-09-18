@@ -120,6 +120,22 @@ std::vector<std::string> HTTPRequest::GetHeaderFieldValue(std::string fieldName,
 }
 
 /************************************************************************************************************************
+*根据正则表达式"HTTP/1\..*? (.*?) "获取服务器返回的状态码
+*参数：response   | 被搜索的文本
+*返回：std::string  | 服务器返回的状态码，匹配失败返回0
+*************************************************************************************************************************/
+std::string HTTPRequest::GetResponseStatusCode(std::string response)
+{
+	std::smatch result;
+	std::regex format("HTTP/1\..*? (.*?) ");
+	if (std::regex_match(response, result, format))
+	{
+		return "0";
+	}
+	return result[1];
+}
+
+/************************************************************************************************************************
 *根据urlencode规则将字节组转为编码后的字符串 例：传入mid=233&csrf=233 输出mid%3d233%26csrf%3d233
 *参数：text        | 欲被编码的字节组
 *返回：std::string | 编码后的字符串
