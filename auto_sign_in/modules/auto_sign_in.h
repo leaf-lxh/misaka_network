@@ -25,9 +25,12 @@ public:
 	*参数：UserBDUSS                                  | 用户的BDUSS
 	*返回：std::vector<string>                      | 用户关注的贴吧的列表
 	*************************************************************************************************************************/
-	std::vector<std::string> GetUserILikeList(std::string UserBDUSS);
+	std::vector<std::string> GetUnsignedList(std::string UserBDUSS);
 	
 private:
+    
+    
+    bool GetFID(std::string kw);
     bool GetTBS(std::string kw);
     bool sign(std::string kw);
 };
