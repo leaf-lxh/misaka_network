@@ -24,7 +24,7 @@ public:
 	*          kwList                          | 需要签到的贴吧列表
 	*返回：std::vector<std::string> | 签到失败的贴吧kw列表
 	*************************************************************************************************************************/
-   std::vector<std::string> SendSignInRequest(std::string UserBDUSS, std::vector<std::string> kwList);
+   std::vector<std::string> SendSignInRequest(std::string UserBDUSS, std::vector<BarInfo> kwList);
 
 	/************************************************************************************************************************
 	*查询用户关注的贴吧
@@ -32,8 +32,18 @@ public:
 	*返回：std::vector<BarInfo>                      | 用户的贴吧kw与FID的列表
 	*************************************************************************************************************************/
 	std::vector<BarInfo> GetUserILikeList(std::string UserBDUSS);
+
+	inline std::string test(std::string UserBDUSS, std::string kw)
+	{
+		return GetTBS(UserBDUSS, kw);
+	}
 	
 private:
-    bool GetTBS(std::string kw);
-    bool sign(std::string kw);
+	/************************************************************************************************************************
+	*获取某贴吧的当前tbs
+	*参数：kw                                      | 贴吧名，在传入本参数前应将其进行url编码
+	*返回：std::string                            | tbs
+	*************************************************************************************************************************/
+    std::string GetTBS(std::string UserBDUSS, std::string kw);
+    bool sign(std::string UserBDUSS, std::string fid, std::string kw, std::string tbs);
 };

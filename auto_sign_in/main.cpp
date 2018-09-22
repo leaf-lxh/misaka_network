@@ -90,7 +90,7 @@ int main()
 
 		for (auto index : info)
 		{
-			std::cout << index.forum_id << std::endl;
+			std::cout << index.forum_name << ": " << request.test(BDUSS, index.forum_name) << std::endl;
 		}
 	}
 	catch (std::runtime_error error)

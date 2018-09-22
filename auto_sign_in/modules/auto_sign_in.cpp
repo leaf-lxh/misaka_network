@@ -21,7 +21,7 @@ std::vector<BarInfo> SignIn::GetUserILikeList(std::string userBDUSS)
 	additionalHeaders.push_back("Connection: close\r\n");
 	if (!request.HTTPOpenRequest("http://tieba.baidu.com/i/i?fr=home", additionalHeaders, "GET", data,  80))
 	{
-		throw std::runtime_error("HTTPOpenRequest failed with error code: " + request.lastErrorString);
+		throw std::runtime_error("In SignIn::GetUserILikeList: HTTPOpenRequest failed with error string: " + request.lastErrorString);
 	}
 	const std::string responseHeaders = request.GetResponseHeaders();
 	const std::string responseContent = request.GetResponseMessageBody();
@@ -29,7 +29,7 @@ std::vector<BarInfo> SignIn::GetUserILikeList(std::string userBDUSS)
 	std::string statusCode = request.GetResponseStatusCode(responseHeaders);
 	if (statusCode != "200")
 	{
-		throw std::runtime_error("Server responsed status code: " + statusCode);
+		throw std::runtime_error("In SignIn::GetUserILikeList: Server responsed status code: " + statusCode);
 	}
 	std::regex_iterator<std::string::const_iterator> begin(responseContent.cbegin(), responseContent.cend(), format);
 	std::regex_iterator<std::string::const_iterator> end;
@@ -43,4 +43,47 @@ std::vector<BarInfo> SignIn::GetUserILikeList(std::string userBDUSS)
 	}
 	
 	return result;
+}
+
+/************************************************************************************************************************
+*获取某贴吧的当前tbs
+*参数：kw                                      | 贴吧名，在传入本参数前应将其进行url编码
+*返回：std::string                            | tbs
+*************************************************************************************************************************/
+std::string SignIn::GetTBS(std::string UserBDUSS, std::string kw)
+{
+	std::string url = "http://tieba.baidu.com/mo/m?kw=" + kw;
+	HTTPRequest request;
+	
+	std::vector<std::string> additionalHeaders;
+	additionalHeaders.push_back("Cookie: BDUSS=" + UserBDUSS + "\r\n");
+	additionalHeaders.push_back("Connection: close\r\n");
+	additionalHeaders.push_back("User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.106 Safari/537.36\r\n");
+	std::vector<unsigned char> additionalData;
+	if (!request.HTTPOpenRequest(url, additionalHeaders, "GET", additionalData, 80))
+	{
+		throw std::runtime_error("In SignIn::GetTBS: HTTPOpenRequest failed with error string : " + request.lastErrorString);
+	}
+
+	std::string responseHeaders = request.GetResponseHeaders();
+	std::string responseContent = request.GetResponseMessageBody();
+	std::string statusCode = request.GetResponseStatusCode(responseHeaders);
+	if (statusCode != "200")
+	{
+		throw std::runtime_error("In SignIn::GetTBS: Server responsed status code: " + statusCode);
+	}
+
+	std::regex format("name=\"tbs\" value=\"(.*?)\"");
+	std::smatch result;
+	if (!std::regex_search(responseContent, result, format))
+	{
+		throw std::runtime_error("In SignIn::GetTBS: Unable to locate tbs");
+	}
+
+	return result[1];
+}
+
+bool SignIn::sign(std::string UserBDUSS, std::string fid, std::string kw, std::string tbs)
+{
+	return false;
 }
