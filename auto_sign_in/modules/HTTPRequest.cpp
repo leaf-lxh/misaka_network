@@ -107,8 +107,6 @@ std::string HTTPRequest::GetResponseMessageBody()
 std::vector<std::string> HTTPRequest::GetHeaderFieldValue(std::string fieldName, std::string headers)
 {
 	std::vector<std::string> results;
-	
-	std::smatch value;
 	std::regex keyValueFormat(fieldName + ": (.*?)\r\n");
 	std::regex_iterator <std::string::const_iterator> begin(headers.cbegin(), headers.cend(), keyValueFormat);
 	for (auto index = begin; index != std::sregex_iterator(); index++)
