@@ -7,7 +7,7 @@
 
 std::vector<BarInfo> SignIn::GetUserILikeList(std::string userBDUSS)
 {
-	std::regex format("{\"user_id\":.*?,\"forum_id\":(.*?),\"forum_name\":\"(.*?)\",\"is_like\":(.*?),\"is_black\":(.*?),\"like_num\":.*?,\"in_time\":.*?,\"level_id\":(.*?),\"cur_score\":(.*?),\"score_left\":(.*)?,\"level_name\":\"(.*?)\",\"is_sign\":(.*?)}");
+	std::regex format("\\u007B\"user_id\":.*?,\"forum_id\":(.*?),\"forum_name\":\"(.*?)\",\"is_like\":(.*?),\"is_black\":(.*?),\"like_num\":.*?,\"in_time\":.*?,\"level_id\":(.*?),\"cur_score\":(.*?),\"score_left\":(.*)?,\"level_name\":\"(.*?)\",\"is_sign\":(.*?)\\u005B");
 	
 	HTTPRequest request;
 	std::vector<std::string> additionalHeaders;
