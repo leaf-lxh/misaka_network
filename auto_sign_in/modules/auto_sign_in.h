@@ -6,13 +6,6 @@ struct BarInfo
 {
 	std::string forum_id;
 	std::string forum_name;
-	std::string is_like;
-	std::string is_black;
-	std::string level_id;
-	std::string cur_score;
-	std::string score_left;
-	std::string level_name;
-	std::string is_sign;
 };
 
 class SignIn
@@ -36,7 +29,7 @@ public:
 	/************************************************************************************************************************
 	*查询用户关注的贴吧
 	*参数：UserBDUSS                                  | 用户的BDUSS
-	*返回：std::vector<string>                      | 用户关注贴吧的信息的列表
+	*返回：std::vector<BarInfo>                      | 用户的贴吧kw与FID的列表
 	*************************************************************************************************************************/
 	std::vector<BarInfo> GetUserILikeList(std::string UserBDUSS);
 	

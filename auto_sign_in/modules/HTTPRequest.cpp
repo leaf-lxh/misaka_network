@@ -118,15 +118,15 @@ std::vector<std::string> HTTPRequest::GetHeaderFieldValue(std::string fieldName,
 }
 
 /************************************************************************************************************************
-*根据正则表达式"HTTP/1\..*? (.*?) "获取服务器返回的状态码
+*根据正则表达式"HTTP/1\..*? (.*?) .*?"获取服务器返回的状态码
 *参数：response   | 被搜索的文本
 *返回：std::string  | 服务器返回的状态码，匹配失败返回0
 *************************************************************************************************************************/
 std::string HTTPRequest::GetResponseStatusCode(std::string response)
 {
 	std::smatch result;
-	std::regex format("HTTP/1\..*? (.*?) ");
-	if (std::regex_match(response, result, format))
+	std::regex format("HTTP/1\..*? (.*?) .*?");
+	if (!std::regex_search(response, result, format))
 	{
 		return "0";
 	}

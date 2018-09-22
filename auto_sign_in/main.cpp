@@ -84,12 +84,20 @@ int main()
 	std::string BDUSS;
 	getline(std::cin, BDUSS);
 	SignIn request;
-	std::vector<BarInfo>info = request.GetUserILikeList(BDUSS);
-
-	for (auto index : info)
+	try
 	{
-		std::cout << index.is_sign << std::endl;
+		std::vector<BarInfo>info = request.GetUserILikeList(BDUSS);
+
+		for (auto index : info)
+		{
+			std::cout << index.forum_id << std::endl;
+		}
 	}
+	catch (std::runtime_error error)
+	{
+		std::cout << error.what() << std::endl;
+	}
+	
 	
 	return 0;
 }
