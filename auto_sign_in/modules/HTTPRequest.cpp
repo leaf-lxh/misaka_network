@@ -358,7 +358,8 @@ bool HTTPRequest::request(std::string host, unsigned short port, std::string & d
 		lastErrorString = "send() error";
 		return false;
 	}
-	
+	shutdown(socketFD, SHUT_WR);// Connection: close
+
 	ssize_t receivedLength = 0;
 	char received[65535];
 	while ((receivedLength = recv(socketFD, received, 65535, 0)) > 0)

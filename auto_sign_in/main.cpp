@@ -86,9 +86,9 @@ int main()
 	SignIn request;
 	try
 	{
-		//std::vector<BarInfo>info = request.GetUserILikeList(BDUSS);
 
-		request.test(BDUSS,"66680","%E4%B9%8C%E9%BE%9F","b286b8d6528bca941537667318");
+		std::vector<BarInfo>info = request.GetUserILikeList(BDUSS);
+		request.SendSignInRequest(BDUSS, info);
 	}
 	catch (std::runtime_error error)
 	{

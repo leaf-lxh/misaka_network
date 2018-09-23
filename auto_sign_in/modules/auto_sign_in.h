@@ -33,11 +33,6 @@ public:
 	*************************************************************************************************************************/
 	std::vector<BarInfo> GetUserILikeList(std::string UserBDUSS);
 
-	inline bool test(std::string UserBDUSS, std::string fid, std::string kw, std::string tbs)
-	{
-		return sign(UserBDUSS, fid, kw, tbs);
-	}
-	
 private:
 	/************************************************************************************************************************
 	*获取某贴吧的当前tbs
@@ -55,4 +50,6 @@ private:
 	*返回：bool                                              | 签到成功返回true 失败返回false
 	*************************************************************************************************************************/
     bool sign(std::string UserBDUSS, std::string fid, std::string kw, std::string tbs);
+
+	void exceptionHandler(std::string what);
 };

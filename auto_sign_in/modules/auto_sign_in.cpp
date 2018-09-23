@@ -7,6 +7,40 @@
 #include <ctime>
 #include <iostream>
 
+#include <unistd.h>
+
+std::vector<std::string> SignIn::SendSignInRequest(std::string UserBDUSS, std::vector<BarInfo> kwList)
+{
+	std::vector<std::string> kwFailedList;
+	for (auto item : kwList)
+	{
+		std::string currentTBS;
+		try
+		{
+			currentTBS = GetTBS(UserBDUSS, item.forum_name);
+		}
+		catch (std::runtime_error error)
+		{
+			exceptionHandler(error.what());
+			kwFailedList.push_back(item.forum_name);
+			continue;
+		}
+
+		try
+		{
+			sign(UserBDUSS, item.forum_id, item.forum_name, currentTBS);
+		}
+		catch (std::runtime_error error)
+		{
+			exceptionHandler(error.what());
+			kwFailedList.push_back(item.forum_name);
+			continue;
+		}
+		sleep(2);
+	}
+	return kwFailedList;
+}
+
 /************************************************************************************************************************
 *查询用户关注的贴吧
 *参数：UserBDUSS                                  | 用户的BDUSS
@@ -99,15 +133,16 @@ bool SignIn::sign(std::string UserBDUSS, std::string fid, std::string kw, std::s
 	HTTPRequest request;
 
 	std::vector<unsigned char> data = request.URLdecode(kw);
-	std::string kw_utf8(data.begin(), data.end());
-	std::string parameter = "BDUSS=" + UserBDUSS + "&fid=" + fid + "&kw=" + kw_utf8.data() + "&tbs=" + tbs + "&sign=";
-	std::string sign = "BDUSS=" + UserBDUSS + "fid=" + fid + "kw=" + kw_utf8.data() + "tbs=" + tbs + "tiebaclient!!!";
+	std::string kw_urldecoded(data.begin(), data.end());
+	std::string parameter = "BDUSS=" + UserBDUSS + "&fid=" + fid + "&kw=" + kw + "&tbs=" + tbs + "&sign=";
+	std::string sign = "BDUSS=" + UserBDUSS + "fid=" + fid + "kw=" + kw_urldecoded + "tbs=" + tbs + "tiebaclient!!!";
 
+	
 	parameter+= MD5(sign).toStr();
-	std::cout << parameter << std::endl;
 
 	std::vector<std::string> additionalHeaders;
 	additionalHeaders.push_back("Cookie: BDUSS=" + UserBDUSS + "\r\n");
+	additionalHeaders.push_back("Connection: close");
 	additionalHeaders.push_back("Content-Type: application/x-www-form-urlencoded\r\n");
 	additionalHeaders.push_back("User-Agent: bdtb for Android 8.0\r\n");
 
@@ -134,9 +169,15 @@ bool SignIn::sign(std::string UserBDUSS, std::string fid, std::string kw, std::s
 		throw std::runtime_error("In SignIn::sign: Failed to find error_code ");
 	}
 	
-	if (result[1] != "0")
+	//0-签到成功 160002-已经签到
+	if (result[1] != "0" && result[1] != "160002")
 	{
 		throw std::runtime_error("In SignIn::sign: error_code is " + result[1].str() + "with response " + responseContent);
 	}
 	return true;
+}
+
+void SignIn::exceptionHandler(std::string what)
+{
+	std::cout << what;
 }
