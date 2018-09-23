@@ -86,12 +86,9 @@ int main()
 	SignIn request;
 	try
 	{
-		std::vector<BarInfo>info = request.GetUserILikeList(BDUSS);
+		//std::vector<BarInfo>info = request.GetUserILikeList(BDUSS);
 
-		for (auto index : info)
-		{
-			std::cout << index.forum_name << ": " << request.test(BDUSS, index.forum_name) << std::endl;
-		}
+		request.test(BDUSS,"66680","%E4%B9%8C%E9%BE%9F","b286b8d6528bca941537667318");
 	}
 	catch (std::runtime_error error)
 	{

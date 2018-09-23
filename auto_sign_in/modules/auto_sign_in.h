@@ -33,9 +33,9 @@ public:
 	*************************************************************************************************************************/
 	std::vector<BarInfo> GetUserILikeList(std::string UserBDUSS);
 
-	inline std::string test(std::string UserBDUSS, std::string kw)
+	inline bool test(std::string UserBDUSS, std::string fid, std::string kw, std::string tbs)
 	{
-		return GetTBS(UserBDUSS, kw);
+		return sign(UserBDUSS, fid, kw, tbs);
 	}
 	
 private:
@@ -45,5 +45,14 @@ private:
 	*返回：std::string                            | tbs
 	*************************************************************************************************************************/
     std::string GetTBS(std::string UserBDUSS, std::string kw);
+
+	/************************************************************************************************************************
+	*签到某个贴吧
+	*参数：UserBDUSS                                   | 用户的BDUSS
+	           fid                                                | 贴吧FID
+			   kw                                                | 贴吧kw
+			   tbs                                                | 欲签到贴吧的tbs
+	*返回：bool                                              | 签到成功返回true 失败返回false
+	*************************************************************************************************************************/
     bool sign(std::string UserBDUSS, std::string fid, std::string kw, std::string tbs);
 };
