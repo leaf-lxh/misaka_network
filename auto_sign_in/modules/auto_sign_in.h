@@ -53,3 +53,15 @@ private:
 
 	void exceptionHandler(std::string what);
 };
+
+
+class SignTask
+{
+public:
+	SignTask() = default;
+	~SignTask() = default;
+
+	void SwitchToDemaonProcess();
+
+	void StartAutoSignIn();
+};
