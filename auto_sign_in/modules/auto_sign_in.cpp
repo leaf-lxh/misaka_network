@@ -199,7 +199,7 @@ void SignIn::OutputExceptionMessager(std::string what)
 *************************************************************************************************************************/
 void SignTask::StartWatching()
 {
-	//SwitchToDaemonProcess();
+	SwitchToDaemonProcess();
 
 	SignInFileIO io;
 	time_t rawTime = 0;
