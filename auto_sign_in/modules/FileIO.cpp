@@ -130,7 +130,7 @@ bool SignInFileIO::ReadConfig()
 }
 
 /************************************************************************************************************************
-*从log文件底部追加内容, log文件路径取自配置文件
+*从log文件底部追加内容, log文件路径为配置文件中的(logPath+YYYY-MM-DD)
 *参数：log        | 欲追加至log文件的内容
 *返回：bool 如果写入成功返回true，反之 false
 *************************************************************************************************************************/
@@ -144,16 +144,15 @@ bool SignInFileIO::WriteLog(const std::string log)
 		}
 	}
 
+	time_t CurrentTime = time(NULL);
+	char date[64];
+	strftime(date, 63, "%F-", localtime(&CurrentTime));
 	std::fstream file;
-
-	file.open(config.log_path, std::fstream::out | std::fstream::app);
-
+	file.open(date + config.log_path, std::fstream::out | std::fstream::app);
 	if (!file.good())
 	{
 		return false;
 	}
-
-	time_t CurrentTime = time(NULL);
 
 	std::string TimeString = ctime(&CurrentTime);
 	TimeString =  TimeString.substr(0, TimeString.length()-1);

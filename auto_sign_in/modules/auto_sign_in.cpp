@@ -1,6 +1,7 @@
 #include "auto_sign_in.h"
 #include "HTTPRequest.h"
 #include "md5.h"
+#include "FileIO.h"
 
 #include <regex>
 #include <stdexcept>
@@ -8,6 +9,8 @@
 #include <iostream>
 
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 std::vector<std::string> SignIn::SendSignInRequest(std::string UserBDUSS, std::vector<BarInfo> kwList)
 {
@@ -21,7 +24,7 @@ std::vector<std::string> SignIn::SendSignInRequest(std::string UserBDUSS, std::v
 		}
 		catch (std::runtime_error error)
 		{
-			exceptionHandler(error.what());
+			OutputExceptionMessager(error.what());
 			kwFailedList.push_back(item.forum_name);
 			continue;
 		}
@@ -32,7 +35,7 @@ std::vector<std::string> SignIn::SendSignInRequest(std::string UserBDUSS, std::v
 		}
 		catch (std::runtime_error error)
 		{
-			exceptionHandler(error.what());
+			OutputExceptionMessager(error.what());
 			kwFailedList.push_back(item.forum_name);
 			continue;
 		}
@@ -177,7 +180,94 @@ bool SignIn::sign(std::string UserBDUSS, std::string fid, std::string kw, std::s
 	return true;
 }
 
-void SignIn::exceptionHandler(std::string what)
+/************************************************************************************************************************
+输出信息至log文件中去
+*参数：what  | 欲输出至log文件中的信息
+*返回：无
+*************************************************************************************************************************/
+void SignIn::OutputExceptionMessager(std::string what)
 {
-	std::cout << what;
+	SignInFileIO io;
+	io.WriteLog(what);
+	io.~SignInFileIO();
+}
+
+/************************************************************************************************************************
+开始自动签到监视，调用本函数后会转为守护进程继续运行
+*参数：无
+*返回：无
+*************************************************************************************************************************/
+void SignTask::StartWatching()
+{
+	SwitchToDaemonProcess();
+
+	SignInFileIO io;
+	time_t rawTime = 0;
+	tm *currentTime = nullptr;
+	while (true)
+	{
+		rawTime = time(NULL);
+		currentTime = localtime(&rawTime);
+		if (io.config.hour == currentTime->tm_hour)
+		{
+			if (io.config.minute == currentTime->tm_min)
+			{
+				StartAutoSignIn();
+			}
+		}
+		sleep(28);
+	}
+}
+
+/************************************************************************************************************************
+切换为守护进程运行
+*参数：无
+*返回：无
+*************************************************************************************************************************/
+void SignTask::SwitchToDaemonProcess()
+{
+	__pid_t pid = fork();
+	if (pid != 0)
+	{
+		exit(0);
+	}
+	umask(0);
+	setsid();
+	chdir("/");
+}
+
+/************************************************************************************************************************
+自动签到数据库里所有的百度账号，如果数据库连接失败程序退出
+*参数：无
+*返回：无
+*************************************************************************************************************************/
+void SignTask::StartAutoSignIn()
+{
+	SignInFileIO io;
+	MySQLConnect session;
+	if (!session.Connect(_info))
+	{
+		io.WriteLog("In SignTask::StartAutoSignIn(): " + session.lastErrorString);
+		exit(0);
+	}
+
+	session.Query("USE SignInUserInfo");
+	std::vector<std::vector<std::string> > baidu_user_info;
+	unsigned long long linesCount = session.SelectData("BDUSS", "baidu_user_info", "", baidu_user_info);
+	session.CloseConnection();
+	SignIn request;
+	for (unsigned long long id = 0; id < linesCount; id++)
+	{
+		std::vector<BarInfo> barList;
+		try
+		{
+			barList = request.GetUserILikeList(baidu_user_info[id][0]);
+		}
+		catch (std::runtime_error error)
+		{
+			io.WriteLog(error.what());
+			continue;
+		 }
+		request.SendSignInRequest(baidu_user_info[id][0], barList);
+	}
 }
