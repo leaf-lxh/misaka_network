@@ -151,7 +151,7 @@ bool SignInFileIO::WriteLog(const std::string log)
 
 	time_t CurrentTime = time(NULL);
 	char date[64];
-	strftime(date, 63, "%F-", localtime(&CurrentTime));
+	strftime(date, 63, "-%F", localtime(&CurrentTime));
 	std::fstream file;
 	file.open(config.log_path+ date, std::fstream::out | std::fstream::app);
 	if (!file.good())
