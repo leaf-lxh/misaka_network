@@ -1,100 +1,44 @@
 #include <iostream>
 #include <sstream>
-#include "modules/MySQL_connect.h"
 #include "modules/FileIO.h"
 #include "modules/auto_sign_in.h"
 
 
-std::string config_path = "./config/";
-std::string log_path = "./log/";
 
-std::string mysql_host = "localhost";
-unsigned int mysql_port = 2333;
-std::string mysql_username = "";
-std::string mysql_password = "";
-
-//bool MySQLTestLogin()
-//{
-//
-//
-//	std::cout << "程序开始运行，你需要做一些准备工作" << std::endl;
-//	std::cout << "首先需要进行数据库的一些配置" << std::endl;
-//
-//	std::cout << "使用的用户为：";
-//	getline(std::cin, mysql_username);
-//	std::cout << "该用户密码为：";
-//	getline(std::cin, mysql_password);
-//
-//	std::cout << "测试能否成功登录mysql数据库" << std::endl;
-//	MySQLConnect mysql_test;
-//	if (!mysql_test.init(mysql_host,mysql_port,mysql_username, mysql_password))
-//	{
-//		std::cout << "登录失败，请检查用户名和密码是否正确" << std::endl << "程序已退出" << std::endl;
-//		return false;
-//	}
-//
-//	std::cout << "测试登录成功" << std::endl;
-//	return true;
-//}
-//
-//void GetStartSignInTime()
-//{
-//	std::stringstream ConvertStream;
-//	std::string RawInput = "";
-//	SignInFileIO fileio;
-//
-//	ConfigStruct cs = { -1,-1 };
-//
-//	std::cout << "是否需要设置签到时间[y/n]：" << std::unitbuf;
-//	getline(std::cin, RawInput);
-//	if (RawInput == "y" || RawInput == "Y")
-//	{
-//		while (cs.hour < 0 || cs.hour>59)
-//		{
-//			std::cout << "时[0-59]：" << std::unitbuf;
-//			getline(std::cin, RawInput);
-//			ConvertStream.clear();
-//
-//			ConvertStream << RawInput;
-//			ConvertStream >> cs.hour;
-//		}
-//
-//		while (cs.minute < 0 || cs.minute>59)
-//		{
-//			std::cout << "分[0-59]：" << std::unitbuf;
-//			getline(std::cin, RawInput);
-//			ConvertStream.clear();
-//
-//			ConvertStream << RawInput;
-//			ConvertStream >> cs.minute;
-//		}
-//		fileio.WriteConfig(cs);
-//		std::cout << "时间：" << cs.hour << "时" << cs.minute << "分" << std::endl;
-//	}
-//	else
-//	{
-//		fileio.ReadConfig(cs);
-//		std::cout << "签到时间为：" << cs.hour << "时" << cs.minute << "分" << std::endl;
-//	}
-//
-//}
 int main()
 {
-	std::cout << "Your BDUSS:" << std::endl;
-	std::string BDUSS;
-	getline(std::cin, BDUSS);
-	SignIn request;
-	try
+	std::cout << "-------------------------初始化-------------------------" << std::endl;
+	MySQLInfo info;
+	std::cout << "数据库账号[root]";
+	getline(std::cin, info.username);
+	if (info.username == "")
 	{
+		info.username = "root";
+	}
 
-		std::vector<BarInfo>info = request.GetUserILikeList(BDUSS);
-		request.SendSignInRequest(BDUSS, info);
-	}
-	catch (std::runtime_error error)
+	std::cout << "密码:";
+	getline(std::cin, info.username);
+
+	std::cout << "端口[3306]: ";
+	std::string port;
+	getline(std::cin, port);
+	if (port == "")
 	{
-		std::cout << error.what() << std::endl;
+		info.port = 3306;
 	}
+	else
+	{
+		std::stringstream ss;
+		ss << port;
+		ss >> info.port;
+	}
+
+	std::cout << "主机[127.0.0.1]";
+	getline(std::cin, info.host);
 	
-	
+	std::cout << "开始监视，程序切换至后台运行" << std::endl;
+	SignTask task(info);
+	task.StartWatching();
+
 	return 0;
 }

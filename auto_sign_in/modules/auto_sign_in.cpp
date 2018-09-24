@@ -212,9 +212,11 @@ void SignTask::StartWatching()
 		{
 			if (io.config.minute == currentTime->tm_min)
 			{
+				io.WriteLog("Start sign in...");
 				StartAutoSignIn();
 			}
 		}
+		io.WriteLog("Process is running....");
 		sleep(28);
 	}
 }
@@ -253,7 +255,7 @@ void SignTask::StartAutoSignIn()
 
 	session.Query("USE SignInUserInfo");
 	std::vector<std::vector<std::string> > baidu_user_info;
-	unsigned long long linesCount = session.SelectData("BDUSS", "baidu_user_info", "", baidu_user_info);
+	unsigned long long linesCount = session.SelectData("BDUSS,TIEBA_USERNAME", "baidu_user_info", "", baidu_user_info);
 	session.CloseConnection();
 	SignIn request;
 	for (unsigned long long id = 0; id < linesCount; id++)
@@ -268,6 +270,16 @@ void SignTask::StartAutoSignIn()
 			io.WriteLog(error.what());
 			continue;
 		 }
-		request.SendSignInRequest(baidu_user_info[id][0], barList);
+		std::vector<std::string> failedKwList = request.SendSignInRequest(baidu_user_info[id][0], barList);
+		if (!failedKwList.empty())
+		{
+			std::string errorMessage = "User " + baidu_user_info[id][1] + "failed with kw(s): ";
+			for (auto item : failedKwList)
+			{
+				errorMessage += item + " ";
+			}
+			io.WriteLog(errorMessage);
+		}
 	}
 }
+

@@ -69,12 +69,9 @@ public:
 	*参数：无
 	*返回：无
 	*************************************************************************************************************************/
-	SignTask(std::string host, unsigned int port, std::string user, std::string password)
+	SignTask(MySQLInfo info)
 	{
-		_info.host = host;
-		_info.port = port;
-		_info.username= user;
-		_info.password= password;
+		_info = info;
 	}
 	~SignTask() = default;
 
