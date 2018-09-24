@@ -17,7 +17,7 @@ int main()
 	}
 
 	std::cout << "密码:";
-	getline(std::cin, info.username);
+	getline(std::cin, info.password);
 
 	std::cout << "端口[3306]: ";
 	std::string port;
@@ -35,6 +35,10 @@ int main()
 
 	std::cout << "主机[127.0.0.1]";
 	getline(std::cin, info.host);
+	if (info.host == "")
+	{
+		info.host = "127.0.0.1";
+	}
 	
 	std::cout << "开始监视，程序切换至后台运行" << std::endl;
 	SignTask task(info);

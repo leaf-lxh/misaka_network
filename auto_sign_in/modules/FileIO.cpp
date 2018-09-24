@@ -9,9 +9,9 @@
 #include <regex>
 
 /************************************************************************************************************************
-*´ÓÅäÖÃÎÄ¼ş¶ÁÈ¡ÅäÖÃ
-*²ÎÊı£ºÎŞ
-*·µ»Ø£ºbool ¶ÁÈ¡³É¹¦·µ»Øtrue£¬·´Ö® false
+*ä»é…ç½®æ–‡ä»¶è¯»å–é…ç½®
+*å‚æ•°ï¼šæ— 
+*è¿”å›ï¼šbool è¯»å–æˆåŠŸè¿”å›trueï¼Œåä¹‹ false
 *************************************************************************************************************************/
 bool SignInFileIO::ReadConfig()
 {
@@ -72,26 +72,31 @@ bool SignInFileIO::ReadConfig()
 			ss >> cs.minute;
 		}
 	}*/
-	//18-9-24 ¶ÔÉÏÊö×¢ÊÍ´úÂëÖØ¹¹
+	//18-9-24 å¯¹ä¸Šè¿°æ³¨é‡Šä»£ç é‡æ„
 	while (getline(file, FileContent))
 	{
-		std::regex format("(.*?)=(.*?)#.*?\n|(.*?)=(.*?)\n");
+		std::regex format("(.*?)=(.*?)#.*?|(.*?)=(.*?)");
 		std::smatch result;
-		if (!std::regex_search(FileContent, result, format))
+		if (!std::regex_match(FileContent, result, format))
 		{
 			continue;
 		}
 		std::string configName;
 		std::string configContent;
-		if (result[1] == false)
+		if (result.size() == 0)
 		{
-			configName = result[3];
-			configContent = result[4];
+			continue;
+		}
+
+		if (result[1].matched == false)
+		{
+			configName = result[3].str();
+			configContent = result[4].str();
 		}
 		else
 		{
-			configName = result[1];
-			configContent = result[2];
+			configName = result[1].str();
+			configContent = result[2].str();
 		}
 
 		if (configName == "hour")
@@ -130,9 +135,9 @@ bool SignInFileIO::ReadConfig()
 }
 
 /************************************************************************************************************************
-*´ÓlogÎÄ¼şµ×²¿×·¼ÓÄÚÈİ, logÎÄ¼şÂ·¾¶ÎªÅäÖÃÎÄ¼şÖĞµÄ(logPath+YYYY-MM-DD)
-*²ÎÊı£ºlog        | Óû×·¼ÓÖÁlogÎÄ¼şµÄÄÚÈİ
-*·µ»Ø£ºbool Èç¹ûĞ´Èë³É¹¦·µ»Øtrue£¬·´Ö® false
+*ä»logæ–‡ä»¶åº•éƒ¨è¿½åŠ å†…å®¹, logæ–‡ä»¶è·¯å¾„ä¸ºé…ç½®æ–‡ä»¶ä¸­çš„(logPath+YYYY-MM-DD)
+*å‚æ•°ï¼šlog        | æ¬²è¿½åŠ è‡³logæ–‡ä»¶çš„å†…å®¹
+*è¿”å›ï¼šbool å¦‚æœå†™å…¥æˆåŠŸè¿”å›trueï¼Œåä¹‹ false
 *************************************************************************************************************************/
 bool SignInFileIO::WriteLog(const std::string log)
 {
@@ -148,7 +153,7 @@ bool SignInFileIO::WriteLog(const std::string log)
 	char date[64];
 	strftime(date, 63, "%F-", localtime(&CurrentTime));
 	std::fstream file;
-	file.open(date + config.log_path, std::fstream::out | std::fstream::app);
+	file.open(config.log_path+ date, std::fstream::out | std::fstream::app);
 	if (!file.good())
 	{
 		return false;
@@ -165,9 +170,9 @@ bool SignInFileIO::WriteLog(const std::string log)
 }
 
 /************************************************************************************************************************
-*²éÑ¯Â·¾¶ÊÇ·ñ´æÔÚ
-*²ÎÊı£ºpath        | Óû²éÑ¯µÄÂ·¾¶
-*·µ»Ø£ºbool Èç¹û´æÔÚ£¬·µ»Øtrue ·´Ö® false
+*æŸ¥è¯¢è·¯å¾„æ˜¯å¦å­˜åœ¨
+*å‚æ•°ï¼špath        | æ¬²æŸ¥è¯¢çš„è·¯å¾„
+*è¿”å›ï¼šbool å¦‚æœå­˜åœ¨ï¼Œè¿”å›true åä¹‹ false
 *************************************************************************************************************************/
 bool SignInFileIO::PathCheck(const std::string path)
 {
@@ -182,10 +187,10 @@ bool SignInFileIO::PathCheck(const std::string path)
 }
 
 /************************************************************************************************************************
-*ÒÔ¸ùÄ¿Â¼Îªµ±Ç°Ä¿Â¼£¬´´½¨Ä¿Â¼¡£Ö§³Ö´´½¨¶à²ãÄ¿Â¼
-*²ÎÊı£ºpath        | Óû´´½¨µÄÂ·¾¶£¬Â·¾¶°´ÕÕ Ä¿Â¼/ÎÄ¼şÃû´¦Àí£¬Ö»´´½¨Ä¿Â¼£¬²»´´½¨ÎÄ¼ş
-           mode      | Ä¿Â¼È¨ÏŞ
-*·µ»Ø£ºbool ´´½¨³É¹¦·µ»Øtrue ·´Ö® false
+*ä»¥æ ¹ç›®å½•ä¸ºå½“å‰ç›®å½•ï¼Œåˆ›å»ºç›®å½•ã€‚æ”¯æŒåˆ›å»ºå¤šå±‚ç›®å½•
+*å‚æ•°ï¼špath        | æ¬²åˆ›å»ºçš„è·¯å¾„ï¼Œè·¯å¾„æŒ‰ç…§ ç›®å½•/æ–‡ä»¶åå¤„ç†ï¼Œåªåˆ›å»ºç›®å½•ï¼Œä¸åˆ›å»ºæ–‡ä»¶
+           mode      | ç›®å½•æƒé™
+*è¿”å›ï¼šbool åˆ›å»ºæˆåŠŸè¿”å›true åä¹‹ false
 *************************************************************************************************************************/
 bool SignInFileIO::PathCreate(const std::string  path, unsigned int mode)
 {

@@ -45,9 +45,9 @@ std::vector<std::string> SignIn::SendSignInRequest(std::string UserBDUSS, std::v
 }
 
 /************************************************************************************************************************
-*²éÑ¯ÓÃ»§¹Ø×¢µÄÌù°É
-*²ÎÊı£ºUserBDUSS                                  | ÓÃ»§µÄBDUSS
-*·µ»Ø£ºstd::vector<BarInfo>                      | ÓÃ»§µÄÌù°ÉkwÓëFIDµÄÁĞ±í
+*æŸ¥è¯¢ç”¨æˆ·å…³æ³¨çš„è´´å§
+*å‚æ•°ï¼šUserBDUSS                                  | ç”¨æˆ·çš„BDUSS
+*è¿”å›ï¼šstd::vector<BarInfo>                      | ç”¨æˆ·çš„è´´å§kwä¸FIDçš„åˆ—è¡¨
 *************************************************************************************************************************/
 std::vector<BarInfo> SignIn::GetUserILikeList(std::string userBDUSS)
 {
@@ -86,9 +86,9 @@ std::vector<BarInfo> SignIn::GetUserILikeList(std::string userBDUSS)
 }
 
 /************************************************************************************************************************
-*»ñÈ¡Ä³Ìù°ÉµÄµ±Ç°tbs
-*²ÎÊı£ºkw                                      | Ìù°ÉÃû£¬ÔÚ´«Èë±¾²ÎÊıÇ°Ó¦½«Æä½øĞĞurl±àÂë
-*·µ»Ø£ºstd::string                            | tbs
+*è·å–æŸè´´å§çš„å½“å‰tbs
+*å‚æ•°ï¼škw                                      | è´´å§åï¼Œåœ¨ä¼ å…¥æœ¬å‚æ•°å‰åº”å°†å…¶è¿›è¡Œurlç¼–ç 
+*è¿”å›ï¼šstd::string                            | tbs
 *************************************************************************************************************************/
 std::string SignIn::GetTBS(std::string UserBDUSS, std::string kw)
 {
@@ -124,12 +124,12 @@ std::string SignIn::GetTBS(std::string UserBDUSS, std::string kw)
 }
 
 /************************************************************************************************************************
-*Ç©µ½Ä³¸öÌù°É
-*²ÎÊı£ºUserBDUSS                                   | ÓÃ»§µÄBDUSS
-	       fid                                                | Ìù°ÉFID
-		   kw                                                | Ìù°Ékw
-           tbs                                                | ÓûÇ©µ½Ìù°ÉµÄtbs
-*·µ»Ø£ºbool                                              | Ç©µ½³É¹¦·µ»Øtrue Ê§°Ü·µ»Øfalse
+*ç­¾åˆ°æŸä¸ªè´´å§
+*å‚æ•°ï¼šUserBDUSS                                   | ç”¨æˆ·çš„BDUSS
+	       fid                                                | è´´å§FID
+		   kw                                                | è´´å§kw
+           tbs                                                | æ¬²ç­¾åˆ°è´´å§çš„tbs
+*è¿”å›ï¼šbool                                              | ç­¾åˆ°æˆåŠŸè¿”å›true å¤±è´¥è¿”å›false
 *************************************************************************************************************************/
 bool SignIn::sign(std::string UserBDUSS, std::string fid, std::string kw, std::string tbs)
 {
@@ -172,7 +172,7 @@ bool SignIn::sign(std::string UserBDUSS, std::string fid, std::string kw, std::s
 		throw std::runtime_error("In SignIn::sign: Failed to find error_code ");
 	}
 	
-	//0-Ç©µ½³É¹¦ 160002-ÒÑ¾­Ç©µ½
+	//0-ç­¾åˆ°æˆåŠŸ 160002-å·²ç»ç­¾åˆ°
 	if (result[1] != "0" && result[1] != "160002")
 	{
 		throw std::runtime_error("In SignIn::sign: error_code is " + result[1].str() + "with response " + responseContent);
@@ -181,9 +181,9 @@ bool SignIn::sign(std::string UserBDUSS, std::string fid, std::string kw, std::s
 }
 
 /************************************************************************************************************************
-Êä³öĞÅÏ¢ÖÁlogÎÄ¼şÖĞÈ¥
-*²ÎÊı£ºwhat  | ÓûÊä³öÖÁlogÎÄ¼şÖĞµÄĞÅÏ¢
-*·µ»Ø£ºÎŞ
+è¾“å‡ºä¿¡æ¯è‡³logæ–‡ä»¶ä¸­å»
+*å‚æ•°ï¼šwhat  | æ¬²è¾“å‡ºè‡³logæ–‡ä»¶ä¸­çš„ä¿¡æ¯
+*è¿”å›ï¼šæ— 
 *************************************************************************************************************************/
 void SignIn::OutputExceptionMessager(std::string what)
 {
@@ -193,13 +193,13 @@ void SignIn::OutputExceptionMessager(std::string what)
 }
 
 /************************************************************************************************************************
-¿ªÊ¼×Ô¶¯Ç©µ½¼àÊÓ£¬µ÷ÓÃ±¾º¯Êıºó»á×ªÎªÊØ»¤½ø³Ì¼ÌĞøÔËĞĞ
-*²ÎÊı£ºÎŞ
-*·µ»Ø£ºÎŞ
+å¼€å§‹è‡ªåŠ¨ç­¾åˆ°ç›‘è§†ï¼Œè°ƒç”¨æœ¬å‡½æ•°åä¼šè½¬ä¸ºå®ˆæŠ¤è¿›ç¨‹ç»§ç»­è¿è¡Œ
+*å‚æ•°ï¼šæ— 
+*è¿”å›ï¼šæ— 
 *************************************************************************************************************************/
 void SignTask::StartWatching()
 {
-	SwitchToDaemonProcess();
+	//SwitchToDaemonProcess();
 
 	SignInFileIO io;
 	time_t rawTime = 0;
@@ -208,6 +208,7 @@ void SignTask::StartWatching()
 	{
 		rawTime = time(NULL);
 		currentTime = localtime(&rawTime);
+
 		if (io.config.hour == currentTime->tm_hour)
 		{
 			if (io.config.minute == currentTime->tm_min)
@@ -222,9 +223,9 @@ void SignTask::StartWatching()
 }
 
 /************************************************************************************************************************
-ÇĞ»»ÎªÊØ»¤½ø³ÌÔËĞĞ
-*²ÎÊı£ºÎŞ
-*·µ»Ø£ºÎŞ
+åˆ‡æ¢ä¸ºå®ˆæŠ¤è¿›ç¨‹è¿è¡Œ
+*å‚æ•°ï¼šæ— 
+*è¿”å›ï¼šæ— 
 *************************************************************************************************************************/
 void SignTask::SwitchToDaemonProcess()
 {
@@ -239,9 +240,9 @@ void SignTask::SwitchToDaemonProcess()
 }
 
 /************************************************************************************************************************
-×Ô¶¯Ç©µ½Êı¾İ¿âÀïËùÓĞµÄ°Ù¶ÈÕËºÅ£¬Èç¹ûÊı¾İ¿âÁ¬½ÓÊ§°Ü³ÌĞòÍË³ö
-*²ÎÊı£ºÎŞ
-*·µ»Ø£ºÎŞ
+è‡ªåŠ¨ç­¾åˆ°æ•°æ®åº“é‡Œæ‰€æœ‰çš„ç™¾åº¦è´¦å·ï¼Œå¦‚æœæ•°æ®åº“è¿æ¥å¤±è´¥ç¨‹åºé€€å‡º
+*å‚æ•°ï¼šæ— 
+*è¿”å›ï¼šæ— 
 *************************************************************************************************************************/
 void SignTask::StartAutoSignIn()
 {
@@ -254,12 +255,14 @@ void SignTask::StartAutoSignIn()
 	}
 
 	session.Query("USE SignInUserInfo");
+	session.Query("SET NAMES UTF8"); //é˜²æ­¢ä¼ è¾“çš„utf8æ–‡æœ¬ä¹±ç 
 	std::vector<std::vector<std::string> > baidu_user_info;
 	unsigned long long linesCount = session.SelectData("BDUSS,TIEBA_USERNAME", "baidu_user_info", "", baidu_user_info);
 	session.CloseConnection();
 	SignIn request;
 	for (unsigned long long id = 0; id < linesCount; id++)
 	{
+		io.WriteLog("Start sign in for " + baidu_user_info[id][1]);
 		std::vector<BarInfo> barList;
 		try
 		{
