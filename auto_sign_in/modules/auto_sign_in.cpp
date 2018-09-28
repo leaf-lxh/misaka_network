@@ -255,13 +255,15 @@ void SignTask::StartAutoSignIn()
 	}
 
 	session.Query("USE SignInUserInfo");
-	session.Query("SET NAMES UTF8"); //防止传输的utf8文本乱码
+	session.Query("SET NAMES UTF8"); //设置传输文本为UTF8编码
 	std::vector<std::vector<std::string> > baidu_user_info;
 	unsigned long long linesCount = session.SelectData("BDUSS,TIEBA_USERNAME", "baidu_user_info", "", baidu_user_info);
 	session.CloseConnection();
 	SignIn request;
 	for (unsigned long long id = 0; id < linesCount; id++)
 	{
+		sleep(5);
+
 		io.WriteLog("Start sign in for " + baidu_user_info[id][1]);
 		std::vector<BarInfo> barList;
 		try

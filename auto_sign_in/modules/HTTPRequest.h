@@ -71,7 +71,8 @@ public:
 	*参数：text                       |Unicode-escaped字符串
 	*返回：std::vector<unsigned char> |UTF8字节
 	*************************************************************************************************************************/
-	std::vector<unsigned char> UnicodeEscapeToUTF8(std::string text);
+	std::vector<unsigned char> UnicodeEscapeToUTF8(std::string text); 
+
 
 	std::string UTF8ToUnicodeEscape(std::vector<unsigned char>);
 	
