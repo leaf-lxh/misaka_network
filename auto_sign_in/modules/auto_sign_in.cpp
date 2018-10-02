@@ -117,7 +117,14 @@ std::string SignIn::GetTBS(std::string UserBDUSS, std::string kw)
 	std::smatch result;
 	if (!std::regex_search(responseContent, result, format))
 	{
-		throw std::runtime_error("In SignIn::GetTBS: Unable to locate tbs");
+		std::string errorMsg = "In SignIn::GetTBS: Unable to locate tbs\n";
+		errorMsg += "current request url: " + url +"\n";
+		errorMsg += "current response: \n";
+		errorMsg += responseHeaders;
+		errorMsg += "\n\n";
+		errorMsg += responseContent;
+
+		throw std::runtime_error(errorMsg);
 	}
 
 	return result[1];
