@@ -43,7 +43,8 @@ bool SignInFileIO::ReadConfig()
 		file << "#Each separated with a newline character." << std::endl;
 		file << "hour=1" << std::endl;
 		file << "minutes=0" << std::endl;
-		file << "logPath=/var/log/auto_sign_in/log.txt" << std::endl;
+		file << "#Program will append \'-[date].log\' automaticly when output log." << std::endl;
+		file << "logPath=/var/log/auto_sign_in/log" << std::endl;
 
 		config.hour = 1;
 		config.minute = 0;
@@ -151,7 +152,7 @@ bool SignInFileIO::WriteLog(const std::string log)
 
 	time_t CurrentTime = time(NULL);
 	char date[64];
-	strftime(date, 63, "-%F", localtime(&CurrentTime));
+	strftime(date, 63, "-%F.log", localtime(&CurrentTime));
 	std::fstream file;
 	file.open(config.log_path+ date, std::fstream::out | std::fstream::app);
 	if (!file.good())

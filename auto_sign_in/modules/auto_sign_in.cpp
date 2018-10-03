@@ -15,16 +15,18 @@
 std::vector<std::string> SignIn::SendSignInRequest(std::string UserBDUSS, std::vector<BarInfo> kwList)
 {
 	std::vector<std::string> kwFailedList;
+	std::string currentTBS;
 	for (auto item : kwList)
 	{
-		std::string currentTBS;
+		
+
 		try
 		{
 			currentTBS = GetTBS(UserBDUSS, item.forum_name);
 		}
 		catch (std::runtime_error error)
 		{
-			OutputExceptionMessager(error.what());
+			OutputExceptionMessage(error.what());
 			kwFailedList.push_back(item.forum_name);
 			continue;
 		}
@@ -35,7 +37,7 @@ std::vector<std::string> SignIn::SendSignInRequest(std::string UserBDUSS, std::v
 		}
 		catch (std::runtime_error error)
 		{
-			OutputExceptionMessager(error.what());
+			OutputExceptionMessage(error.what());
 			kwFailedList.push_back(item.forum_name);
 			continue;
 		}
@@ -192,7 +194,7 @@ bool SignIn::sign(std::string UserBDUSS, std::string fid, std::string kw, std::s
 *参数：what  | 欲输出至log文件中的信息
 *返回：无
 *************************************************************************************************************************/
-void SignIn::OutputExceptionMessager(std::string what)
+void SignIn::OutputExceptionMessage(std::string what)
 {
 	SignInFileIO io;
 	io.WriteLog(what);
@@ -227,6 +229,13 @@ void SignTask::StartWatching()
 		io.WriteLog("Process is running....");
 		sleep(28);
 	}
+}
+
+void SignTask::DebugTestAutoSignIn()
+{
+	SignInFileIO io;
+	io.WriteLog("Start testing StartAutoSignIn()");
+	StartAutoSignIn();
 }
 
 /************************************************************************************************************************
