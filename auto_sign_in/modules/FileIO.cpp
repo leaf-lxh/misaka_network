@@ -41,9 +41,10 @@ bool SignInFileIO::ReadConfig()
 		file << "#This is the configuration file for auto_sign_in.(https://github.com/leaf-lxh/misaka_network/tree/master/auto_sign_in)" << std::endl;
 		file << "#The configuration format should be like this: Name=Option#Comment" << std::endl;
 		file << "#Each separated with a newline character." << std::endl;
+		file << "You should restart the program to make the new changes be effective." << std::endl;
 		file << "hour=1" << std::endl;
 		file << "minutes=0" << std::endl;
-		file << "#Program will append \'-[date].log\' automaticly when output log." << std::endl;
+		file << "#Program will append the file name with \'-[date].log\' automaticly." << std::endl;
 		file << "logPath=/var/log/auto_sign_in/log" << std::endl;
 
 		config.hour = 1;

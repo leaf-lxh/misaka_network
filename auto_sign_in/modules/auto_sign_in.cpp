@@ -115,7 +115,8 @@ std::string SignIn::GetTBS(std::string UserBDUSS, std::string kw)
 		throw std::runtime_error("In SignIn::GetTBS: Server responsed status code: " + statusCode);
 	}
 
-	std::regex format("name=\"tbs\" value=\"(.*?)\"");
+	//2018-10-5 添加对只能签到不能发帖的贴吧的tbs正则表达式
+	std::regex format("name=\"tbs\" value=\"(.*?)\"|sign\\?tbs=(.*?)&amp");
 	std::smatch result;
 	if (!std::regex_search(responseContent, result, format))
 	{
@@ -129,7 +130,15 @@ std::string SignIn::GetTBS(std::string UserBDUSS, std::string kw)
 		throw std::runtime_error(errorMsg);
 	}
 
-	return result[1];
+	if (result[1].matched == true)
+	{
+		return result[1];
+	}
+	else 
+	{
+		return result[2];
+	}
+	
 }
 
 /************************************************************************************************************************
