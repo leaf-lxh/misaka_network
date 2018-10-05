@@ -198,7 +198,7 @@ void SignIn::OutputExceptionMessage(std::string what)
 {
 	SignInFileIO io;
 	io.WriteLog(what);
-	io.~SignInFileIO();
+	//io.~SignInFileIO(); lead a bus error
 }
 
 /************************************************************************************************************************

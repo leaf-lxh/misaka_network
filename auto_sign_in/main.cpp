@@ -43,6 +43,5 @@ int main()
 	std::cout << "开始监视，程序切换至后台运行" << std::endl;
 	SignTask task(info);
 	task.StartWatching();
-
 	return 0;
 }
