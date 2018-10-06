@@ -3,6 +3,13 @@
    From now, you can sign in Baidu tieba automaticly.
 
 ## Install:
+Before installing, you need these softwares:
+- MySQL-server (version above 5.5)
+- MySQL-client
+- libmysqlclient-dev
+- git
+- cmake (version above 3.5)
+```
     [1]Clone the source code.
     # git clone https://github.com/leaf-lxh/misaka_network.git
     # cd auto_sign_in
@@ -27,7 +34,7 @@
     端口[3306]: 
     主机[127.0.0.1]
     开始监视，程序切换至后台运行
-
+```
 ## Configuration and log file:
     configuration: /etc/auto_sign_in/config.conf
     log file: /var/log/auto_sign_in/log-YYYY-MM-DD.log
