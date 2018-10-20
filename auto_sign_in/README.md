@@ -28,12 +28,12 @@ Before installing, you need these softwares:
     
     [4]Configure your mysql connecting info.
     # ./auto_sign_in
-    -------------------------³õÊ¼»¯-------------------------
-    Êı¾İ¿âÕËºÅ[root]
-    ÃÜÂë:
-    ¶Ë¿Ú[3306]: 
-    Ö÷»ú[127.0.0.1]
-    ¿ªÊ¼¼àÊÓ£¬³ÌĞòÇĞ»»ÖÁºóÌ¨ÔËĞĞ
+    -------------------------åˆå§‹åŒ–-------------------------
+    æ•°æ®åº“è´¦å·[root]
+    å¯†ç :
+    ç«¯å£[3306]: 
+    ä¸»æœº[127.0.0.1]
+    å¼€å§‹ç›‘è§†ï¼Œç¨‹åºåˆ‡æ¢è‡³åå°è¿è¡Œ
 ```
 ## Configuration and log file:
     configuration: /etc/auto_sign_in/config.conf
@@ -45,4 +45,6 @@ Before installing, you need these softwares:
   * A HTML+JavaScript website to manage this program.
 
   * E-mail alert while failed to sign in.
+  
+  * Support for windows.
 
