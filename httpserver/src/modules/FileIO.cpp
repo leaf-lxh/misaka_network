@@ -81,7 +81,7 @@ void FileIO::WriteFile(const std::string &path, std::string &content ,bool isReW
 }
 
 /******************************************************************************************
-*To check the directory whether exist or not.
+*To check the directory whether exist or not. Not working for existed file. 
 * @path: The path that to be checked.
 *return value: If the directory exists, return true. 
                Otherwise return false.
@@ -90,6 +90,7 @@ bool FileIO::PathCheck(const std::string & path)
 {
 	if (!access(path.c_str(), F_OK))
 	{
+		
 		return true;
 	}
 	else
@@ -99,7 +100,7 @@ bool FileIO::PathCheck(const std::string & path)
 }
 
 /******************************************************************************************
-*Create directory.
+*Create directory. Make sure the path is vaild before calling this function
 * @path: The path that want to create,
 *return value: If the creating succeed,return true.
                Otherwise return false.
