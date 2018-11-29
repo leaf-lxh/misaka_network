@@ -3,7 +3,9 @@
 
 int main (int argvc , char **argv)
 {
-
-	//¼àÊÓÏß³ÌµÄÔËĞĞ×´Ì¬
+	ServerSetting setting;
+	
+	
+	//ç›‘è§†çº¿ç¨‹çš„è¿è¡ŒçŠ¶æ€
 	return 0;
 }

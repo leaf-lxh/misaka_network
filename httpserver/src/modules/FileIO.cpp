@@ -10,9 +10,9 @@
 *To read file content and store it to a string buffer.
 * @path: The path of the file that to be readed.
 * @buffer: The string buffer that will store file content.
-*return value: nothing
+*return value: no 
 ******************************************************************************************/
-void FileIO::ReadFile(const std::string &path, std::string &buffer)
+bool FileIO::ReadFile(const std::string &path, std::string &buffer)
 {
 	if (!PathCheck(path))
 	{
@@ -20,6 +20,7 @@ void FileIO::ReadFile(const std::string &path, std::string &buffer)
 		{
 			return;
 		}
+
 	}
 	using std::fstream;
 
@@ -86,7 +87,7 @@ void FileIO::WriteFile(const std::string &path, std::string &content ,bool isReW
 *return value: If the directory exists, return true. 
                Otherwise return false.
 ******************************************************************************************/
-bool FileIO::PathCheck(const std::string & path)
+bool PathCheck(const std::string & path)
 {
 	if (!access(path.c_str(), F_OK))
 	{
@@ -105,7 +106,7 @@ bool FileIO::PathCheck(const std::string & path)
 *return value: If the creating succeed,return true.
                Otherwise return false.
 ******************************************************************************************/
-bool FileIO::PathCreate(const std::string & path)
+bool PathCreate(const std::string & path)
 {
 	std::string currentPath;
 	size_t former = 0;

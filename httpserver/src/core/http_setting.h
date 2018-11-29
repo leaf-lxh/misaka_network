@@ -2,8 +2,10 @@
 
 #include <vector>
 #include <string>
+
 class ServerSetting
 {
+public:
 	ServerSetting();
 
 private:
@@ -16,27 +18,10 @@ private:
 
 	struct CoreAttributes
 	{
+		int threadPerHost;
 		std::vector<HostAttributes> hosts;
 	};
 
 public:
 	CoreAttributes settings;
 };
-/********************************************************
-
-*********************************************************/
-
-/********************************************************
-<!--This is an example configuration file-->
-<host>
-	<usingHTTPS>false</usingHTTPS>
-	<port>80</port>
-	<sourceRootDirectory>/var/www/host1</sourceRootDirectory>
-</host>
-
-<host>
-	<usingHTTPS>true</usingHTTPS>
-	<port>443</port>
-	<sourceRootDirectory>/var/www/host2</sourceRootDirectory>
-</host>
-*********************************************************/
