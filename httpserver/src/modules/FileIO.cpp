@@ -1,3 +1,15 @@
+/******************************************************************************************
+FileName: FileIO.cpp
+Author: leaf-lxh     Version:1.0    Date:2018-12-9
+Description: 进行文件的读写、判断某个路径是否存在，进行某个路径的创建
+Version: 1.0 2018-12-9
+Function List: 
+	1.PathCheck() 检查路径是否存在
+	2.PathCreate() 创建路径
+	3.FileIO::WriteLog() 写日志到文件中
+	4.FileIO::ReadFile() 读取文件
+	5.FileIO::WriteFile() 写文件
+******************************************************************************************/
 #include "FileIO.h"
 
 #include <fstream>

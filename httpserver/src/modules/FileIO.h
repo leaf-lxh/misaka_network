@@ -21,7 +21,7 @@ class FileIO
 public:
 	FileIO() = default;
 
-	void WriteLog(const std::string &path, const std::string &log);
+	bool WriteLog(const std::string &path, const std::string &log);
 	void ReadFile(const std::string &path, std::string &buffer);
 	void WriteFile(const std::string &path, std::string &content, bool isReWrite);
 	
