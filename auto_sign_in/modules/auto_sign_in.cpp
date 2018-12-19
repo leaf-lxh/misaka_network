@@ -222,6 +222,7 @@ void SignTask::StartWatching()
 	SignInFileIO io;
 	time_t rawTime = 0;
 	tm *currentTime = nullptr;
+	int count = 0;
 	while (true)
 	{
 		rawTime = time(NULL);
@@ -237,6 +238,15 @@ void SignTask::StartWatching()
 		}
 		io.WriteLog("Process is running....");
 		sleep(28);
+		count++;
+		if (count == 10)
+		{
+			bool result = io.ReadConfig();
+			if (!result)
+			{
+				io.WriteLog("Failed to read config file. Using last correct configuration");
+			}
+		}
 	}
 }
 
