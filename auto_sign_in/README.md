@@ -2,7 +2,7 @@
     
    From now, you can sign in Baidu tieba automaticly.
 
-## Install:
+## Build from source:
 Before installing, you need these softwares:
 - MySQL-server (version above 5.5)
 - MySQL-client
@@ -40,11 +40,12 @@ Before installing, you need these softwares:
     log file: /var/log/auto_sign_in/log-YYYY-MM-DD.log
     Log's path can be changed in the configuration file.
 ## To do:
-  * Encrypt user data that stored in the database.
 
-  * A HTML+JavaScript website to manage this program.
+   - [ ] Encrypt user data that stored in the database.
 
-  * E-mail alert while failed to sign in.
+   - [ ]  A managing web page.
+
+   - [ ]  E-mail alert while failed to sign in.
   
-  * Support for windows.
+   - [ ]  Support for windows.
 
