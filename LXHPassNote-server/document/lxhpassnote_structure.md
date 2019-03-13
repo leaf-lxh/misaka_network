@@ -12,14 +12,18 @@
     * [账户注册、删除](#账户注册、删除)
     * [账户登录、注销](#账户登录、注销)
  * [数据存取模块](#数据存取模块)
- * [运行流程图](#运行流程图)
 ### Client/Server通信模块
+
+文档：module_cs.md
+
 本模块作为客户端与服务端交互的桥梁，包含以下功能：  
- 1. 服务端身份的数据收发
+ 1. 服务端身份的数据收发，支持SSL
 
  2. 协议的语法分析，与其他的模块进行交互
 
 流程图
+
+![](imgs/cs模块流程图.png)
 
 ```flow
 start=>start: 服务器程序运行
@@ -31,21 +35,18 @@ result=>inputoutput: 将结果发送至客户端
 data_isvaild=>condition: 检查字段是否合乎标准
 close_server=>condition: 是否将要停止服务器
 
+log=>operation: 记录请求，写入日志
 invaild_data=>operation: 数据不合法
 call_module=>operation: 语法分析，调用其他模块，获取结果
 
 start->close_server
-close_server(no)->listen->data_isvaild
+close_server(no)->listen->log->data_isvaild
 close_server(yes)->end
 data_isvaild(no)->invaild_data->result->close_server
 data_isvaild(yes)->call_module->result
 
 
 ```
-
-
-
-​    
 
 ### 账户访问控制模块
 本模块用于账户的身份认证以及权限控制，提供以下功能：  
@@ -54,8 +55,3 @@ data_isvaild(yes)->call_module->result
 
 ### 数据存取模块  
 本模块作为业务主逻辑处理核心，包含以下功能：  
-
-### 运行流程图  
-```flow
-
-```
