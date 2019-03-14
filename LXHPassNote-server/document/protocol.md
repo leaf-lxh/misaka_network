@@ -31,12 +31,13 @@
 
   
 
-| 请求属性名     | 说明                           | 例子                            |
-| -------------- | ------------------------------ | ------------------------------- |
-| Host           | 指定接收请求的服务器           | Host: leaflxh.com               |
-| Content-Type   | 指定附加数据的类型             | Content-Type: text;charset=utf8 |
-| Content-Length | 指定附加数据的长度，单位为字节 | Content-Length: 233             |
-|                |                                |                                 |
+| 请求属性名       | 说明                           | 例子                            |
+| ---------------- | ------------------------------ | ------------------------------- |
+| Host             | 指定接收请求的服务器           | Host: leaflxh.com               |
+| Content-Type     | 指定附加数据的类型             | Content-Type: text;charset=utf8 |
+| Content-Length   | 指定附加数据的长度，单位为字节 | Content-Length: 233             |
+| Content-Encoding | 指定附加数据的编码方式         | Content-Encoding: gzip          |
+| Auth             | 指定用户认证凭证               | Auth: session=aaa;token=bbb     |
 
 ###  服务端回应报文结构
 
