@@ -4,30 +4,47 @@
 
 本文档描述了用户访问控制(Access Control)模块的实现
 
+头文件：authentication.h
+
+源文件：authentication.cpp
+
 ### 目录
 
 * [用户信息表(user_info)](#用户信息表(user_info))
 * [用户详细信息表(user_details)](#用户详细信息表(user_details))
 * [用户认证信息表(user_auth)](#用户认证信息表(user_auth))
+* [用户注册](#用户注册)
+* [用户登录](#用户登录)
+* [用户找回密码](#用户找回密码)
+* [用户删除账号](#用户删除账号)
 
 ### 环境
 
-用户认证数据存储在MySQL数据库中.可自定义用户数据库名称.默认名称为lxhpassnote_user
+用户认证数据存储在MySQL数据库中. 可自定义用户数据库名称. 默认名称为lxhpassnote_user
+
+```mysql
+create database lxhpassnote_user;
+```
+
+
 
 ### 用户信息表(user_info)
 
 ```mysql
-用户信息表,包含用户ID, 用户锁定状态.此表仅用于保存用户存在信息,为主表
+用户信息表,包含用户ID,用户密码，数据摘要运算使用的盐，用户锁定状态.
 create table user_info(
     user_id int unsigned  not null auto_increment primary key,
-    is_locked bit not null
+    user_pass text(50) not null,
+    user_salt text(30) not null,
+    is_locked int not null
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
-    
 ```
 
 | 字段名    | 例子         | 说明                           |
 | --------- | ------------ | ------------------------------ |
 | user_id   | 1            | 用户的ID                       |
+| user_pass           | 7de05d05cddab2799fa7608ea4533002a95038b9 | 用户密码+盐的数据摘要           |
+| user_salt           | 1552567183abcde                          | 盐                              |
 | is_locked | int not null | 用户锁定状态,1为锁定,0为未锁定 |
 
 ### 用户详细信息表(user_details)
@@ -58,11 +75,9 @@ create table user_details(
 ### 用户认证信息表(user_auth)
 
 ```mysql
-用户认证信息表，包含用户ID，用户密码，数据摘要运算使用的盐，用户权限标识
+用户认证信息表，包含用户ID，用户权限标识
 create table user_auth(
 	user_id int unsigned not null,
-    user_pass text(50) not null,
-    user_salt text(30) not null,
     user_token text(200) not null,
     user_token_gen_date text(30) not null
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -71,8 +86,42 @@ create table user_auth(
 | 字段名              | 例子                                     | 说明                            |
 | ------------------- | ---------------------------------------- | ------------------------------- |
 | user_id             | 1                                        | 用户ID，应与user_info中的ID对应 |
-| user_pass           | 7de05d05cddab2799fa7608ea4533002a95038b9 | 用户密码+盐的数据摘要           |
-| user_salt           | 1552567183abcde                          | 盐                              |
 | user_token          | abcdef                                   | 用户权限标识                    |
 | user_token_gen_date | 1552567183                               | 用户权限标识创建时间            |
+
+### 用户注册
+
+流程图
+
+![](imgs/用户注册流程.png)
+
+流程图代码
+
+```flow
+start=>start: 对象创建
+end=>end: 对象销毁
+
+register_request=>inputoutput: 用户申请注册，提交用户信息
+
+info_check=>condition: 信息是否合法，是否未注册
+
+success=>inputoutput: 生成成功信息
+error=>inputoutput: 生成错误信息
+
+insert_userinfo=>operation: 创建用户ID
+insert_userdetail=>operation: 补全用户详细信息
+insert_userauth=>operation: 补全用户密码信息
+
+start->register_request->info_check
+info_check(yes)->insert_userinfo->insert_userdetail->insert_userauth->success->end
+info_check(no)->error->end
+```
+
+
+
+### 用户登录
+
+```flow
+
+```
 
