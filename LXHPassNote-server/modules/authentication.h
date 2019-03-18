@@ -1,5 +1,17 @@
+#include <string>
 
 class Authentication
 {
+private:
+	std::string mysqlHost;
+	std::string mysqlUser;
+	std::string mysqlPassword;
+
+public:
+	Authentication(std::string host, std::string user, std::string password) : mysqlHost(host), mysqlUser(user), mysqlPassword(password) {}
+	~Authentication() {}
+
+	std::string SignUp(std::string password, std::string email, std::string phone, std::string userName);
+
 
 };
