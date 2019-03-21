@@ -256,7 +256,7 @@ int SMTPSSLComunicate(SSL *connection, const SSLEmailService::EmailInfo &info, s
 	return 0;
 }
 
-int SSLEmailService::SendEmail(const SSLEmailService::EmailInfo &info, bool useSSL)
+int SSLEmailService::SendEmail(const SSLEmailService::EmailInfo &email, bool useSSL)
 {
 	//start socket connection
 	int socketfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -271,7 +271,7 @@ int SSLEmailService::SendEmail(const SSLEmailService::EmailInfo &info, bool useS
 	inAddrInfo.ai_socktype = SOCK_STREAM;
 
 	addrinfo *addrInfo;
-	if (getaddrinfo(info.smtpServer.c_str(), info.serverPort.c_str(), &inAddrInfo, &addrInfo) != 0) // error occurs
+	if (getaddrinfo(email.smtpServer.c_str(), email.serverPort.c_str(), &inAddrInfo, &addrInfo) != 0) // error occurs
 	{
 		this->lastErrorMsg = "Error on calling getadrrinfo().";
 		return -1;
@@ -298,7 +298,7 @@ int SSLEmailService::SendEmail(const SSLEmailService::EmailInfo &info, bool useS
 		ssl = SSL_new(ctx);
 		SSL_set_fd(ssl, socketfd);
 		SSL_connect(ssl);
-		retcode = SMTPSSLComunicate(ssl, info, this->lastErrorMsg);
+		retcode = SMTPSSLComunicate(ssl, email, this->lastErrorMsg);
 
 		SSL_shutdown(ssl);
 		SSL_free(ssl);
@@ -306,7 +306,7 @@ int SSLEmailService::SendEmail(const SSLEmailService::EmailInfo &info, bool useS
 	}
 	else
 	{
-		retcode = SMTPComunicate(socketfd, info, this->lastErrorMsg);
+		retcode = SMTPComunicate(socketfd, email, this->lastErrorMsg);
 	}
 
 	freeaddrinfo(addrInfo);

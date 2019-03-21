@@ -22,5 +22,5 @@ public:
 	};
 
 
-	int SendEmail(const EmailInfo &info, bool useSSL);
+	int SendEmail(const EmailInfo &email, bool useSSL);
 };

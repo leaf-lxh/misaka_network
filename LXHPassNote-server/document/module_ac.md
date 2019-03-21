@@ -65,14 +65,14 @@ create table user_details(
 
 
 
-| 字段名           | 例子                | 说明                            |
-| ---------------- | ------------------- | ------------------------------- |
-| user_id          | 1                   | 用户ID，应与user_info中的ID对应 |
-| user_name        | test_user           | 用户名称                        |
-| user_avatar      | SHA1.png            | 用户头像图片名称                |
-| user_phone       | +8613123456789      | 用户手机号                      |
-| user_email       | test_user@test_name | 用户邮箱                        |
-| user_signup_date | 1552567132          | 用户注册时间Unix时间戳          |
+| 字段名           | 例子                | 说明                                   |
+| ---------------- | ------------------- | -------------------------------------- |
+| user_id          | 1                   | 用户ID，应与user_info中的ID对应        |
+| user_name        | test_user           | 用户名称，应确保唯一                   |
+| user_avatar      | SHA1.png            | 用户头像图片名称                       |
+| user_phone       | +8613123456789      | 用户手机号                             |
+| user_email       | test_user@test_name | 用户邮箱，应保证每个邮箱只绑定一个账号 |
+| user_signup_date | 1552567132          | 用户注册时间Unix时间戳                 |
 
 ### 用户认证信息表(user_auth)
 
@@ -93,12 +93,20 @@ create table user_auth(
 
 ### 注册认证表
 
-```
+```mysql
 注册认证表，用于存储注册时用于验证的验证码
 create table signup_auth(
-	user_email text(40)
+	user_email text(40) not null,
+	user_phone text(20) not null,
+	user_auth_code text(20) not null
 )
 ```
+
+| 字段名         | 例子             | 说明                   |
+| -------------- | ---------------- | ---------------------- |
+| user_email     | test@example.com | 用户注册时提交的邮箱   |
+| user_phone     | 131234564789     | 用户注册时提交的手机号 |
+| user_auth_code | 123456           | 注册时系统生成的验证码 |
 
 
 
