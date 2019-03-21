@@ -13,6 +13,8 @@
 * [用户信息表(user_info)](#用户信息表(user_info))
 * [用户详细信息表(user_details)](#用户详细信息表(user_details))
 * [用户认证信息表(user_auth)](#用户认证信息表(user_auth))
+* [注册认证表](#注册认证表)
+* [邮件发送](#邮件发送)
 * [用户注册](#用户注册)
 * [用户登录](#用户登录)
 * [用户找回密码](#用户找回密码)
@@ -56,7 +58,7 @@ create table user_details(
     user_name text(30) not null,
     user_avatar text(50) not null,
     user_phone text(20) not null,
-    user_email text(25) not null,
+    user_email text(40) not null,
     user_signup_date text(30) not null
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 ```
@@ -89,39 +91,34 @@ create table user_auth(
 | user_token          | abcdef                                   | 用户权限标识                    |
 | user_token_gen_date | 1552567183                               | 用户权限标识创建时间            |
 
+### 注册认证表
+
+```
+注册认证表，用于存储注册时用于验证的验证码
+create table signup_auth(
+	user_email text(40)
+)
+```
+
+
+
+### 邮件发送
+
+认证时需要进行验证，暂时只考虑邮件验证码验证。
+
+
+
 ### 用户注册
+
+
 
 流程图
 
-![](imgs/用户注册流程.png)
 
-流程图代码
-
-```flow
-start=>start: 对象创建
-end=>end: 对象销毁
-
-register_request=>inputoutput: 用户申请注册，提交用户信息
-
-info_check=>condition: 信息是否合法，是否未注册
-
-success=>inputoutput: 生成成功信息
-error=>inputoutput: 生成错误信息
-
-insert_userinfo=>operation: 创建用户ID
-insert_userdetail=>operation: 补全用户详细信息
-insert_userauth=>operation: 补全用户密码信息
-
-start->register_request->info_check
-info_check(yes)->insert_userinfo->insert_userdetail->insert_userauth->success->end
-info_check(no)->error->end
-```
 
 
 
 ### 用户登录
 
-```flow
 
-```
 
