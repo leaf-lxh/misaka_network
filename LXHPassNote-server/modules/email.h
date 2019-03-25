@@ -3,6 +3,7 @@
 class SSLEmailService
 {
 public:
+	///调用函数失败时会将错误原因赋值到此字符串中
 	std::string lastErrorMsg;
 	struct EmailInfo
 	{
@@ -21,6 +22,11 @@ public:
 
 	};
 
-
+	/*!
+	发送邮件
+	参数：email  | 邮件的信息
+	参数：useSSL | 是否使用SSL进行通信
+	返回：发送成功返回0，失败时返回大于0的SMTP错误码，或-1，创建连接失败
+	*/
 	int SendEmail(const EmailInfo &email, bool useSSL);
 };
