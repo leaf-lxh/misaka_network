@@ -10,8 +10,11 @@ private:
 public:
 	Authentication(std::string sqlhost, std::string sqluser, std::string sqlpassword) : mysqlHost(sqlhost), mysqlUser(sqluser), mysqlPassword(sqlpassword) {}
 	~Authentication() {};
+	
+	///错误码, 本类所有的函数在发生错误时都会设置该错误码
+	std::string lastErrorCode;
 
-	///当某个函数错误执行时，会将错误信息赋值到该变量中
+	///错误信息，部分函数会在发生错误时设置错误信息。设置错误信息的函数会在函数声明的注释中注明
 	std::string lastErrorMsg;
 
 	/*!
@@ -22,6 +25,7 @@ public:
 	参数：emailAccount  | 登录smtp服务器时使用的邮箱地址
 	参数：emailPassword | 登录smtp服务器时使用的密码
 	返回：注册验证码，失败返回空字符串
+	注意：如果是调用connector时发生异常而导致的失败，会将SQL错误码保存到lastErrorMsg。当邮件发送失败时，会将SMTP服务器返回的错误信息保存到lastErrorMsg
 	*/
 	std::string ToEmailAuthCode(std::string email, std::string smtpserver, std::string smtpport, std::string emailAccount, std::string emailPassword);
 
