@@ -20,9 +20,10 @@ std::string Authentication::ToEmailAuthCode(std::string email, std::string smtps
 {
 	this->lastErrorCode = "";
 	this->lastErrorMsg = "";
+
 	//邮箱名允许数字、字母、英文句点、加号、减号，下划线，邮件提供商允许QQ邮箱，网易126、163邮箱、谷歌gamil邮箱、foxmail邮箱、新浪邮箱
 	std::regex format("[0-9a-zA-Z\.\+\-_]+?@[0-9a-zA-Z\.]*?(qq\.com|163\.com|gmail\.com|foxmail\.com|126\.com|sina\.com)");
-	if (!std::regex_match(email, format))
+	if (email.length() > 40 || !std::regex_match(email, format))
 	{
 		this->lastErrorCode = "10000";
 		return "";
@@ -70,6 +71,7 @@ std::string Authentication::ToEmailAuthCode(std::string email, std::string smtps
 	}
 
 
+	//发送邮件给客户
 	SSLEmailService::EmailInfo context;
 	context.sender = "LXHPassNote";
 	context.senderEmail = emailAccount;
