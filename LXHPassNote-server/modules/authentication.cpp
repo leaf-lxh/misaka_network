@@ -42,6 +42,7 @@ std::string Authentication::ToEmailAuthCode(std::string email, std::string smtps
 	stream << std::setw(6) << std::setfill('0') << (rand() % 999999);
 	stream >> code;
 
+
 	try
 	{
 		sql::Driver *driver = get_driver_instance();
@@ -106,11 +107,13 @@ std::string Authentication::ToEmailAuthCode(std::string email, std::string smtps
 
 std::string Authentication::SignUp(std::string password, std::string email, std::string authcode, std::string phone, std::string username)
 {
+
 	return std::string();
 }
 
 std::string Authentication::SignIn(std::string username, std::string password)
 {
+
 	return std::string();
 }
 

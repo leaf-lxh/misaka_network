@@ -1,4 +1,8 @@
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
+#include "transmission.h"
+
+#include <string>
+#include <fstream>
+
+#include <openssl/ssl.h>
+
 
