@@ -236,7 +236,7 @@ void SignTask::StartWatching()
 				StartAutoSignIn();
 			}
 		}
-		io.WriteLog("Process is running....");
+		//io.WriteLog("Process is running....");
 		sleep(28);
 		count++;
 		if (count == 10)
