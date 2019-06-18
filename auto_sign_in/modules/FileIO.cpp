@@ -134,7 +134,9 @@ bool SignInFileIO::ReadConfig()
 	
 	file.close();
 
+	ss.str("");
 	ss.clear();
+
 	ss << "Reading configuration complete. Time: " << config.hour << "-" << config.minute << "\n";
 	std::string result(ss.str());
 	WriteLog(result);
