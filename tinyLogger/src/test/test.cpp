@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include "../conf.h"
+#include "../network.h"
 
 int main()
 {
@@ -14,5 +15,14 @@ int main()
 		cout << '[' << setting.first  << ']' << '=' << '[' << setting.second << ']' << endl;
 	}
 
+	cout << "Starting server..." << endl;
+	Network server(conf.config);
+	try {
+		cout << "listen FD: " << server.StartListen() << endl;
+	}
+	catch (std::runtime_error e) {
+		cout << e.what() << endl;
+	}
+	cin.get();
 	return 0;
 }

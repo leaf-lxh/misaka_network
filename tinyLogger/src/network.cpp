@@ -8,23 +8,23 @@
 
 Network::Network(std::map<std::string, std::string> config)
 {
-	setting["SSL"] = "true";
-	setting["address"] = "127.0.0.1";
-	setting["port"] = "7200"
+	this->setting["SSL"] = "on";
+	this->setting["address"] = "127.0.0.1";
+	this->setting["port"] = "7200";
 
 	if (config.find("SSL") != config.end())
 	{
-		setting["SSL"] = config["SSL"];
+		this->setting["SSL"] = config["SSL"];
 	}
 
 	if (config.find("address") != config.end())
 	{
-		setting["address"] = config["address"];
+		this->setting["address"] = config["address"];
 	}
 
 	if (config.find("port") != config.end())
 	{
-		setting["port"] = config["port"];
+		this->setting["port"] = config["port"];
 	}
 }
 
@@ -39,13 +39,13 @@ int Network::StartListen()
 	in_addr_t address;
 	in_port_t port;
 	try {
-		int p = stoi(setting["port"]);
+		int p = std::stoi(setting["port"]);
 		if (p <= 0 || p > 65535)
 		{
 			throw std::runtime_error("?");
 		}
-		port = p;
-		if (inet_pton(AF_INET, setting["address"], address) <= 0)
+		port = htons(p);
+		if (inet_pton(AF_INET, setting["address"].c_str(), &address) <= 0)
 		{
 			throw std::runtime_error("?");
 		}
@@ -57,9 +57,9 @@ int Network::StartListen()
 	struct sockaddr_in serverInfo = {};
 	serverInfo.sin_family = AF_INET;
 	serverInfo.sin_port = port;
-	serverInfo.sin_addr = address;
+	serverInfo.sin_addr.s_addr = address;
 
-	if (bind(serverFD, (sockaddr *)&sockaddr_in, sizeof(sockaddr_in)) == -1)
+	if (bind(serverFD, (sockaddr *)&serverInfo, sizeof(sockaddr_in)) == -1)
 	{
 		throw std::runtime_error("Network::StartListen(): Unable to bind address:port.");
 	}
@@ -74,11 +74,10 @@ int Network::StartListen()
 std::map<std::string, std::string> Network::ProtocolParser(std::string packet)
 {
 	std::map<std::string, std::string> context;
-
-	
+	return context;
 }
 
 std::string Network::EventHandler(std::string content)
 {
-
+	return "";
 }

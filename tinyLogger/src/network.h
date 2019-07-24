@@ -18,7 +18,7 @@ public:
 	void StartHandleRequest();
 	
 private:
-	std::map<std::string, std::string> settings;
+	std::map<std::string, std::string> setting;
 	int serverFD;
 
 	/*!
