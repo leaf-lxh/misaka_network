@@ -4,6 +4,8 @@
 #self-customed
 *.swp
 *.gch
+*.out
+
 #vscode directory
 .vscode/*
 #vs2017 linux debug temp files
