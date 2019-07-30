@@ -23,6 +23,8 @@ int main()
 	catch (std::runtime_error e) {
 		cout << e.what() << endl;
 	}
+	cout << "Server Start Running..." << endl;
+	server.StartHandleRequest();
 	cin.get();
 	return 0;
 }
