@@ -11,7 +11,6 @@ public:
 
 	SettingReader(std::string settingPath="/etc/tinyLogger/setting.conf") : path(settingPath) {}
 
-	/*throw runtime_error*/
 	unsigned int ReadConfiguration();
 
 private:

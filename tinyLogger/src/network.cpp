@@ -10,20 +10,22 @@
 #include <sys/time.h>
 #include <unistd.h>
 
-//#include <openssl/ssl.h>
+#include <openssl/ssl.h>
 
 #include <memory>
 
-Network::Network(std::map<std::string, std::string> config)
+#define NETWORK_MAX_BUFFER_LEN 20971520
+
+Network::Network()
 {
-	this->setting["SSL"] = "on";
 	this->setting["address"] = "127.0.0.1";
 	this->setting["port"] = "7200";
+}
 
-	if (config.find("SSL") != config.end())
-	{
-		this->setting["SSL"] = config["SSL"];
-	}
+Network::Network(std::map<std::string, std::string> config)
+{
+	this->setting["address"] = "127.0.0.1";
+	this->setting["port"] = "7200";
 
 	if (config.find("address") != config.end())
 	{
@@ -34,6 +36,7 @@ Network::Network(std::map<std::string, std::string> config)
 	{
 		this->setting["port"] = config["port"];
 	}
+
 }
 
 Network::~Network()
@@ -154,37 +157,52 @@ void Network::StartHandleRequest()
 				continue;
 			}
 				
-			if(setting["SSL"].compare("off") == 0)
+			while (true)
 			{
-				while (true)
+				if (connectionBuffer[connectionFD].length() + 4096 > NETWORK_MAX_BUFFER_LEN)
 				{
-					std::unique_ptr<char[]> buffer(new char[4096]());
-					int receivedLen = recv(connectionFD, buffer.get(), 4096, MSG_DONTWAIT);
-					if (receivedLen > 0)
-					{
-						connectionBuffer[connectionFD].append(buffer.get(), receivedLen);
-						continue;
-					}
+					break;
+				}
+
+				std::unique_ptr<char[]> buffer(new char[4096]());
+				int receivedLen = recv(connectionFD, buffer.get(), 4096, MSG_DONTWAIT);
+				if (receivedLen > 0)
+				{
+					connectionBuffer[connectionFD].append(buffer.get(), receivedLen);
+					continue;
+				}
 						
-					if (receivedLen == 0)
+				if (receivedLen == 0)
+				{
+					close(connectionFD);
+					connectionPool.erase(connectionFD);
+					connectionBuffer.erase(connectionFD);
+				}
+						
+				if (receivedLen == -1 && (errno == EWOULDBLOCK || errno == EAGAIN))
+				{
+					std::string response;
+					try
 					{
+						response = EventHandler(connectionBuffer[connectionFD]);
+					}
+					catch (...)
+					{
+						/* error occured */
 						close(connectionFD);
 						connectionPool.erase(connectionFD);
 						connectionBuffer.erase(connectionFD);
+						break;
 					}
-						
-					if (receivedLen == -1 && (errno == EWOULDBLOCK || errno == EAGAIN))
+
+					/* to see if there are aviliable bytes to response. */
+					if (response != "")
 					{
-						const std::string response = EventHandler(connectionBuffer[connectionFD]);
 						send(connectionFD, response.data(), response.length(), 0);
 					}
-				
-					break;
 				}
-			}
-			else
-			{
 				
+				break;
 			}
 		}
 	}
@@ -192,12 +210,12 @@ void Network::StartHandleRequest()
 
 void Network::GracefullyShutdown()
 {
-	
+	this->listenState = this->ListenState::GRACE_SHUTDOWN;	
 }
 
 void Network::ForceShutdown()
 {
-
+	this->listenState = this->ListenState::FORCE_SHUTDOWN;
 }
 
 std::string Network::EventHandler(std::string &buffer)
