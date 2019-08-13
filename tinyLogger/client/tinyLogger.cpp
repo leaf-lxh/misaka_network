@@ -11,6 +11,7 @@
 #include <arpa/inet.h>
 
 #include <netdb.h>
+#include <errno.h>
 
 TinyLoggerClient::~TinyLoggerClient()
 {
@@ -68,6 +69,7 @@ TinyLoggerClient::Response TinyLoggerClient::Send(std::string logText, std::stri
 
 	if (rlength == 0)
 	{
+		close(connectionFD);
 		connectionFD = -1;
 		throw std::runtime_error("Connection Closed");
 	}
@@ -137,7 +139,8 @@ bool TinyLoggerClient::Connect()
 
 	if (connect(connectionFD, (sockaddr *)&serverInfo, sizeof(sockaddr_in)))
 	{
-		throw std::runtime_error("Faild to connect to server.");
+		
+		throw std::runtime_error(std::to_string(errno) + " Failed to connect to server.");
 	}
 
 	return true;
