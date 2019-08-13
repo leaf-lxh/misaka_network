@@ -24,6 +24,7 @@ unsigned int SettingReader::ReadConfiguration()
 		}
 	}
 
+	file.close();
 	return count;	
 }
 
