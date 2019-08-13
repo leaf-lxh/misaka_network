@@ -86,6 +86,8 @@ TinyLoggerClient::Response TinyLoggerClient::Send(std::string logText, std::stri
 		throw std::runtime_error("Corrupted data length.");
 	}
 
+	rmsg.server = headers["server"];
+
 	std::string responseBody = response.substr(response.find("\r\n\r\n") + 4, contentLength);
 	try 
 	{ 

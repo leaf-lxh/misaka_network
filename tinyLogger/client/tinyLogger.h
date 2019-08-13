@@ -11,6 +11,7 @@ public:
 	struct Response
 	{
 		int code;
+		std::string server;
 		std::string msg;
 	};
 

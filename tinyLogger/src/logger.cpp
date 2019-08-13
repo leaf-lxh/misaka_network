@@ -156,6 +156,7 @@ std::string TinyLogger::CreateResponseMsg(std::string msg)
 
 	response << "version: " << TINYLOGGER_SERVER_VERSION << "\r\n";
 	response << "data_length: " << msg.length() << "\r\n";
+	response << "server: " << getpid() << "\r\n";
 	response << "\r\n";
 	response << msg;
 

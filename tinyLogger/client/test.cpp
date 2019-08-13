@@ -8,8 +8,16 @@ int main()
 	TinyLoggerClient logger("xhttpd", "testkey", {"127.0.0.1", 7200});
 	time_t startTime = time(nullptr);
 
-	try { std::cout << logger.Send("test logger success").msg << std::endl; }
-	catch (std::runtime_error e) { std::cout << e.what() << std::endl; }
+	try
+	{
+		TinyLoggerClient::Response r = logger.Send("test logger success");
+		std::cout << r.code << std::endl;
+		std::cout << r.server << std::endl;
+	}
+	catch (std::runtime_error e)
+	{
+		std::cout << e.what() << std::endl;
+	}
 
 	return 0;
 }
