@@ -87,7 +87,7 @@ const statusStyle = makeStyles({
 
 
 function isVaildLogin(){
-    return [false, "LegendLXH", "lxhcat.jpg"];
+    return [true, "LegendLXH", "lxhcat.jpg"];
 }; 
 
 const StatusZone = () =>{
