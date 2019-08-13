@@ -67,7 +67,7 @@ void SetProcessTitle(const char* title)
 	std::string processTitle = "tinyLogger: ";
 	processTitle += title;
 
-	/* The way you are avoiding buffer eroverflow, like cxk */
+	/* The way you are avoiding buffer overflow, like cxk */
 	size_t writeSize = (processTitle.length() >= regionSize) ? regionSize - 1 : processTitle.length() + 1;
 	strncpy(argv[0], processTitle.c_str(), writeSize);
 	std::cout << argv[0] << std::endl;
