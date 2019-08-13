@@ -70,7 +70,6 @@ void SetProcessTitle(const char* title)
 	/* The way you are avoiding buffer overflow, like cxk */
 	size_t writeSize = (processTitle.length() >= regionSize) ? regionSize - 1 : processTitle.length() + 1;
 	strncpy(argv[0], processTitle.c_str(), writeSize);
-	std::cout << argv[0] << std::endl;
 }
 
 
@@ -128,7 +127,6 @@ int GetMasterPID()
 	try
 	{
 		int p = std::stoi(pid);
-		std::cout << p << std::endl;
 		if (kill(p, 0) == 0)
 		{
 			return p;
@@ -245,7 +243,6 @@ void StopService()
 {
 	std::cout << "Shutdown processing..." << std::endl;
 	int pid = GetMasterPID();
-	std::cout << pid << std::endl;
 	if (pid != -1)
 	{
 		kill(pid, SIGTERM);
