@@ -86,7 +86,7 @@ std::string TinyLogger::EventHandler(std::string &buffer)
 
 		/* 
 		   if encountered a bad contentLength(like data_length: shit), 
-		   let stoi() raise exception, and thus the StartListen() will close this connection
+		   let stoi() raise exception, and the Network::StartHandleRequest() will catch this exception, close this connection.
 		*/
 		long contentLength = std::stol(headers["data_length"]);
 		if (contentLength <= 0) throw std::runtime_error("?");
