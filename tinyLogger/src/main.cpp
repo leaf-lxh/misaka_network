@@ -173,6 +173,12 @@ void MasterWork(int processAmount)
 
 void StartService()
 {
+	if (GetMasterPID() != -1)
+	{
+		std::cout << "Server is already started." << std::endl;
+		return;
+	}
+
 	std::cout << "Initializing server..." << std::endl;
 	SettingReader reader;
 	reader.ReadConfiguration();

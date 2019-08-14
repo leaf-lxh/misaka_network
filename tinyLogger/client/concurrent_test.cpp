@@ -8,9 +8,9 @@ using namespace std;
 
 static void* Send(void *arg)
 {
-	for (int i = 0; i < 10000; ++i)
+	for (int i = 0; i < 100; ++i)
 	{
-		TinyLoggerClient* logger = new TinyLoggerClient("access-default", "e5ee161d14f7ba46bb007dc09c5bbe2ca5dcf70d", {"192.168.247.25", 7200});
+		TinyLoggerClient* logger = new TinyLoggerClient("access-default", "e5ee161d14f7ba46bb007dc09c5bbe2ca5dcf70d", {"blog.leaflxh.com", 7200});
 		try 
 		{
 			cout << logger->Send((char*)arg).server << endl;
