@@ -141,7 +141,7 @@ const IndexZone = () => {
 const NavBar = () => {
     const style = navStyle();
     return(
-        <AppBar >
+        <AppBar position="relative" >
             <ToolBar className={style.root}>
                 <Typography className = {style.title} variant="h5">
                     LXH's Blog Space
