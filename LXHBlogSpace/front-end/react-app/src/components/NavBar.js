@@ -1,4 +1,5 @@
 import React from 'react';
+import ReactDOM from 'react-dom';
 import { makeStyles } from '@material-ui/core/styles'
 import AppBar from '@material-ui/core/AppBar'
 import ToolBar from '@material-ui/core/Toolbar'
@@ -12,6 +13,7 @@ import Avatar from '@material-ui/core/Avatar';
 import AccountBoxIcon from '@material-ui/icons/AccountBox'
 import AssignmentIcon from '@material-ui/icons/Assignment'
 
+import MainContainer from './MainContainer'
 
 const navStyle = makeStyles ({
     root : {
@@ -98,7 +100,7 @@ const StatusZone = () =>{
             <>
                 <div className={style.userZone}>
                     <div className={style.userId}>
-                        <Link href="#user/?id=user" underline="none" >{name}</Link>
+                        <Link href="/user/?id=user" underline="none" >{name}</Link>
                     </div>
                     <Avatar src={avatar}/>
                 </div>
@@ -121,18 +123,20 @@ const StatusZone = () =>{
     }
 };
 
+
 const IndexZone = () => {
     const style = indexStyle();
     const [value, setValue] = React.useState(0);
     function handleChange(event, newValue) {
         setValue(newValue);
+        ReactDOM.render(MainContainer(newValue), document.getElementById('main-panel-root'));
     };
 
     return(
         <Tabs value = {value} onChange={handleChange} classes={{indicator:style.indicatorColor}} >
-            <Tab classes={{root:style.tabMod}} label="首页" href="#main" />
-            <Tab classes={{root:style.tabMod}} label="时间线" href="#timeline" />
-            <Tab classes={{root:style.tabMod}} label="深水池" href="#water" />
+            <Tab classes={{root:style.tabMod}} label="首页" href="#main" value="main"/>
+            <Tab classes={{root:style.tabMod}} label="时间线" href="#timeline" value="timeline" />
+            <Tab classes={{root:style.tabMod}} label="深水池" href="#water" value="water"/>
             
         </Tabs>
     );

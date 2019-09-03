@@ -3,7 +3,7 @@ import Avatar from '@material-ui/core/Avatar'
 import Chip from '@material-ui/core/Chip'
 import "./css/BlogBriefBox.css"
 
-function BlogBriefBox(title, article, tags, interInfo, userInfo)  {
+function BlogBriefBox(title, article, tags, interInfo, userInfo, href)  {
     return(
         <div className="blog-brief-root">
             <div className="blog-brief-head">
@@ -16,7 +16,7 @@ function BlogBriefBox(title, article, tags, interInfo, userInfo)  {
 
             <div className="blog-brief-content-block">
                 <span className="brief-content">{article}</span>
-                <button className="brief-moto">阅读全文</button>
+                <button className="brief-moto" onClick={()=>{window.open(href)}}>阅读全文</button>
             </div>
 
             <div className="blog-brief-footer">

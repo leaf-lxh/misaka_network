@@ -1,5 +1,6 @@
 .main-container{
     margin-top: 15px; 
+    display: flex;
 }
 
 .blog-brief-list{
@@ -7,6 +8,14 @@
     border-radius: 15px;
     height: auto;
     width: 850px;
+    margin-right: 20px;
+    font-family: "Roboto";
+}
 
+.index-right-panel{
+    display: block;
+    width: 340px;
+    border-radius: 15px;
+    height: auto;
     font-family: "Roboto";
 }
