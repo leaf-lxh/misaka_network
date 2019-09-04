@@ -1,0 +1,14 @@
+.recommand-panel{
+    background-color: #f5f5f5;
+    margin: auto;
+    margin-top: 10px;
+    border-radius: 15px;
+}
+
+.topic-list-element{
+    padding-left: 10px;
+}
+
+.topic-label{
+    padding-left: 10px;
+}

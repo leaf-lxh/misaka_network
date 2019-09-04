@@ -89,7 +89,7 @@ const statusStyle = makeStyles({
 
 
 function isVaildLogin(){
-    return [true, "LegendLXH", "lxhcat.jpg"];
+    return [false, "LegendLXH", "lxhcat.jpg"];
 }; 
 
 const StatusZone = () =>{
@@ -145,7 +145,7 @@ const IndexZone = () => {
 const NavBar = () => {
     const style = navStyle();
     return(
-        <AppBar position="relative" >
+        <AppBar position="fixed" >
             <ToolBar className={style.root}>
                 <Typography className = {style.title} variant="h5">
                     LXH's Blog Space

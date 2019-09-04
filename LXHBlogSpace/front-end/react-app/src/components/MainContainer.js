@@ -37,7 +37,20 @@ function GenPage(requiredPage) {
     }
 }
 
+function AdjustRightPanelPos(){
+    var briefList = document.getElementsByClassName("blog-brief-list")[0];
+    var panelLeft = briefList.offsetLeft + briefList.offsetWidth + 20;
+    var panel = document.getElementsByClassName("index-right-panel")[0];
+    panel.style.position = "fixed"
+    panel.style.top = "80px";
+    panel.style.left= panelLeft + "px";
+}
+
 const MainContainer = (requiredPage) => {
+    //设置右边面板悬浮
+    window.onload = AdjustRightPanelPos;
+    window.onresize = AdjustRightPanelPos;
+
     return(
         <Container fixed className="main-container">
             {GenPage(requiredPage)}

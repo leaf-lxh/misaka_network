@@ -1,5 +1,5 @@
 .main-container{
-    margin-top: 15px; 
+    margin-top: 80px; 
     display: flex;
 }
 
@@ -15,7 +15,9 @@
 .index-right-panel{
     display: block;
     width: 340px;
-    border-radius: 15px;
     height: auto;
     font-family: "Roboto";
+    position: fixed;
+    top:80px;
+    left: 1213px;
 }
