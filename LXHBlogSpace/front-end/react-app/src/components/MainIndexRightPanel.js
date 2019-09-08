@@ -6,8 +6,14 @@ import HotTopic from './HotTopic';
 function MainIndexRightPanel (){
     return(
         <>
-            <UserPanel />
-            <HotTopic />
+            <div className="user-panel">
+                <UserPanel  />
+            </div>
+            
+            <div className="recommand-panel">
+                <HotTopic />
+            </div>
+            
         </>
     )
 }

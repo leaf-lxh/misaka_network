@@ -6,6 +6,9 @@ import Container from '@material-ui/core/Container'
 
 import BlogBrief from './BlogBrief'
 import MainIndexRightPanel from './MainIndexRightPanel'
+import TimeLine from "./TimeLine"
+import Water from "./Water"
+import CircularProgress from "@material-ui/core/CircularProgress"
 
 import './css/MainContainer.css'
 
@@ -23,7 +26,15 @@ function GenPage(requiredPage) {
     {
         return (
             <div className="blog-brief-list">
-                timeline.
+                <TimeLine />
+            </div>
+        );
+    }
+    else if (requiredPage === "water")
+    {
+        return (
+            <div className="blog-brief-list">
+                <Water/>
             </div>
         );
     }
@@ -31,13 +42,21 @@ function GenPage(requiredPage) {
     {
         return (
             <div className="blog-brief-list">
-                water
+                <div className="container-loading">
+                    <div style={{paddingTop: "300px"}}>
+                        <CircularProgress style={{display: "inline-block"}} variant="indeterminate"/>
+                        <div className="container-loading-text">
+                            加载中...
+                        </div>
+                    </div>
+
+                </div>
             </div>
         );
     }
 }
 
-function AdjustRightPanelPos(){
+function StickyRightPanel(){
     var briefList = document.getElementsByClassName("blog-brief-list")[0];
     var panelLeft = briefList.offsetLeft + briefList.offsetWidth + 20;
     var panel = document.getElementsByClassName("index-right-panel")[0];
@@ -48,8 +67,8 @@ function AdjustRightPanelPos(){
 
 const MainContainer = (requiredPage) => {
     //设置右边面板悬浮
-    window.onload = AdjustRightPanelPos;
-    window.onresize = AdjustRightPanelPos;
+    window.onload = StickyRightPanel;
+    window.onresize = StickyRightPanel;
 
     return(
         <Container fixed className="main-container">

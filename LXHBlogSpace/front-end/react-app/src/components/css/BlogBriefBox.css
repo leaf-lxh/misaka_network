@@ -7,6 +7,23 @@
     border-bottom: 2px solid rgb(169, 176, 177);
 }
 
+.blog-brief-timestamp{
+    color: black;
+    display: flex;
+    margin-bottom: 10px;
+}
+
+.blog-brief-timestamp-iconitem{
+    padding-right: 10px;
+    margin-top: auto;
+    margin-bottom: auto;
+}
+
+.blog-brief-timestamp-timeitem{
+    margin-top: auto;
+    margin-bottom: auto;
+}
+
 .blog-brief-head{
     flex-grow: 1;
     display: flex;

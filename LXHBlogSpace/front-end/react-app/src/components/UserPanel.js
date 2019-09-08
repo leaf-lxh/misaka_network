@@ -1,4 +1,5 @@
 import React from 'react';
+import ReactDOM from 'react-dom';
 
 import Button from "@material-ui/core/Button"
 import Chip from "@material-ui/core/Chip"
@@ -8,16 +9,48 @@ import NoteAdd from "@material-ui/icons/NoteAdd"
 import ViewList from "@material-ui/icons/ViewList"
 import History from "@material-ui/icons/History"
 
-function GetuserInfo(){
-    var userInfoStr = '{"username": "TestName", "avatar": "lxhcat.jpg", "system_msg": "20", "user_msg": "30", "account_state": "ok"}';
-    var userInfo = JSON.parse(userInfoStr);
-    return userInfo;
+
+
+
+function RenderUserInfo(className){
+    var request = new XMLHttpRequest();
+    request.onreadystatechange = function(){
+        if (request.readyState === 4 && request.status === 200)
+        {
+            var info = JSON.parse(request.responseText);
+            ReactDOM.render(
+                UserPanel(info),
+                document.getElementsByClassName(className)[0]
+            );
+        }
+        if (request.readyState === 4 && request.status !== 200)
+        {
+            info = {"ecode": -1, "username": "", "avatar": "", "system_msg": "--", "user_msg": "--", "account_state": "noLogin"};
+            ReactDOM.render(
+                UserPanel(info),
+                document.getElementsByClassName(className)[0]
+            );
+        }
+    }
+
+    request.open("GET", "/api/v1/GetUserMsgInfo", true);
+    request.send(null);
 }
 
-const UserPanel = () => {
-    var userInfo = GetuserInfo();
+
+function UserPanel(userMsgInfo, className){
+    if (userMsgInfo.ecode === undefined)
+    {
+        userMsgInfo = {"ecode": -1, "username": "", "avatar": "", "system_msg": "--", "user_msg": "--", "account_state": "noLogin"};
+        RenderUserInfo("user-panel");
+    }
+    if (className === undefined)
+    {
+        className = "user-panel";
+    }
+    
     return(
-        <div className="user-panel">
+        <>
             <div className="control-panel">
                 <div className="control-elements">
                     <Button style={{display:"inline-block"}}>
@@ -51,10 +84,10 @@ const UserPanel = () => {
                 </div>
             </div>
             <div className="msg-panel">
-                    <Chip className="msg-panel-elements" label={"系统消息: " + userInfo["system_msg"]}/>
-                    <Chip className="msg-panel-elements" label={"用户消息: " + userInfo["user_msg"]}/>
+                    <Chip className="msg-panel-elements" label={"系统消息: " + userMsgInfo["system_msg"]}/>
+                    <Chip className="msg-panel-elements" label={"用户消息: " + userMsgInfo["user_msg"]}/>
             </div>
-        </div>
+        </>
     )
 }
 

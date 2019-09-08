@@ -3,9 +3,27 @@ import Avatar from '@material-ui/core/Avatar'
 import Chip from '@material-ui/core/Chip'
 import "./css/BlogBriefBox.css"
 
-function BlogBriefBox(title, article, tags, interInfo, userInfo, href)  {
+import AccessTime from "@material-ui/icons/AccessTime"
+
+function GetTimeBlock(time)
+{
+    if (time != null)
+    {
+        return (
+            <div className="blog-brief-timestamp">
+                <div className="blog-brief-timestamp-iconitem"><AccessTime /></div>
+                <div className="blog-brief-timestamp-timeitem">{time}</div>
+            </div>
+        )
+    }
+    else{
+        return "";
+    }
+}
+function BlogBriefBox(title, article, tags, interInfo, userInfo, href, time)  {
     return(
         <div className="blog-brief-root">
+            {GetTimeBlock(time)}
             <div className="blog-brief-head">
                 <div className="title">{title}</div>
                 <div className="user-info">

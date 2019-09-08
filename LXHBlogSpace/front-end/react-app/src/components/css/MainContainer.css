@@ -1,6 +1,7 @@
 .main-container{
     margin-top: 80px; 
     display: flex;
+    min-width: 570px;
 }
 
 .blog-brief-list{
@@ -10,6 +11,17 @@
     width: 850px;
     margin-right: 20px;
     font-family: "Roboto";
+}
+
+.container-loading{
+    height: 800px;
+    font-family: "Roboto";
+    text-align: center;
+}
+
+.container-loading-text{
+    display: block;
+    padding-top: 10px;
 }
 
 .index-right-panel{

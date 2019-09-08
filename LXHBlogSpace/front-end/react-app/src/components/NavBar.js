@@ -14,41 +14,10 @@ import AccountBoxIcon from '@material-ui/icons/AccountBox'
 import AssignmentIcon from '@material-ui/icons/Assignment'
 
 import MainContainer from './MainContainer'
+import "./css/NavBar.css"
 
-const navStyle = makeStyles ({
-    root : {
-        background : "#f5f5f5"
-    },
-    title :{
-        color : "black",
-        marginLeft : "3%"
-    },
-    index : {
-        marginLeft : "200px",
-        flexGrow : 1
-    },
-    status : {
-        
-    }
-
-});
 
 const indexStyle = makeStyles({
-    button : {
-        margin : "0 10px 0 10px",
-        borderRadius : 0,
-        "&:hover" : {
-            background : "#f5f5f5"
-        }
-    },
-    tabMod : {
-        marginTop : 8,
-        marginLeft : 20,
-        color : "black",
-        fontSize: 16,
-        minWidth : 0,
-        minHeight : 20
-    },
     indicatorColor : {
         background : "black"
     }
@@ -88,15 +57,9 @@ const statusStyle = makeStyles({
 });
 
 
-function isVaildLogin(){
-    return [false, "LegendLXH", "lxhcat.jpg"];
-}; 
-
-const StatusZone = () =>{
-    const style = statusStyle();
-    const [vaild, name, avatar] = isVaildLogin();
+function RenderStatusZone(className, style, vaild, name, avatar){    
     if(vaild){
-        return(
+        ReactDOM.render(
             <>
                 <div className={style.userZone}>
                     <div className={style.userId}>
@@ -105,10 +68,10 @@ const StatusZone = () =>{
                     <Avatar src={avatar}/>
                 </div>
             </>
-        );
+        , document.getElementsByClassName(className)[0]);
     }
     else{
-        return(
+        ReactDOM.render(
             <>
                 <Button className={style.button} href="#login">
                     登录
@@ -119,42 +82,70 @@ const StatusZone = () =>{
                     <AssignmentIcon className={style.icon} />
                 </Button>
             </>
-        );
+        ,document.getElementsByClassName(className)[0]);
     }
+}; 
+
+function StatusZone (className){
+    const style = statusStyle();
+    var request = new XMLHttpRequest();
+    request.onreadystatechange = function(){
+        if (request.readyState === 4 && request.status === 200)
+        {
+            try{
+                var data = JSON.parse(request.responseText);
+                RenderStatusZone(className, style, data.vaild, data.name, data.avatar);
+            }
+            catch{
+                RenderStatusZone(className, style, false);
+            }
+            
+            
+        }
+        else if (request.readyState === 4){
+            RenderStatusZone(className, style, false);
+        }
+    }
+    //    return [false, "LegendLXH", "lxhcat.jpg"];
+    request.open("GET", "/api/v1/GetUserInfo", true)
+    request.send(null);
+
+    return "";
 };
 
 
 const IndexZone = () => {
     const style = indexStyle();
-    const [value, setValue] = React.useState(0);
+    const [value, setValue] = React.useState("main");
     function handleChange(event, newValue) {
         setValue(newValue);
+        ReactDOM.render(MainContainer("container-loading"), document.getElementById('main-panel-root'));
         ReactDOM.render(MainContainer(newValue), document.getElementById('main-panel-root'));
     };
 
     return(
         <Tabs value = {value} onChange={handleChange} classes={{indicator:style.indicatorColor}} >
-            <Tab classes={{root:style.tabMod}} label="首页" href="#main" value="main"/>
-            <Tab classes={{root:style.tabMod}} label="时间线" href="#timeline" value="timeline" />
-            <Tab classes={{root:style.tabMod}} label="深水池" href="#water" value="water"/>
+            <Tab className="indexstyle-tabmod" label="首页"  value="main"/>
+            <Tab className="indexstyle-tabmod" label="时间线"  value="timeline" />
+            <Tab className="indexstyle-tabmod" label="深水池"  value="water"/>
             
         </Tabs>
     );
 };
 
 const NavBar = () => {
-    const style = navStyle();
+
     return(
-        <AppBar position="fixed" >
-            <ToolBar className={style.root}>
-                <Typography className = {style.title} variant="h5">
+        <AppBar position="fixed" style={{minWidth: 960}}>
+            <ToolBar className="navstyle-root">
+                <Typography className ="navstyle-title" variant="h5">
                     LXH's Blog Space
                 </Typography>
-                <div className={style.index}>
+                <div className="navstyle-index">
                     <IndexZone />
                 </div>
-                <div className={style.status}>
-                    <StatusZone />
+                <div className="navstyle-status">
+                    {StatusZone("navstyle-status")}
                 </div>
             </ToolBar>
         </AppBar>
