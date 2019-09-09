@@ -36,7 +36,6 @@ function HotTopic(param){
         RenderHotTopic("recommand-panel");
     }
 
-    console.log(param["topics"]);
     return (
         <>
             <List>
