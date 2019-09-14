@@ -1,39 +1,28 @@
-.App {
+.blog-container {
   font-family: "Roboto";
 }
 
-.App-logo {
-  animation: App-logo-spin infinite 20s linear;
-  height: 40vmin;
-  pointer-events: none;
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
-}
-
-.App-link {
-  color: #61dafb;
-}
-
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
 
 .unmarked-code{
   display: inline !important;
-  padding: 0 !important;
+  padding: 0 3px 0 3px !important;
+  border-radius: 3px !important;
+  margin-left: 2px !important;
+  margin-right: 2px !important;
 }
 
+.hljs-comment{
+  font-style: normal !important;
+}
+
+table,tr,td,th{
+  border-color: gray;
+  border: 2px solid gray;
+}
+
+blockquote{
+  background: white;
+  margin-left: 0;
+  padding-left: 40px;
+  color: gray;
+}
