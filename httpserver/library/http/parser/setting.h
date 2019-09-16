@@ -3,15 +3,10 @@
 #include <map>
 #include <stdexcept>
 
+#include "HTTPParser.h"
+
 namespace parser
 {
-	struct XMLSetting
-	{
-		/*每个元素的first为属性名，second为属性值，name为保留属性名，其值为改节点的标签名称*/
-		std::multimap<std::string, std::string> property;
-		/*该节点下的子节点*/
-		std::vector<XMLSetting> childNode;
-	};
 
 	/*!
 	strip函数，返回已去除两端特殊字符的源字符串
