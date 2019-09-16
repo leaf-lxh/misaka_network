@@ -16,11 +16,11 @@ function ScrollToHashTag()
         var tagList = document.getElementsByTagName(supportTags[index]);
         for (var i = 0; i < tagList.length; i++) {
             if (tagList[i].innerText === target) {
-                window.scrollTo(0, tagList[i].offsetTop);
+                window.scrollTo(0, tagList[i].offsetTop - 64);
                 return;
             }
             else if (tagList[i].innerText === (target.replace(/[-]+?/g, () => { return " " }))) {
-                window.scrollTo(0, tagList[i].offsetTop);
+                window.scrollTo(0, tagList[i].offsetTop - 64);
                 return;
             }
         }
@@ -78,7 +78,7 @@ function UpdateContainer(hookFunc)
         }
     }
 
-    request.open("GET", "/blogs/xman-level1.md", true);
+    request.open("GET", "/api/v1/GetBlogContent?blog=parse_three.md", true);
     request.send(null);
 }
 

@@ -1,7 +1,10 @@
 .blog-container {
   font-family: "Roboto";
 }
-
+a{
+  text-decoration-line: none;
+  color: #4080bb;
+}
 
 .unmarked-code{
   display: inline !important;
@@ -15,6 +18,9 @@
   font-style: normal !important;
 }
 
+.hljs{
+  border-radius: 3px !important;
+}
 table,tr,td,th{
   border-color: gray;
   border: 2px solid gray;

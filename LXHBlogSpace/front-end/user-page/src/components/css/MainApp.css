@@ -1,0 +1,15 @@
+.toolbar-padding{
+    min-height: 64px;
+}
+
+.panel-selected-button{
+    background: #e0e0e0 !important;
+}
+.panel-list-item{
+    padding-left: 80px !important;
+    padding-right: 80px !important;
+}
+
+.main-app-container{
+    margin-top: 64px;
+}
