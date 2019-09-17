@@ -12,44 +12,11 @@
 #include <netinet/in.h>
 #include <netdb.h>
 
+#include "webstring.h"
+
 #define WATERLINE_WRITE_BUFFER 4096
 
-std::string strip(const std::string& str, const std::string chr = " ")
-{
-	std::string result(str);
-	bool found = false;
-	while (true)
-	{
-		found = false;
-		for (auto c = chr.cbegin(); (c != chr.cend()) && (found == false); ++c)
-		{
-			auto start = result.find_first_not_of(*c);
 
-			if ((start != result.npos) && (start != 0))
-			{
-				/*如果从左开始能找到非目标字符，且位置不为0*/
-				result = result.substr(start);
-				found = true;
-			}
-
-
-			auto stop = result.find_last_not_of(*c);
-			/*如果从右边开始能找到非目标字符，且位置不为最后*/
-			if ((stop != result.npos) && (stop != result.length() - 1))
-			{
-				result = result.substr(0, stop + 1);
-				found = true;
-			}
-		}
-
-		if (found == false)
-		{
-			break;
-		}
-	}
-
-	return result;
-}
 
 std::map<std::string, std::string> RetrieveFromKeyValueFmt(std::string path)
 {
@@ -82,11 +49,11 @@ std::map<std::string, std::string> RetrieveFromKeyValueFmt(std::string path)
 		std::string buffer((*it)[2].str());
 		if (std::regex_match(buffer, result, commentFormat))
 		{
-			settingMap.insert({ strip((*it)[1].str()), strip(result[1].str()) });
+			settingMap.insert({ webstring::strip((*it)[1].str()), webstring::strip(result[1].str()) });
 		}
 		else
 		{
-			settingMap.insert({ strip((*it)[1].str()), strip((*it)[2].str()) });
+			settingMap.insert({ webstring::strip((*it)[1].str()), webstring::strip((*it)[2].str()) });
 		}
 	}
 
@@ -276,19 +243,51 @@ void TinyHttpd::ReadFile(int fd)
 void TinyHttpd::HTTPProfiler(int fd)
 {
 	using namespace std;
-	regex requestLineFmt("([A-Z]+?) (\S+?) HTTP/(.+?)\r\n");
+	regex requestLineFmt("^([A-Z]+?) (\S+?) HTTP/(.+?)\r\n");
 	regex requestHeaderFmt("([^:]+?):(.*?)\r\n");
 
+	HTTPRequestPacket packet;
 	smatch requestLine;
 	smatch requestHeaders;
-	if (connectedClients[fd].readBuffer.find("\r\n\r\n") != string::npos)
+	size_t requestHeaderEnd = connectedClients[fd].readBuffer.find("\r\n\r\n");
+	if (requestHeaderEnd != string::npos)
 	{
-		if (!regex_match(connectedClients[fd].readBuffer,  requestLine, requestLineFmt))
+		if (!regex_search(connectedClients[fd].readBuffer,  requestLine, requestLineFmt))
 		{
 			connectedClients[fd].writeShutdown = true;
 			return;
 		}
-		//iter
+
+		sregex_iterator itend;
+		for (sregex_iterator it(connectedClients[fd].readBuffer.cbegin(), connectedClients[fd].readBuffer.cbegin() + requestHeaderEnd + 2, requestHeaderFmt); it != itend; ++it)
+		{
+			packet.requestHeaders.insert({ webstring::tolower(it->operator[](1).str()), it->operator[](2).str() });
+		}
+
+		size_t contentLength = 0;
+		if (packet.requestHeaders.count("content-length") > 0)
+		{
+			try
+			{
+				//取第一个content-length
+				contentLength = stoul(packet.requestHeaders.find("content-length")->second);
+			}
+			catch (...)
+			{
+				Raise400(fd);
+			}
+		}
+
+		if (connectedClients[fd].readBuffer.length() - (requestHeaderEnd + 4) >= contentLength)
+		{
+			packet.method = requestLine[1].str();
+			packet.requestPath = requestLine[2].str();
+			packet.version = requestLine[3].str();
+
+			packet.body = connectedClients[fd].readBuffer.substr(requestHeaderEnd + 4, requestHeaderEnd + 4 + contentLength);
+			connectedClients[fd].readBuffer = connectedClients[fd].readBuffer.substr(requestHeaderEnd + 4 + contentLength);
+			this->HTTPPacketHandler(packet);
+		}
 	}
 }
 
@@ -321,6 +320,7 @@ void TinyHttpd::ModifyEvent(int epollfd, int fd, int flags) noexcept
 
 	epoll_ctl(epollfd, EPOLL_CTL_MOD, fd, &event);
 }
+
 void TinyHttpd::DeleteEvent(int epollfd, int fd, int flags) noexcept
 {
 	struct epoll_event event = {};

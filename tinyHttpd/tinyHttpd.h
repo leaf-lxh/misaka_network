@@ -29,6 +29,7 @@ private:
 	{
 		std::string method;
 		std::string requestPath;
+		std::string version;
 		std::multimap<std::string, std::string> requestHeaders;
 		std::string body;
 	};
@@ -97,6 +98,11 @@ private:
 	void AddEvent(int epollfd, int fd, int flags) noexcept;
 	void ModifyEvent(int epollfd, int fd, int flags) noexcept;
 	void DeleteEvent(int epollfd, int fd, int flags) noexcept;
+
+
+	//HTTP¥ÌŒÛ«Î«Û¥¶¿Ì
+	void Raise400(int fd);
+	void Raise404(int fd);
 
 	virtual std::string HTTPPacketHandler(HTTPRequestPacket request);
 };
