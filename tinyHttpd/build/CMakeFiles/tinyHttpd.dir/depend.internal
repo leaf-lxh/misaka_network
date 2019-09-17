@@ -7,3 +7,7 @@ CMakeFiles/tinyHttpd.dir/main.cpp.o
 CMakeFiles/tinyHttpd.dir/tinyHttpd.cpp.o
  /mnt/d/ProgrammingCode/C++/misaka_network/tinyHttpd/tinyHttpd.cpp
  /mnt/d/ProgrammingCode/C++/misaka_network/tinyHttpd/tinyHttpd.h
+ /mnt/d/ProgrammingCode/C++/misaka_network/tinyHttpd/webstring.h
+CMakeFiles/tinyHttpd.dir/webstring.cpp.o
+ /mnt/d/ProgrammingCode/C++/misaka_network/tinyHttpd/webstring.cpp
+ /mnt/d/ProgrammingCode/C++/misaka_network/tinyHttpd/webstring.h

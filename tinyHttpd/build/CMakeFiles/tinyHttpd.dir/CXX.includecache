@@ -21,6 +21,8 @@ fstream
 -
 iostream
 -
+sstream
+-
 memory
 -
 stdexcept
@@ -33,10 +35,14 @@ sys/epoll.h
 -
 arpa/inet.h
 -
+fcntl.h
+-
 netinet/in.h
 -
 netdb.h
 -
+webstring.h
+/mnt/d/ProgrammingCode/C++/misaka_network/tinyHttpd/webstring.h
 
 /mnt/d/ProgrammingCode/C++/misaka_network/tinyHttpd/tinyHttpd.h
 string
@@ -52,5 +58,13 @@ fstream
 netinet/in.h
 /mnt/d/ProgrammingCode/C++/misaka_network/tinyHttpd/netinet/in.h
 ctime
+-
+
+/mnt/d/ProgrammingCode/C++/misaka_network/tinyHttpd/webstring.cpp
+webstring.h
+/mnt/d/ProgrammingCode/C++/misaka_network/tinyHttpd/webstring.h
+
+/mnt/d/ProgrammingCode/C++/misaka_network/tinyHttpd/webstring.h
+string
 -
 

@@ -9,19 +9,22 @@
 class TinyHttpd
 {
 public:
-	//ÓÃÓÚ·şÎñÆ÷µÄ³õÊ¼»¯
+	//ç”¨äºæœåŠ¡å™¨çš„åˆå§‹åŒ–
 	void Init(std::string confPath = "setting.conf") noexcept(false);
+	~TinyHttpd();
 
-	//Ìí¼ÓÎ¢·şÎñµÄÂ·ÓÉ
+	//è¯»å–mimeç±»å‹æ˜ å°„è¡¨ï¼ˆç±»å‹æ˜ å°„è¡¨æŠ„è‡ªnginx =_=)
+	void LoadMime(std::string path = "mime.types");
+	//æ·»åŠ å¾®æœåŠ¡çš„è·¯ç”±
 	bool AddRoutePath(std::string path) noexcept;
 
-	//¿ªÊ¼·şÎñÆ÷µÄÇëÇó¼àÌı
+	//å¼€å§‹æœåŠ¡å™¨çš„è¯·æ±‚ç›‘å¬
 	void StartListen() noexcept(false);
 
-	//¿ªÊ¼½ÓÊÕ²¢´¦Àí¿Í»§¶ËµÄÇëÇó
+	//å¼€å§‹æ¥æ”¶å¹¶å¤„ç†å®¢æˆ·ç«¯çš„è¯·æ±‚
 	void StartHandleRequest() noexcept;
 
-	//´òÓ¡µ±Ç°·şÎñÆ÷µÄÅäÖÃ
+	//æ‰“å°å½“å‰æœåŠ¡å™¨çš„é…ç½®
 	void DumpProperty() noexcept;
 private:
 	
@@ -44,33 +47,37 @@ private:
 
 	struct ServerProperty
 	{
+		bool verbose;
 		int listenfd;
 		int maxClients;
 		std::pair<unsigned short, std::string> bind;
 		std::string unixBind;
 		std::set<std::string> routeTable;
+		std::string documentRoot;
+		//firstä¸ºæ–‡ä»¶ç±»å‹ï¼Œsecondä¸ºå¯¹åº”çš„mimeç±»å‹
+		std::map<std::string, std::string> mimeMap;
 	}serverProperty;
 
 	struct ClientProperty
 	{
 		ClientProperty() = default;
 		int fd;
-		//¶Á»º³åÇøµÄËø
+		//è¯»ç¼“å†²åŒºçš„é”
 		int readBufferLock;
-		//Ğ´»º³åÇøµÄËø
+		//å†™ç¼“å†²åŒºçš„é”
 		int writeBufferLock;
 		std::string readBuffer;
 		std::string writeBuffer;
-		//Ä³´Î¶ÁÈ¡ÎÄ¼şµÄÇëÇó£¬»¹ÓĞ¶àÉÙÃ»ÓĞÏò»º³åÇøĞ´µÄ×Ö½ÚÊı¡£ÔÚ¸Ã±äÁ¿´óÓÚ0µÄÊ±ºò²»Ó¦´¦ÀíÏÂÒ»¸öÇëÇó
-		std::streamsize aviliableFileBytesNum;
-		//µ±Ç°ÕıÔÚ´¦ÀíµÄÎÄ¼ş
+		//æŸæ¬¡è¯»å–æ–‡ä»¶çš„è¯·æ±‚ï¼Œè¿˜æœ‰å¤šå°‘æ²¡æœ‰å‘ç¼“å†²åŒºå†™çš„å­—èŠ‚æ•°ã€‚åœ¨è¯¥å˜é‡å¤§äº0çš„æ—¶å€™ä¸åº”å¤„ç†ä¸‹ä¸€ä¸ªè¯·æ±‚
+		std::streamsize aviliableFileBytesNum = 0;
+		//å½“å‰æ­£åœ¨å¤„ç†çš„æ–‡ä»¶
 		std::shared_ptr<std::fstream> file;
-		//µ±Ç°Á¬½ÓÓ¦ÔÚĞ´»º³åÇøµÄÊı¾İ·¢ËÍÍê±Ïºóµ±¹Ø±Õ¡£Æä¶Á»º³åÇøµÄÊı¾İĞèÅ×Æú
+		//å½“å‰è¿æ¥åº”åœ¨å†™ç¼“å†²åŒºçš„æ•°æ®å‘é€å®Œæ¯•åå½“å…³é—­ã€‚å…¶è¯»ç¼“å†²åŒºçš„æ•°æ®éœ€æŠ›å¼ƒ
 		bool writeShutdown;
-		//µ±Ç°Á¬½ÓÓ¦µ±Á¢¼´¹Ø±Õ£¬ÎŞÂÛÊı¾İÊÇ·ñ¶ÁÈ¡»ò·¢ËÍÍê±Ï
+		//å½“å‰è¿æ¥åº”å½“ç«‹å³å…³é—­ï¼Œæ— è®ºæ•°æ®æ˜¯å¦è¯»å–æˆ–å‘é€å®Œæ¯•
 		bool fullShutdown;
 		struct sockaddr_in clientInfo;
-		//ÉÏ´Î»î¶¯µÄunixÊ±¼ä´Á
+		//ä¸Šæ¬¡æ´»åŠ¨çš„unixæ—¶é—´æˆ³
 		time_t lastAlive;
 		bool operator==(const ClientProperty& p)
 		{
@@ -79,30 +86,35 @@ private:
 
 	};
 
-	//ÒÑÁ¬½ÓµÄ¿Í»§¶ËĞÅÏ¢
+	//å·²è¿æ¥çš„å®¢æˆ·ç«¯ä¿¡æ¯
 	std::map<int, struct ClientProperty> connectedClients;
 
-	//´ÓÖ¸¶¨¿Í»§¶ËµÄ¶Á»º³åÇøÖĞ½âÎöHTTP±¨ÎÄ£¬Èç¹û¹¹³ÉÒ»¸öÍêÕûµÄ±¨ÎÄÔòµ÷ÓÃHTTPPacketHandler£¬²¢ÔÚ¶Á»º³åÇøÖĞÇå³ıµôµ±Ç°±¨ÎÄ
+	//ä»æŒ‡å®šå®¢æˆ·ç«¯çš„è¯»ç¼“å†²åŒºä¸­è§£æHTTPæŠ¥æ–‡ï¼Œå¦‚æœæ„æˆä¸€ä¸ªå®Œæ•´çš„æŠ¥æ–‡åˆ™è°ƒç”¨HTTPPacketHandlerï¼Œå¹¶åœ¨è¯»ç¼“å†²åŒºä¸­æ¸…é™¤æ‰å½“å‰æŠ¥æ–‡
 	void HTTPProfiler(int fd);
 
-	//Ïò¸ø¶¨¿Í»§¶Ë·¢ËÍwriteBufferÖĞµÄÊı¾İ
+	//å‘ç»™å®šå®¢æˆ·ç«¯å‘é€writeBufferä¸­çš„æ•°æ®
 	void PushData(int fd);
 
-	//½«¿Í»§¶ËĞèÒªµÄÎÄ¼şÊı¾İ·ÅÈë¿Í»§¶ËµÄwriteBufferÖĞ
+	//å°†å®¢æˆ·ç«¯éœ€è¦çš„æ–‡ä»¶æ•°æ®æ”¾å…¥å®¢æˆ·ç«¯çš„writeBufferä¸­
 	void ReadFile(int fd);
 
-	//¹Ø±ÕÄ³¸ö¿Í»§¶ËµÄÁ¬½Ó£¬²¢½øĞĞÇå³ı²Ù×÷
+	//å…³é—­æŸä¸ªå®¢æˆ·ç«¯çš„è¿æ¥ï¼Œå¹¶è¿›è¡Œæ¸…é™¤æ“ä½œ
 	void CloseConnection(int fd);
 
-	// epoll¼àÌıµÄÌ×½Ó×Ö¹ÜÀí
+	// epollç›‘å¬çš„å¥—æ¥å­—ç®¡ç†
 	void AddEvent(int epollfd, int fd, int flags) noexcept;
 	void ModifyEvent(int epollfd, int fd, int flags) noexcept;
 	void DeleteEvent(int epollfd, int fd, int flags) noexcept;
 
 
-	//HTTP´íÎóÇëÇó´¦Àí
-	void Raise400(int fd);
-	void Raise404(int fd);
+	//HTTPé”™è¯¯è¯·æ±‚å¤„ç†
+	void RaiseHTPPError(int fd, int code, std::string additional = "");
 
-	virtual std::string HTTPPacketHandler(HTTPRequestPacket request);
+
+	std::string ResponseToString(HTTPResponsePacket response);
+
+	std::string GetFileContent(std::string path);
+	std::string GetResponseType(std::string path);
+	virtual void HTTPPacketHandler(int clientfd, HTTPRequestPacket request);
+
 };

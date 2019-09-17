@@ -6,4 +6,8 @@ CMakeFiles/tinyHttpd.dir/main.cpp.o: ../tinyHttpd.h
 
 CMakeFiles/tinyHttpd.dir/tinyHttpd.cpp.o: ../tinyHttpd.cpp
 CMakeFiles/tinyHttpd.dir/tinyHttpd.cpp.o: ../tinyHttpd.h
+CMakeFiles/tinyHttpd.dir/tinyHttpd.cpp.o: ../webstring.h
+
+CMakeFiles/tinyHttpd.dir/webstring.cpp.o: ../webstring.cpp
+CMakeFiles/tinyHttpd.dir/webstring.cpp.o: ../webstring.h
 

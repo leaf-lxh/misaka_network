@@ -177,6 +177,33 @@ tinyHttpd.cpp.s:
 	$(MAKE) -f CMakeFiles/tinyHttpd.dir/build.make CMakeFiles/tinyHttpd.dir/tinyHttpd.cpp.s
 .PHONY : tinyHttpd.cpp.s
 
+webstring.o: webstring.cpp.o
+
+.PHONY : webstring.o
+
+# target to build an object file
+webstring.cpp.o:
+	$(MAKE) -f CMakeFiles/tinyHttpd.dir/build.make CMakeFiles/tinyHttpd.dir/webstring.cpp.o
+.PHONY : webstring.cpp.o
+
+webstring.i: webstring.cpp.i
+
+.PHONY : webstring.i
+
+# target to preprocess a source file
+webstring.cpp.i:
+	$(MAKE) -f CMakeFiles/tinyHttpd.dir/build.make CMakeFiles/tinyHttpd.dir/webstring.cpp.i
+.PHONY : webstring.cpp.i
+
+webstring.s: webstring.cpp.s
+
+.PHONY : webstring.s
+
+# target to generate assembly for a file
+webstring.cpp.s:
+	$(MAKE) -f CMakeFiles/tinyHttpd.dir/build.make CMakeFiles/tinyHttpd.dir/webstring.cpp.s
+.PHONY : webstring.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -192,6 +219,9 @@ help:
 	@echo "... tinyHttpd.o"
 	@echo "... tinyHttpd.i"
 	@echo "... tinyHttpd.s"
+	@echo "... webstring.o"
+	@echo "... webstring.i"
+	@echo "... webstring.s"
 .PHONY : help
 
 

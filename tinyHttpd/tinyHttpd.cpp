@@ -2,20 +2,23 @@
 #include <regex>
 #include <fstream>
 #include <iostream>
+#include <sstream>
 #include <memory>
 #include <stdexcept>
 
 #include <unistd.h>
+#include <sys/stat.h>
 #include <sys/socket.h>
 #include <sys/epoll.h>
 #include <arpa/inet.h>
+#include <fcntl.h>
 #include <netinet/in.h>
 #include <netdb.h>
 
 #include "webstring.h"
 
 #define WATERLINE_WRITE_BUFFER 4096
-
+#define SERVER_SIGNATURE "TinyHttpd/0.1a"
 
 
 std::map<std::string, std::string> RetrieveFromKeyValueFmt(std::string path)
@@ -29,7 +32,7 @@ std::map<std::string, std::string> RetrieveFromKeyValueFmt(std::string path)
 	size_t fileLength = file.tellg();
 	file.seekg(0, file.beg);
 
-	if (fileLength == 0)
+	if (fileLength <= 0)
 	{
 		return {};
 	}
@@ -61,6 +64,15 @@ std::map<std::string, std::string> RetrieveFromKeyValueFmt(std::string path)
 
 }
 
+TinyHttpd::~TinyHttpd()
+{
+	std::cout << "closing" << std::endl;
+	for (auto client : connectedClients)
+	{
+		close(client.first);
+	}
+	close(serverProperty.listenfd);
+}
 
 void TinyHttpd::Init(std::string confPath) noexcept(false)
 {
@@ -68,27 +80,73 @@ void TinyHttpd::Init(std::string confPath) noexcept(false)
 	map<string, string> setting = RetrieveFromKeyValueFmt(confPath);
 	if (setting.count("port") && setting.count("address"))
 	{
-		serverProperty.bind = { stoi(setting["port"]), setting["address"] };
+		serverProperty.bind = { stoi(setting["port"]), webstring::strip(setting["address"], "\"\'") };
 	}
 
 	if (setting.count("unixPath") != 0)
 	{
-		serverProperty.unixBind = setting["unixPath"];
+		serverProperty.unixBind = webstring::strip(setting["unixPath"], "\"\'");
 	}
 	else
 	{
 		serverProperty.unixBind = "/var/run/tinyHttpd/";
 	}
 
-	if (setting.count("maxClient") != 0)
+	if (setting.count("maxClients") != 0)
 	{
-		serverProperty.maxClients = stoi(setting["maxClient"]);
+		try
+		{
+			serverProperty.maxClients = stoi(setting["maxClients"]);
+			if (serverProperty.maxClients <= 1)
+			{
+				throw std::runtime_error("?");
+			}
+		}
+		catch (std::runtime_error e)
+		{
+			throw std::runtime_error(std::string("invaild maxClients: ") + setting["maxClients"]);
+		}
 	}
 	else
 	{
 		serverProperty.maxClients = 1024;
 	}
 	
+	if (setting.count("documentRoot") != 0)
+	{
+		serverProperty.documentRoot = webstring::strip(setting["documentRoot"], " \"\'");
+	}
+	else
+	{
+		serverProperty.documentRoot = "/var/www/html";
+	}
+	if (serverProperty.documentRoot[serverProperty.documentRoot.length() - 1] != '/')
+	{
+		serverProperty.documentRoot += '/';
+	}
+
+}
+
+void TinyHttpd::LoadMime(std::string path)
+{
+	using namespace std;
+	fstream mimeFile(path, fstream::in);
+	string textLine;
+	regex confFmt("(\\S+?)\\s+?(\\S.*?);");
+	regex typeFmt("([^ ]+) {0,}");
+	smatch conf;
+	while (getline(mimeFile, textLine))
+	{
+		if (regex_search(textLine, conf, confFmt))
+		{
+			string typeText = conf[2].str();
+			sregex_iterator endit;
+			for (auto it = sregex_iterator(typeText.begin(), typeText.end(), typeFmt); it != endit; ++it)
+			{
+				serverProperty.mimeMap.insert({ it->operator[](1).str(), conf[1].str() });
+			}
+		}
+	}
 }
 
 bool TinyHttpd::AddRoutePath(std::string path) noexcept
@@ -102,10 +160,18 @@ void TinyHttpd::DumpProperty() noexcept
 	cout << "listenfd: " << serverProperty.listenfd << endl;
 	cout << "bind address: " << serverProperty.bind.second << "->" << serverProperty.bind.first << endl;
 	cout << "unix bind address: " << serverProperty.unixBind << endl;
+	cout << "documentRoot: " << serverProperty.documentRoot << endl;
+	cout << "maxClients: " << serverProperty.maxClients << endl;
 	cout << "route table: " << endl;
 	for (auto path : serverProperty.routeTable)
 	{
 		cout << "\t" << path << endl;
+	}
+
+	cout << "Loaded mime types: " << endl;
+	for (auto type : serverProperty.mimeMap)
+	{
+		cout << type.first << ": " << type.second << endl;
 	}
 
 	cout << "dump finished" << endl;
@@ -133,6 +199,9 @@ void TinyHttpd::StartListen() noexcept(false)
 		throw std::runtime_error("listen error");
 	}
 
+	int flags = fcntl(serverProperty.listenfd, F_GETFL, 0);
+	flags |= O_NONBLOCK;
+	fcntl(serverProperty.listenfd, F_SETFL, flags);
 }
 
 void TinyHttpd::StartHandleRequest() noexcept
@@ -146,10 +215,11 @@ void TinyHttpd::StartHandleRequest() noexcept
 	int clientfd;
 	while (true)
 	{
-		readyEvents = epoll_wait(epollfd, events.get(), serverProperty.maxClients, -1);
+		readyEvents = epoll_wait(epollfd, events.get(), serverProperty.maxClients, 5);
 		for (int index = 0; index < readyEvents; ++index)
 		{
 			clientfd = events[index].data.fd;
+
 			if (clientfd == serverProperty.listenfd)
 			{
 				ClientProperty clientInfo = {};
@@ -160,21 +230,31 @@ void TinyHttpd::StartHandleRequest() noexcept
 				if (clientfd > 0)
 				{
 					connectedClients.insert({ clientfd, clientInfo });
+					AddEvent(epollfd, clientfd, EPOLLIN);
+				}
+				else
+				{
+					std::cout << errno << std::endl;
 				}
 				continue;
 			}
+			
 
-			if (events[index].events == EPOLLIN)
+			if (events[index].events & EPOLLIN)
 			{
-				int length = recv(clientfd, receiveBuffer.get(), 4096, MSG_DONTWAIT);
+				memset(receiveBuffer.get(), 0, 4096);
+				ssize_t length = recv(clientfd, receiveBuffer.get(), 4096, MSG_DONTWAIT);
 				if (length > 0)
 				{
 					connectedClients[clientfd].readBuffer += receiveBuffer.get();
+					std::cout << connectedClients[clientfd].readBuffer << std::flush;
 					HTTPProfiler(clientfd);
 					connectedClients[clientfd].lastAlive = time(nullptr);
+					
 				}
 				else if (length == 0)
 				{
+					DeleteEvent(epollfd, clientfd, EPOLLIN|EPOLLOUT| EPOLLRDHUP);
 					CloseConnection(clientfd);
 				}
 				else
@@ -183,7 +263,7 @@ void TinyHttpd::StartHandleRequest() noexcept
 				}
 			}
 			
-			if (events[index].events == EPOLLOUT)
+			if (events[index].events & EPOLLOUT)
 			{
 				if (connectedClients[clientfd].writeBuffer.length() > 0)
 				{
@@ -194,36 +274,44 @@ void TinyHttpd::StartHandleRequest() noexcept
 					}
 				}
 			}
+
+			if (events[index].events & EPOLLRDHUP)
+			{
+				DeleteEvent(epollfd, clientfd, EPOLLIN | EPOLLOUT | EPOLLRDHUP);
+				CloseConnection(events[index].data.fd);
+			}
 		}
 
 		time_t currentTime = time(nullptr);
 		
+		std::set<int> willDeleted;
 		for (auto client = connectedClients.begin(); client != connectedClients.end(); ++client)
 		{
-			if ((currentTime - client->second.lastAlive < 60) || (client->second.fullShutdown == false))
+			if ((currentTime - client->second.lastAlive < 60) && (client->second.fullShutdown == false))
 			{
 				if (client->second.writeBuffer.length() > 0)
 				{
-					ModifyEvent(epollfd, client->first, EPOLLIN | EPOLLOUT);
+					ModifyEvent(epollfd, client->first, EPOLLIN | EPOLLOUT | EPOLLRDHUP);
 				}
 				else
 				{
-					ModifyEvent(epollfd, client->first, EPOLLIN);
+					ModifyEvent(epollfd, client->first, EPOLLIN | EPOLLRDHUP);
 				}
 				continue;
 			}
+			willDeleted.insert(client->first);
+		}
 
-			close(client->first);
-			//ÓÉÓÚmap¹ØÁªÈİÆ÷µÄÌØĞÔ£¬ÔÚÑ­»·ÖĞÉ¾³ıÄ³¸öÔªËØºó£¬ÆäºóÃæµÄÔªËØµü´úÆ÷ÈÔÓĞĞ§¡£·ÃÎÊÏÂÒ»¸öÔªËØÖ»ĞèÒª½«µ±Ç°µü´úÆ÷½øĞĞµİÔö²Ù×÷Ò»´Î¡£Õâ±ßÓÃ·¶Î§forÒ²ÊÇ¿ÉÒÔµÄ
-			connectedClients.erase(client);
-
+		for (auto fd : willDeleted)
+		{
+			CloseConnection(fd);
 		}
 	}
 }
 
 void TinyHttpd::PushData(int fd)
 {
-	int sended = send(fd, connectedClients[fd].writeBuffer.c_str(), 4096, MSG_DONTWAIT);
+	ssize_t sended = send(fd, connectedClients[fd].writeBuffer.c_str(), connectedClients[fd].writeBuffer.length(), MSG_DONTWAIT);
 	if (sended > 0)
 	{
 		connectedClients[fd].writeBuffer = connectedClients[fd].writeBuffer.substr(sended);
@@ -242,9 +330,10 @@ void TinyHttpd::ReadFile(int fd)
 
 void TinyHttpd::HTTPProfiler(int fd)
 {
+	
 	using namespace std;
-	regex requestLineFmt("^([A-Z]+?) (\S+?) HTTP/(.+?)\r\n");
-	regex requestHeaderFmt("([^:]+?):(.*?)\r\n");
+	regex requestLineFmt("^([A-Z]+?) (\\S+?) HTTP/(.+?)\r\n");
+	regex requestHeaderFmt("(.+?):(.*?)\r\n");
 
 	HTTPRequestPacket packet;
 	smatch requestLine;
@@ -254,7 +343,6 @@ void TinyHttpd::HTTPProfiler(int fd)
 	{
 		if (!regex_search(connectedClients[fd].readBuffer,  requestLine, requestLineFmt))
 		{
-			connectedClients[fd].writeShutdown = true;
 			return;
 		}
 
@@ -269,12 +357,12 @@ void TinyHttpd::HTTPProfiler(int fd)
 		{
 			try
 			{
-				//È¡µÚÒ»¸öcontent-length
+				//å–ç¬¬ä¸€ä¸ªcontent-length
 				contentLength = stoul(packet.requestHeaders.find("content-length")->second);
 			}
 			catch (...)
 			{
-				Raise400(fd);
+				RaiseHTPPError(fd, 400);
 			}
 		}
 
@@ -286,7 +374,7 @@ void TinyHttpd::HTTPProfiler(int fd)
 
 			packet.body = connectedClients[fd].readBuffer.substr(requestHeaderEnd + 4, requestHeaderEnd + 4 + contentLength);
 			connectedClients[fd].readBuffer = connectedClients[fd].readBuffer.substr(requestHeaderEnd + 4 + contentLength);
-			this->HTTPPacketHandler(packet);
+			this->HTTPPacketHandler(fd, packet);
 		}
 	}
 }
@@ -297,9 +385,140 @@ void TinyHttpd::CloseConnection(int fd)
 	connectedClients.erase(fd);
 }
 
-std::string TinyHttpd::HTTPPacketHandler(HTTPRequestPacket request)
+void TinyHttpd::HTTPPacketHandler(int clientfd, HTTPRequestPacket request)
 {
-	return "";
+	HTTPResponsePacket response;
+	response.code = "200 OK";
+	response.version = "HTTP/1.1";
+	response.responseHeaders.insert({ "Server", SERVER_SIGNATURE });
+	response.responseHeaders.insert({ "Content-Encoding", "plain" });
+	response.responseHeaders.insert({ "Connection", "Keep-Alive" });
+	response.responseHeaders.insert({ "Keep-Alive", "timeout=5, max=60" });
+	if (request.method == "GET")
+	{
+		//é»˜è®¤å‡½æ•°å‡å®šæ‰€è¯·æ±‚çš„æ–‡ä»¶è¾ƒå°ï¼Œå‡ ä¹å¯ä»¥ç¬é—´è¯»å–å®Œæ¯•
+		std::string path;
+		if (request.requestPath == "/")
+		{
+			path = serverProperty.documentRoot + "index.html";
+		}
+		else
+		{
+			path = serverProperty.documentRoot + webstring::LeftStrip(request.requestPath, " /");
+		}
+
+		//å¯¹å‚æ•°è¿›è¡Œå¤„ç†
+		if (path.find("?") != std::string::npos)
+		{
+			path = path.substr(0, path.find("?"));
+		}
+
+		//åˆ¤æ–­æ˜¯å¦æ˜¯ç›®å½•ï¼Œæ˜¯çš„è¯å®šå‘åˆ°index.html
+		if (path[path.length()-1] == '/')
+		{
+			path += "index.html";
+		}
+		response.responseHeaders.insert({ "Content-Type", GetResponseType(path) });
+
+		try
+		{
+			response.body += GetFileContent(path);
+		}
+		catch (std::runtime_error e)
+		{
+			if (std::string(e.what()) == "403")
+			{
+				RaiseHTPPError(clientfd, 403);
+				return;
+			}
+			if (std::string(e.what()) == "404")
+			{
+				RaiseHTPPError(clientfd, 404);
+				return;
+			}
+			if (std::string(e.what()) == "500")
+			{
+				RaiseHTPPError(clientfd, 500);
+				return;
+			}
+		}
+	}
+
+	response.responseHeaders.insert({ "Content-Length", std::to_string(response.body.length()) });
+	connectedClients[clientfd].writeBuffer += ResponseToString(response);
+	
+}
+
+std::string TinyHttpd::ResponseToString(HTTPResponsePacket response)
+{
+	std::stringstream result;
+	result << std::noskipws;
+	result << response.version << " " << response.code << "\r\n";
+	for (auto header : response.responseHeaders)
+	{
+		result << header.first << ": " << header.second << "\r\n";
+	}
+	result << "\r\n";
+	result << response.body;
+
+	std::string str = result.str();
+ 	return str;
+}
+
+std::string TinyHttpd::GetFileContent(std::string path) noexcept(false)
+{
+	using namespace std;
+	if (access(path.c_str(), F_OK | R_OK) == -1)
+	{
+		if (errno == EACCES)
+		{
+			throw runtime_error("403");
+		}
+		else if (errno == ENOENT)
+		{
+			throw runtime_error("404");
+		}
+		else
+		{
+			throw runtime_error(to_string(errno) + " unknow");
+		}
+	}
+
+	//æ£€æŸ¥æ˜¯å¦æ˜¯å¸¸è§„æ–‡ä»¶ï¼Œè€Œä¸æ˜¯ç›®å½•ã€‚å¦‚æœæ˜¯ç›®å½•ä¸”æ²¡æœ‰indexæ–‡ä»¶ï¼Œæ­¤å¤„æš‚æ—¶æŠ›å‡º403é”™è¯¯ï¼Œå…³äºåˆ—ç›®å½•çš„é¡µé¢è¿™é‡Œæš‚æ—¶ä¸åšã€‚
+	FILE* fp = fopen(path.c_str(), "r");
+	struct stat fileInfo;
+	fstat(fileno(fp), &fileInfo);
+	if (!S_ISREG(fileInfo.st_mode))
+	{
+		path += "/index.html";
+
+		if (access(path.c_str(), F_OK | R_OK) == -1)
+		{
+			fclose(fp);
+			throw runtime_error("403");
+		}
+	}
+
+	fstream file(path, fstream::in|fstream::binary);
+	if (file.good() == false)
+	{
+		throw runtime_error("500");
+	}
+	file.seekg(0, fstream::end);
+	streamsize fileSize = file.tellg();
+	file.seekg(0, fstream::beg);
+
+	if (fileSize > 0)
+	{
+		unique_ptr<char[]> buffer(new char[fileSize+1]());
+		file.read(buffer.get(), fileSize);
+		return string(buffer.get(), fileSize);
+	}
+	else
+	{
+		return "";
+	}
+
 }
 
 void TinyHttpd::AddEvent(int epollfd, int fd, int flags) noexcept
@@ -309,6 +528,7 @@ void TinyHttpd::AddEvent(int epollfd, int fd, int flags) noexcept
 	event.data.fd = fd;
 
 	epoll_ctl(epollfd, EPOLL_CTL_ADD , fd, &event);
+	std::cout << "addevent: " << fd << std::endl;
 }
 
 
@@ -319,6 +539,7 @@ void TinyHttpd::ModifyEvent(int epollfd, int fd, int flags) noexcept
 	event.data.fd = fd;
 
 	epoll_ctl(epollfd, EPOLL_CTL_MOD, fd, &event);
+	std::cout << "modifyEnvent: " << fd << std::endl;
 }
 
 void TinyHttpd::DeleteEvent(int epollfd, int fd, int flags) noexcept
@@ -328,4 +549,78 @@ void TinyHttpd::DeleteEvent(int epollfd, int fd, int flags) noexcept
 	event.data.fd = fd;
 
 	epoll_ctl(epollfd, EPOLL_CTL_DEL, fd, &event);
+	std::cout << "delevent: " << fd << std::endl;
+}
+
+void TinyHttpd::RaiseHTPPError(int fd, int code, std::string additional)
+{
+	HTTPResponsePacket response;
+	response.code = std::to_string(code);
+	response.version = "HTTP/1.1";
+	response.responseHeaders.insert({ "Server", SERVER_SIGNATURE });
+
+	std::stringstream page;
+	page << std::noskipws;
+	switch (code)
+	{
+	case 400:
+		response.code += " Bad Request";
+		page << "<h1>Bad Request</h1>\n";
+		page << "<p>" << additional << "</p>\n";
+		page << "<hr>\n";
+		page << SERVER_SIGNATURE;
+		response.body = page.str();
+		break;
+	case 403:
+		response.code += " Forbidden";
+		page << "<h1>Forbidden</h1>\n";
+		page << "<p>" << additional << "</p>\n";
+		page << "<hr>\n";
+		page << SERVER_SIGNATURE;
+		response.body = page.str();
+		break;
+	case 404:
+		response.code += " Not Found";
+		page << "<h1>Not Found</h1>\n";
+		page << "<p>" << additional << "</p>\n";
+		page << "<hr>\n";
+		page << SERVER_SIGNATURE;
+		response.body = page.str();
+		break;
+	case 500:
+		response.code += " Internal Server Error";
+		page << "<h1>Internal Server Error</h1>\n";
+		page << "<p>" << additional << "</p>\n";
+		page << "<hr>\n";
+		page << SERVER_SIGNATURE;
+		response.body = page.str();
+		break;
+	default:
+		response.code += " Undefined";
+		page << "<h1>Undefined Error Code</h1>\n";
+		page << "<p>" << additional << "</p>\n";
+		page << "<hr>\n";
+		page << SERVER_SIGNATURE;
+		response.body = page.str();
+		break;
+	}
+
+	response.responseHeaders.insert({ "Content-Length", std::to_string(response.body.length())});
+	response.responseHeaders.insert({ "Content-Type", "text/html" });
+	connectedClients[fd].writeBuffer = ResponseToString(response);
+	connectedClients[fd].writeShutdown = true;
+}
+
+
+std::string TinyHttpd::GetResponseType(std::string path)
+{
+	std::string fileType = path.substr(path.find_last_of(".") + 1);
+	if (serverProperty.mimeMap.count(fileType))
+	{
+		return serverProperty.mimeMap[fileType];
+	}
+	else
+	{
+		return "application/octet-stream";
+	}
 }

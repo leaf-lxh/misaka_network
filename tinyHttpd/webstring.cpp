@@ -2,7 +2,7 @@
 
 namespace webstring
 {
-	std::string strip(const std::string& str, const std::string chr = " ")
+	std::string strip(const std::string& str, const std::string chr)
 	{
 		std::string result(str);
 		bool found = false;
@@ -15,14 +15,69 @@ namespace webstring
 
 				if ((start != result.npos) && (start != 0))
 				{
-					/*�������ʼ���ҵ���Ŀ���ַ�����λ�ò�Ϊ0*/
+					/*如果从左开始能找到非目标字符，且位置不为0*/
 					result = result.substr(start);
 					found = true;
 				}
 
 
 				auto stop = result.find_last_not_of(*c);
-				/*������ұ߿�ʼ���ҵ���Ŀ���ַ�����λ�ò�Ϊ���*/
+				/*如果从右边开始能找到非目标字符，且位置不为最后*/
+				if ((stop != result.npos) && (stop != result.length() - 1))
+				{
+					result = result.substr(0, stop + 1);
+					found = true;
+				}
+			}
+
+			if (found == false)
+			{
+				break;
+			}
+		}
+
+		return result;
+	}
+
+	std::string LeftStrip(const std::string& str, const std::string chr)
+	{
+		std::string result(str);
+		bool found = false;
+		while (true)
+		{
+			found = false;
+			for (auto c = chr.cbegin(); (c != chr.cend()) && (found == false); ++c)
+			{
+				auto start = result.find_first_not_of(*c);
+
+				if ((start != result.npos) && (start != 0))
+				{
+					/*如果从左开始能找到非目标字符，且位置不为0*/
+					result = result.substr(start);
+					found = true;
+				}
+			}
+
+			if (found == false)
+			{
+				break;
+			}
+		}
+
+		return result;
+	}
+
+	std::string RightStrip(const std::string& str, const std::string chr)
+	{
+		std::string result(str);
+		bool found = false;
+		while (true)
+		{
+			found = false;
+			for (auto c = chr.cbegin(); (c != chr.cend()) && (found == false); ++c)
+			{
+				auto stop = result.find_last_not_of(*c);
+				/*如果从右边开始能找到非目标字符，且位置不为最后*/
 				if ((stop != result.npos) && (stop != result.length() - 1))
 				{
 					result = result.substr(0, stop + 1);
@@ -46,7 +101,11 @@ namespace webstring
 		{
 			if ((c >= 'A') && (c <= 'Z'))
 			{
-				result += c + ('a' - 'A');
+				result += c + 32;
+			}
+			else
+			{
+				result += c;
 			}
 		}
 		return result;
@@ -59,7 +118,11 @@ namespace webstring
 		{
 			if ((c >= 'a') && (c <= 'z'))
 			{
-				result += c - ('a' - 'A');
+				result += c - 32;
+			}
+			else
+			{
+				result += c;
 			}
 		}
 		return result;

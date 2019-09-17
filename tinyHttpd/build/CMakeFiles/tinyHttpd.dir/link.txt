@@ -1,1 +1,1 @@
-/usr/bin/c++      CMakeFiles/tinyHttpd.dir/main.cpp.o CMakeFiles/tinyHttpd.dir/tinyHttpd.cpp.o  -o tinyHttpd 
+/usr/bin/c++      CMakeFiles/tinyHttpd.dir/main.cpp.o CMakeFiles/tinyHttpd.dir/tinyHttpd.cpp.o CMakeFiles/tinyHttpd.dir/webstring.cpp.o  -o tinyHttpd 

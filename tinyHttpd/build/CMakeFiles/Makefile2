@@ -66,7 +66,7 @@ CMAKE_BINARY_DIR = /mnt/d/ProgrammingCode/C++/misaka_network/tinyHttpd/build
 CMakeFiles/tinyHttpd.dir/all:
 	$(MAKE) -f CMakeFiles/tinyHttpd.dir/build.make CMakeFiles/tinyHttpd.dir/depend
 	$(MAKE) -f CMakeFiles/tinyHttpd.dir/build.make CMakeFiles/tinyHttpd.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/mnt/d/ProgrammingCode/C++/misaka_network/tinyHttpd/build/CMakeFiles --progress-num=1,2,3 "Built target tinyHttpd"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/mnt/d/ProgrammingCode/C++/misaka_network/tinyHttpd/build/CMakeFiles --progress-num=1,2,3,4 "Built target tinyHttpd"
 .PHONY : CMakeFiles/tinyHttpd.dir/all
 
 # Include target in all.
@@ -76,7 +76,7 @@ all: CMakeFiles/tinyHttpd.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/tinyHttpd.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /mnt/d/ProgrammingCode/C++/misaka_network/tinyHttpd/build/CMakeFiles 3
+	$(CMAKE_COMMAND) -E cmake_progress_start /mnt/d/ProgrammingCode/C++/misaka_network/tinyHttpd/build/CMakeFiles 4
 	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/tinyHttpd.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /mnt/d/ProgrammingCode/C++/misaka_network/tinyHttpd/build/CMakeFiles 0
 .PHONY : CMakeFiles/tinyHttpd.dir/rule
