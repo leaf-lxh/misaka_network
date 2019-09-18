@@ -1,5 +1,5 @@
 file(REMOVE_RECURSE
-  "CMakeFiles/tinyHttpd.dir/main.cpp.o"
+  "CMakeFiles/tinyHttpd.dir/example.cpp.o"
   "CMakeFiles/tinyHttpd.dir/tinyHttpd.cpp.o"
   "CMakeFiles/tinyHttpd.dir/webstring.cpp.o"
   "tinyHttpd.pdb"

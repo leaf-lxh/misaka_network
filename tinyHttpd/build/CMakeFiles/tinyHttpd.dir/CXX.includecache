@@ -6,10 +6,12 @@
 
 #IncludeRegexTransform: 
 
-/mnt/d/ProgrammingCode/C++/misaka_network/tinyHttpd/main.cpp
+/mnt/d/ProgrammingCode/C++/misaka_network/tinyHttpd/example.cpp
 tinyHttpd.h
 /mnt/d/ProgrammingCode/C++/misaka_network/tinyHttpd/tinyHttpd.h
 iostream
+-
+signal.h
 -
 
 /mnt/d/ProgrammingCode/C++/misaka_network/tinyHttpd/tinyHttpd.cpp
@@ -28,6 +30,8 @@ memory
 stdexcept
 -
 unistd.h
+-
+sys/stat.h
 -
 sys/socket.h
 -
@@ -63,8 +67,16 @@ ctime
 /mnt/d/ProgrammingCode/C++/misaka_network/tinyHttpd/webstring.cpp
 webstring.h
 /mnt/d/ProgrammingCode/C++/misaka_network/tinyHttpd/webstring.h
+regex
+-
+sstream
+-
+iomanip
+-
 
 /mnt/d/ProgrammingCode/C++/misaka_network/tinyHttpd/webstring.h
 string
+-
+vector
 -
 

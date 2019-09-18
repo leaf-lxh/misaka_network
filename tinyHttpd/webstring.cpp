@@ -1,4 +1,7 @@
 #include "webstring.h"
+#include <regex>
+#include <sstream>
+#include <iomanip>
 
 namespace webstring
 {
@@ -126,5 +129,68 @@ namespace webstring
 			}
 		}
 		return result;
+	}
+
+	std::vector<char> URLdecode(std::string text)
+	{
+		std::vector<char> convertedBytes;
+		std::stringstream stream;
+
+		std::regex format("%([0-9a-fA-F]{2})");
+
+		for (auto index = text.cbegin(); index != text.cend(); )
+		{
+			if (*index == '%')
+			{
+				std::string assumedEncodedString(index, index + 3);
+				std::smatch result;
+				if (std::regex_match(assumedEncodedString, result, format))
+				{
+					unsigned int byteValue;
+					stream << std::hex << result[1];
+					stream >> byteValue;
+					stream.clear();
+
+					convertedBytes.push_back(byteValue);
+					index += 3;
+				}
+				else
+				{
+					convertedBytes.push_back(*index);
+					index++;
+				}
+			}
+			else
+			{
+				convertedBytes.push_back(*index);
+				index++;
+			}
+		}
+
+		return convertedBytes;
+	}
+
+	std::string URLencode(std::vector<unsigned char> text)
+	{
+		std::string convertedBytes;
+		std::string temp;
+		std::stringstream stream;
+		for (auto index : text)
+		{
+
+			if (!((index >= 0x41 && index <= 0x5A) || (index >= 0x61 && index <= 0x7A) || (index >= 0x30 && index <= 0x39)) && (index != '-' && index != '_' && index != '.' && index != '`'))
+			{
+				stream << std::setfill('0') << std::setw(2) << std::hex << (static_cast<unsigned int>(index) & 0xFF);
+				stream >> temp;
+				convertedBytes += '%' + temp;
+				stream.clear();
+			}
+			else
+			{
+				convertedBytes += index;
+			}
+		}
+
+		return convertedBytes;
 	}
 }

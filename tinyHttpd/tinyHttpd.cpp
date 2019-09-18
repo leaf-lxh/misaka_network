@@ -287,11 +287,17 @@ void TinyHttpd::StartHandleRequest() noexcept
 		std::set<int> willDeleted;
 		for (auto client = connectedClients.begin(); client != connectedClients.end(); ++client)
 		{
-			if ((currentTime - client->second.lastAlive < 60) && (client->second.fullShutdown == false))
+			//(currentTime - client->second.lastAlive < 60) && 
+			if ((client->second.fullShutdown == false))
 			{
 				if (client->second.writeBuffer.length() > 0)
 				{
 					ModifyEvent(epollfd, client->first, EPOLLIN | EPOLLOUT | EPOLLRDHUP);
+				}
+				else if(client->second.writeShutdown == true)
+				{
+					ModifyEvent(epollfd, client->first, EPOLLRDHUP);
+					
 				}
 				else
 				{
@@ -321,10 +327,12 @@ void TinyHttpd::PushData(int fd)
 void TinyHttpd::ReadFile(int fd)
 {
 	std::unique_ptr<char[]> buffer(new char[4096]());
-	std::streamsize readedLength = connectedClients[fd].file->readsome(buffer.get(), 4096);
+	std::streamsize readLength = (4096 > connectedClients[fd].aviliableFileBytesNum) ? connectedClients[fd].aviliableFileBytesNum : 4096;
+	std::streamsize readedLength = connectedClients[fd].file->readsome(buffer.get(), readLength);
 	if (readedLength > 0)
 	{
 		connectedClients[fd].writeBuffer.append(buffer.get(), readedLength);
+		connectedClients[fd].aviliableFileBytesNum = connectedClients[fd].aviliableFileBytesNum - readedLength;
 	}
 }
 
@@ -369,7 +377,17 @@ void TinyHttpd::HTTPProfiler(int fd)
 		if (connectedClients[fd].readBuffer.length() - (requestHeaderEnd + 4) >= contentLength)
 		{
 			packet.method = requestLine[1].str();
-			packet.requestPath = requestLine[2].str();
+			size_t paramStart = requestLine[2].str().find("?");
+			if (paramStart != std::string::npos)
+			{
+				packet.requestPath = requestLine[2].str().substr(0, paramStart);
+				packet.requestParam = requestLine[2].str().substr(paramStart + 1);
+			}
+			else
+			{
+				packet.requestPath = requestLine[2].str();
+			}
+
 			packet.version = requestLine[3].str();
 
 			packet.body = connectedClients[fd].readBuffer.substr(requestHeaderEnd + 4, requestHeaderEnd + 4 + contentLength);
@@ -392,12 +410,12 @@ void TinyHttpd::HTTPPacketHandler(int clientfd, HTTPRequestPacket request)
 	response.version = "HTTP/1.1";
 	response.responseHeaders.insert({ "Server", SERVER_SIGNATURE });
 	response.responseHeaders.insert({ "Content-Encoding", "plain" });
-	response.responseHeaders.insert({ "Connection", "Keep-Alive" });
-	response.responseHeaders.insert({ "Keep-Alive", "timeout=5, max=60" });
+	response.responseHeaders.insert({ "Connection", "Closed" });
+	//response.responseHeaders.insert({ "Keep-Alive", "timeout=5, max=60" });
+	std::string path;
 	if (request.method == "GET")
 	{
-		//默认函数假定所请求的文件较小，几乎可以瞬间读取完毕
-		std::string path;
+		
 		if (request.requestPath == "/")
 		{
 			path = serverProperty.documentRoot + "index.html";
@@ -407,22 +425,23 @@ void TinyHttpd::HTTPPacketHandler(int clientfd, HTTPRequestPacket request)
 			path = serverProperty.documentRoot + webstring::LeftStrip(request.requestPath, " /");
 		}
 
-		//对参数进行处理
-		if (path.find("?") != std::string::npos)
-		{
-			path = path.substr(0, path.find("?"));
-		}
 
-		//判断是否是目录，是的话定向到index.html
-		if (path[path.length()-1] == '/')
-		{
-			path += "index.html";
-		}
-		response.responseHeaders.insert({ "Content-Type", GetResponseType(path) });
-
+		std::vector<char> urldecoded = webstring::URLdecode(path);
+		path = std::string(urldecoded.data(), urldecoded.size());
 		try
 		{
-			response.body += GetFileContent(path);
+			////假定所请求的文件较小，几乎可以瞬间读取完毕，不影响正常执行响应，则可以使用该函数来读取文件内容
+			//response.body += GetFileContent(path);
+			//否则则应该使用延时读取, 不过一个请求只能响应一个读文件请求
+			IsAccessableFile(path);
+
+			connectedClients[clientfd].file.reset(new std::fstream(path, std::fstream::in));
+			connectedClients[clientfd].file->seekg(0, std::fstream::end);
+			std::streamsize fileSize = connectedClients[clientfd].file->tellg();
+			response.responseHeaders.insert({ "Content-Length", std::to_string(fileSize) });
+			connectedClients[clientfd].file->seekg(0, std::fstream::beg);
+			connectedClients[clientfd].aviliableFileBytesNum = fileSize;
+
 		}
 		catch (std::runtime_error e)
 		{
@@ -444,7 +463,8 @@ void TinyHttpd::HTTPPacketHandler(int clientfd, HTTPRequestPacket request)
 		}
 	}
 
-	response.responseHeaders.insert({ "Content-Length", std::to_string(response.body.length()) });
+	response.responseHeaders.insert({ "Content-Type", GetResponseType(path) });
+	//response.responseHeaders.insert({ "Content-Length", std::to_string(response.body.length()) });
 	connectedClients[clientfd].writeBuffer += ResponseToString(response);
 	
 }
@@ -465,39 +485,10 @@ std::string TinyHttpd::ResponseToString(HTTPResponsePacket response)
  	return str;
 }
 
-std::string TinyHttpd::GetFileContent(std::string path) noexcept(false)
+std::string TinyHttpd::GetFileContent(std::string &path) noexcept(false)
 {
 	using namespace std;
-	if (access(path.c_str(), F_OK | R_OK) == -1)
-	{
-		if (errno == EACCES)
-		{
-			throw runtime_error("403");
-		}
-		else if (errno == ENOENT)
-		{
-			throw runtime_error("404");
-		}
-		else
-		{
-			throw runtime_error(to_string(errno) + " unknow");
-		}
-	}
-
-	//检查是否是常规文件，而不是目录。如果是目录且没有index文件，此处暂时抛出403错误，关于列目录的页面这里暂时不做。
-	FILE* fp = fopen(path.c_str(), "r");
-	struct stat fileInfo;
-	fstat(fileno(fp), &fileInfo);
-	if (!S_ISREG(fileInfo.st_mode))
-	{
-		path += "/index.html";
-
-		if (access(path.c_str(), F_OK | R_OK) == -1)
-		{
-			fclose(fp);
-			throw runtime_error("403");
-		}
-	}
+	IsAccessableFile(path);
 
 	fstream file(path, fstream::in|fstream::binary);
 	if (file.good() == false)
@@ -622,5 +613,40 @@ std::string TinyHttpd::GetResponseType(std::string path)
 	else
 	{
 		return "application/octet-stream";
+	}
+}
+
+void TinyHttpd::IsAccessableFile(std::string& path)
+{
+	using namespace std;
+	if (access(path.c_str(), F_OK | R_OK) == -1)
+	{
+		if (errno == EACCES)
+		{
+			throw runtime_error("403");
+		}
+		else if (errno == ENOENT)
+		{
+			throw runtime_error("404");
+		}
+		else
+		{
+			throw runtime_error(to_string(errno) + " unknow");
+		}
+	}
+
+	//检查是否是常规文件，而不是目录。如果是目录且没有index文件，此处暂时抛出403错误，关于列目录的页面这里暂时不做。
+	FILE* fp = fopen(path.c_str(), "r");
+	struct stat fileInfo;
+	fstat(fileno(fp), &fileInfo);
+	if (!S_ISREG(fileInfo.st_mode))
+	{
+		path += "/index.html";
+
+		if (access(path.c_str(), F_OK | R_OK) == -1)
+		{
+			fclose(fp);
+			throw runtime_error("403");
+		}
 	}
 }

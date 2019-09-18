@@ -57,28 +57,28 @@ include CMakeFiles/tinyHttpd.dir/progress.make
 # Include the compile flags for this target's objects.
 include CMakeFiles/tinyHttpd.dir/flags.make
 
-CMakeFiles/tinyHttpd.dir/main.cpp.o: CMakeFiles/tinyHttpd.dir/flags.make
-CMakeFiles/tinyHttpd.dir/main.cpp.o: ../main.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/mnt/d/ProgrammingCode/C++/misaka_network/tinyHttpd/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/tinyHttpd.dir/main.cpp.o"
-	/usr/bin/c++   $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/tinyHttpd.dir/main.cpp.o -c /mnt/d/ProgrammingCode/C++/misaka_network/tinyHttpd/main.cpp
+CMakeFiles/tinyHttpd.dir/example.cpp.o: CMakeFiles/tinyHttpd.dir/flags.make
+CMakeFiles/tinyHttpd.dir/example.cpp.o: ../example.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/mnt/d/ProgrammingCode/C++/misaka_network/tinyHttpd/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/tinyHttpd.dir/example.cpp.o"
+	/usr/bin/c++   $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/tinyHttpd.dir/example.cpp.o -c /mnt/d/ProgrammingCode/C++/misaka_network/tinyHttpd/example.cpp
 
-CMakeFiles/tinyHttpd.dir/main.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/tinyHttpd.dir/main.cpp.i"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /mnt/d/ProgrammingCode/C++/misaka_network/tinyHttpd/main.cpp > CMakeFiles/tinyHttpd.dir/main.cpp.i
+CMakeFiles/tinyHttpd.dir/example.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/tinyHttpd.dir/example.cpp.i"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /mnt/d/ProgrammingCode/C++/misaka_network/tinyHttpd/example.cpp > CMakeFiles/tinyHttpd.dir/example.cpp.i
 
-CMakeFiles/tinyHttpd.dir/main.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/tinyHttpd.dir/main.cpp.s"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /mnt/d/ProgrammingCode/C++/misaka_network/tinyHttpd/main.cpp -o CMakeFiles/tinyHttpd.dir/main.cpp.s
+CMakeFiles/tinyHttpd.dir/example.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/tinyHttpd.dir/example.cpp.s"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /mnt/d/ProgrammingCode/C++/misaka_network/tinyHttpd/example.cpp -o CMakeFiles/tinyHttpd.dir/example.cpp.s
 
-CMakeFiles/tinyHttpd.dir/main.cpp.o.requires:
+CMakeFiles/tinyHttpd.dir/example.cpp.o.requires:
 
-.PHONY : CMakeFiles/tinyHttpd.dir/main.cpp.o.requires
+.PHONY : CMakeFiles/tinyHttpd.dir/example.cpp.o.requires
 
-CMakeFiles/tinyHttpd.dir/main.cpp.o.provides: CMakeFiles/tinyHttpd.dir/main.cpp.o.requires
-	$(MAKE) -f CMakeFiles/tinyHttpd.dir/build.make CMakeFiles/tinyHttpd.dir/main.cpp.o.provides.build
-.PHONY : CMakeFiles/tinyHttpd.dir/main.cpp.o.provides
+CMakeFiles/tinyHttpd.dir/example.cpp.o.provides: CMakeFiles/tinyHttpd.dir/example.cpp.o.requires
+	$(MAKE) -f CMakeFiles/tinyHttpd.dir/build.make CMakeFiles/tinyHttpd.dir/example.cpp.o.provides.build
+.PHONY : CMakeFiles/tinyHttpd.dir/example.cpp.o.provides
 
-CMakeFiles/tinyHttpd.dir/main.cpp.o.provides.build: CMakeFiles/tinyHttpd.dir/main.cpp.o
+CMakeFiles/tinyHttpd.dir/example.cpp.o.provides.build: CMakeFiles/tinyHttpd.dir/example.cpp.o
 
 
 CMakeFiles/tinyHttpd.dir/tinyHttpd.cpp.o: CMakeFiles/tinyHttpd.dir/flags.make
@@ -131,14 +131,14 @@ CMakeFiles/tinyHttpd.dir/webstring.cpp.o.provides.build: CMakeFiles/tinyHttpd.di
 
 # Object files for target tinyHttpd
 tinyHttpd_OBJECTS = \
-"CMakeFiles/tinyHttpd.dir/main.cpp.o" \
+"CMakeFiles/tinyHttpd.dir/example.cpp.o" \
 "CMakeFiles/tinyHttpd.dir/tinyHttpd.cpp.o" \
 "CMakeFiles/tinyHttpd.dir/webstring.cpp.o"
 
 # External object files for target tinyHttpd
 tinyHttpd_EXTERNAL_OBJECTS =
 
-tinyHttpd: CMakeFiles/tinyHttpd.dir/main.cpp.o
+tinyHttpd: CMakeFiles/tinyHttpd.dir/example.cpp.o
 tinyHttpd: CMakeFiles/tinyHttpd.dir/tinyHttpd.cpp.o
 tinyHttpd: CMakeFiles/tinyHttpd.dir/webstring.cpp.o
 tinyHttpd: CMakeFiles/tinyHttpd.dir/build.make
@@ -151,7 +151,7 @@ CMakeFiles/tinyHttpd.dir/build: tinyHttpd
 
 .PHONY : CMakeFiles/tinyHttpd.dir/build
 
-CMakeFiles/tinyHttpd.dir/requires: CMakeFiles/tinyHttpd.dir/main.cpp.o.requires
+CMakeFiles/tinyHttpd.dir/requires: CMakeFiles/tinyHttpd.dir/example.cpp.o.requires
 CMakeFiles/tinyHttpd.dir/requires: CMakeFiles/tinyHttpd.dir/tinyHttpd.cpp.o.requires
 CMakeFiles/tinyHttpd.dir/requires: CMakeFiles/tinyHttpd.dir/webstring.cpp.o.requires
 

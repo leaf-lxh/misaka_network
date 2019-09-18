@@ -123,32 +123,32 @@ tinyHttpd/fast:
 	$(MAKE) -f CMakeFiles/tinyHttpd.dir/build.make CMakeFiles/tinyHttpd.dir/build
 .PHONY : tinyHttpd/fast
 
-main.o: main.cpp.o
+example.o: example.cpp.o
 
-.PHONY : main.o
+.PHONY : example.o
 
 # target to build an object file
-main.cpp.o:
-	$(MAKE) -f CMakeFiles/tinyHttpd.dir/build.make CMakeFiles/tinyHttpd.dir/main.cpp.o
-.PHONY : main.cpp.o
+example.cpp.o:
+	$(MAKE) -f CMakeFiles/tinyHttpd.dir/build.make CMakeFiles/tinyHttpd.dir/example.cpp.o
+.PHONY : example.cpp.o
 
-main.i: main.cpp.i
+example.i: example.cpp.i
 
-.PHONY : main.i
+.PHONY : example.i
 
 # target to preprocess a source file
-main.cpp.i:
-	$(MAKE) -f CMakeFiles/tinyHttpd.dir/build.make CMakeFiles/tinyHttpd.dir/main.cpp.i
-.PHONY : main.cpp.i
+example.cpp.i:
+	$(MAKE) -f CMakeFiles/tinyHttpd.dir/build.make CMakeFiles/tinyHttpd.dir/example.cpp.i
+.PHONY : example.cpp.i
 
-main.s: main.cpp.s
+example.s: example.cpp.s
 
-.PHONY : main.s
+.PHONY : example.s
 
 # target to generate assembly for a file
-main.cpp.s:
-	$(MAKE) -f CMakeFiles/tinyHttpd.dir/build.make CMakeFiles/tinyHttpd.dir/main.cpp.s
-.PHONY : main.cpp.s
+example.cpp.s:
+	$(MAKE) -f CMakeFiles/tinyHttpd.dir/build.make CMakeFiles/tinyHttpd.dir/example.cpp.s
+.PHONY : example.cpp.s
 
 tinyHttpd.o: tinyHttpd.cpp.o
 
@@ -213,9 +213,9 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... tinyHttpd"
-	@echo "... main.o"
-	@echo "... main.i"
-	@echo "... main.s"
+	@echo "... example.o"
+	@echo "... example.i"
+	@echo "... example.s"
 	@echo "... tinyHttpd.o"
 	@echo "... tinyHttpd.i"
 	@echo "... tinyHttpd.s"

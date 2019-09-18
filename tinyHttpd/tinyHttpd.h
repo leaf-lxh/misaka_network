@@ -32,6 +32,7 @@ private:
 	{
 		std::string method;
 		std::string requestPath;
+		std::string requestParam;
 		std::string version;
 		std::multimap<std::string, std::string> requestHeaders;
 		std::string body;
@@ -113,8 +114,9 @@ private:
 
 	std::string ResponseToString(HTTPResponsePacket response);
 
-	std::string GetFileContent(std::string path);
+	std::string GetFileContent(std::string &path);
 	std::string GetResponseType(std::string path);
+	void IsAccessableFile(std::string& path);
 	virtual void HTTPPacketHandler(int clientfd, HTTPRequestPacket request);
 
 };

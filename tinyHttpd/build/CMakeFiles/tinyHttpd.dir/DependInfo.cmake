@@ -4,7 +4,7 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_CXX
-  "/mnt/d/ProgrammingCode/C++/misaka_network/tinyHttpd/main.cpp" "/mnt/d/ProgrammingCode/C++/misaka_network/tinyHttpd/build/CMakeFiles/tinyHttpd.dir/main.cpp.o"
+  "/mnt/d/ProgrammingCode/C++/misaka_network/tinyHttpd/example.cpp" "/mnt/d/ProgrammingCode/C++/misaka_network/tinyHttpd/build/CMakeFiles/tinyHttpd.dir/example.cpp.o"
   "/mnt/d/ProgrammingCode/C++/misaka_network/tinyHttpd/tinyHttpd.cpp" "/mnt/d/ProgrammingCode/C++/misaka_network/tinyHttpd/build/CMakeFiles/tinyHttpd.dir/tinyHttpd.cpp.o"
   "/mnt/d/ProgrammingCode/C++/misaka_network/tinyHttpd/webstring.cpp" "/mnt/d/ProgrammingCode/C++/misaka_network/tinyHttpd/build/CMakeFiles/tinyHttpd.dir/webstring.cpp.o"
   )
