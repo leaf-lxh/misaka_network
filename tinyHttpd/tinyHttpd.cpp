@@ -80,7 +80,14 @@ void TinyHttpd::Init(std::string confPath) noexcept(false)
 	map<string, string> setting = RetrieveFromKeyValueFmt(confPath);
 	if (setting.count("port") && setting.count("address"))
 	{
-		serverProperty.bind = { stoi(setting["port"]), webstring::strip(setting["address"], "\"\'") };
+		try
+		{
+			serverProperty.bind = { stoi(setting["port"]), webstring::strip(setting["address"], "\"\'") };
+		}
+		catch (std::runtime_error e)
+		{
+			throw runtime_error("Invaild port or address, examine your configuration file.");
+		}
 	}
 
 	if (setting.count("unixPath") != 0)
@@ -104,7 +111,7 @@ void TinyHttpd::Init(std::string confPath) noexcept(false)
 		}
 		catch (std::runtime_error e)
 		{
-			throw std::runtime_error(std::string("invaild maxClients: ") + setting["maxClients"]);
+			throw std::runtime_error(std::string("Invaild maxClients: ") + setting["maxClients"]);
 		}
 	}
 	else
@@ -120,6 +127,8 @@ void TinyHttpd::Init(std::string confPath) noexcept(false)
 	{
 		serverProperty.documentRoot = "/var/www/html";
 	}
+
+	//对于路径末尾是否带斜线的处理。documentRoot末尾应缀上斜线
 	if (serverProperty.documentRoot[serverProperty.documentRoot.length() - 1] != '/')
 	{
 		serverProperty.documentRoot += '/';
@@ -127,7 +136,7 @@ void TinyHttpd::Init(std::string confPath) noexcept(false)
 
 }
 
-void TinyHttpd::LoadMime(std::string path)
+void TinyHttpd::LoadMIME(std::string path) noexcept
 {
 	using namespace std;
 	fstream mimeFile(path, fstream::in);
@@ -268,9 +277,19 @@ void TinyHttpd::StartHandleRequest() noexcept
 				if (connectedClients[clientfd].writeBuffer.length() > 0)
 				{
 					PushData(clientfd);
+
+					//尝试读取所请求大文件的一部分数据到writeBuffer中
 					if ((connectedClients[clientfd].writeBuffer.length() < WATERLINE_WRITE_BUFFER) && (connectedClients[clientfd].aviliableFileBytesNum > 0))
 					{
-						ReadFile(clientfd);
+						try
+						{
+							ReadFileStreamToBuffer(clientfd);
+						}
+						catch (std::runtime_error e)
+						{
+							DeleteEvent(epollfd, clientfd, EPOLLIN | EPOLLOUT | EPOLLRDHUP);
+							CloseConnection(events[index].data.fd);
+						}
 					}
 				}
 			}
@@ -315,17 +334,24 @@ void TinyHttpd::StartHandleRequest() noexcept
 	}
 }
 
-void TinyHttpd::PushData(int fd)
+void TinyHttpd::PushData(int fd) noexcept
 {
-	ssize_t sended = send(fd, connectedClients[fd].writeBuffer.c_str(), connectedClients[fd].writeBuffer.length(), MSG_DONTWAIT);
+	std::size_t sendLength = (4096 > connectedClients[fd].writeBuffer.length()) ? connectedClients[fd].writeBuffer.length() : 4096;
+	ssize_t sended = send(fd, connectedClients[fd].writeBuffer.c_str(), sendLength, MSG_DONTWAIT);
 	if (sended > 0)
 	{
 		connectedClients[fd].writeBuffer = connectedClients[fd].writeBuffer.substr(sended);
 	}
 }
 
-void TinyHttpd::ReadFile(int fd)
+void TinyHttpd::ReadFileStreamToBuffer(int fd) noexcept(false)
 {
+	//判断是否能读
+	if (connectedClients[fd].file->good() == false)
+	{
+		throw std::runtime_error("connectedClients[fd].file->good() == false");
+	}
+
 	std::unique_ptr<char[]> buffer(new char[4096]());
 	std::streamsize readLength = (4096 > connectedClients[fd].aviliableFileBytesNum) ? connectedClients[fd].aviliableFileBytesNum : 4096;
 	std::streamsize readedLength = connectedClients[fd].file->readsome(buffer.get(), readLength);
@@ -336,7 +362,7 @@ void TinyHttpd::ReadFile(int fd)
 	}
 }
 
-void TinyHttpd::HTTPProfiler(int fd)
+void TinyHttpd::HTTPProfiler(int fd) noexcept
 {
 	
 	using namespace std;
@@ -346,9 +372,12 @@ void TinyHttpd::HTTPProfiler(int fd)
 	HTTPRequestPacket packet;
 	smatch requestLine;
 	smatch requestHeaders;
+
+	//查找报文头(header)与报文体(body)的分割
 	size_t requestHeaderEnd = connectedClients[fd].readBuffer.find("\r\n\r\n");
 	if (requestHeaderEnd != string::npos)
 	{
+		//判断该数据是否完整匹配一个报文请求行(request line)的开始
 		if (!regex_search(connectedClients[fd].readBuffer,  requestLine, requestLineFmt))
 		{
 			return;
@@ -360,6 +389,14 @@ void TinyHttpd::HTTPProfiler(int fd)
 			packet.requestHeaders.insert({ webstring::tolower(it->operator[](1).str()), it->operator[](2).str() });
 		}
 
+		//如果没有host头，则为bad request
+		if (packet.requestHeaders.count("host") == 0)
+		{
+			RaiseHTPPError(fd, 400);
+			return;
+		}
+
+		//判断是否有body
 		size_t contentLength = 0;
 		if (packet.requestHeaders.count("content-length") > 0)
 		{
@@ -371,9 +408,11 @@ void TinyHttpd::HTTPProfiler(int fd)
 			catch (...)
 			{
 				RaiseHTPPError(fd, 400);
+				return;
 			}
 		}
 
+		//判断当前剩余的数据长度是否满足content-length的长度
 		if (connectedClients[fd].readBuffer.length() - (requestHeaderEnd + 4) >= contentLength)
 		{
 			packet.method = requestLine[1].str();
@@ -403,7 +442,7 @@ void TinyHttpd::CloseConnection(int fd)
 	connectedClients.erase(fd);
 }
 
-void TinyHttpd::HTTPPacketHandler(int clientfd, HTTPRequestPacket request)
+void TinyHttpd::HTTPPacketHandler(int clientfd, HTTPRequestPacket request) noexcept
 {
 	HTTPResponsePacket response;
 	response.code = "200 OK";
@@ -430,7 +469,8 @@ void TinyHttpd::HTTPPacketHandler(int clientfd, HTTPRequestPacket request)
 		path = std::string(urldecoded.data(), urldecoded.size());
 		try
 		{
-			////假定所请求的文件较小，几乎可以瞬间读取完毕，不影响正常执行响应，则可以使用该函数来读取文件内容
+
+			//假定所请求的文件较小，几乎可以瞬间读取完毕，不影响正常执行响应，则可以使用该函数来读取文件内容
 			//response.body += GetFileContent(path);
 			//否则则应该使用延时读取, 不过一个请求只能响应一个读文件请求
 			IsAccessableFile(path);
@@ -469,7 +509,7 @@ void TinyHttpd::HTTPPacketHandler(int clientfd, HTTPRequestPacket request)
 	
 }
 
-std::string TinyHttpd::ResponseToString(HTTPResponsePacket response)
+std::string TinyHttpd::ResponseToString(HTTPResponsePacket response) noexcept
 {
 	std::stringstream result;
 	result << std::noskipws;
@@ -543,7 +583,7 @@ void TinyHttpd::DeleteEvent(int epollfd, int fd, int flags) noexcept
 	std::cout << "delevent: " << fd << std::endl;
 }
 
-void TinyHttpd::RaiseHTPPError(int fd, int code, std::string additional)
+void TinyHttpd::RaiseHTPPError(int fd, int code, std::string additional) noexcept
 {
 	HTTPResponsePacket response;
 	response.code = std::to_string(code);
@@ -603,7 +643,7 @@ void TinyHttpd::RaiseHTPPError(int fd, int code, std::string additional)
 }
 
 
-std::string TinyHttpd::GetResponseType(std::string path)
+std::string TinyHttpd::GetResponseType(std::string path) noexcept
 {
 	std::string fileType = path.substr(path.find_last_of(".") + 1);
 	if (serverProperty.mimeMap.count(fileType))
