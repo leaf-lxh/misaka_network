@@ -146,7 +146,7 @@ namespace webstring
 				std::smatch result;
 				if (std::regex_match(assumedEncodedString, result, format))
 				{
-					unsigned int byteValue;
+					char byteValue;
 					stream << std::hex << result[1];
 					stream >> byteValue;
 					stream.clear();

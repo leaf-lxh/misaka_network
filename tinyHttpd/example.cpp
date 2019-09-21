@@ -5,6 +5,7 @@ TinyHttpd server;
 void sigterm(int signal)
 {
 	server.~TinyHttpd();
+	exit(0);
 }
 
 int main(int argc, char **argv)
@@ -14,7 +15,7 @@ int main(int argc, char **argv)
 	try
 	{
 		server.Init();
-		server.LoadMime();
+		server.LoadMIME();
 		server.StartListen();
 		server.DumpProperty();
 	}

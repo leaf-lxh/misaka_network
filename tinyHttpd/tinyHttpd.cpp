@@ -66,7 +66,11 @@ std::map<std::string, std::string> RetrieveFromKeyValueFmt(std::string path)
 
 TinyHttpd::~TinyHttpd()
 {
-	std::cout << "closing" << std::endl;
+	if (serverProperty.verbose >= VerboseLevel::less)
+	{
+		std::cout << "Closing server...." << std::endl;
+	}
+	
 	for (auto client : connectedClients)
 	{
 		close(client.first);
@@ -111,7 +115,7 @@ void TinyHttpd::Init(std::string confPath) noexcept(false)
 		}
 		catch (std::runtime_error e)
 		{
-			throw std::runtime_error(std::string("Invaild maxClients: ") + setting["maxClients"]);
+			throw runtime_error(std::string("Invaild maxClients: ") + setting["maxClients"]);
 		}
 	}
 	else
@@ -133,6 +137,37 @@ void TinyHttpd::Init(std::string confPath) noexcept(false)
 	{
 		serverProperty.documentRoot += '/';
 	}
+
+	if (setting.count("verboseLevel") != 0)
+	{
+		try
+		{
+			switch (stoi(setting["verboseLevel"]))
+			{
+			case 3:
+				serverProperty.verbose = VerboseLevel::full;
+				break;
+			case 2:
+				serverProperty.verbose = VerboseLevel::essential;
+				break;
+			case 1:
+				serverProperty.verbose = VerboseLevel::less;
+				break;
+			default:
+				serverProperty.verbose = VerboseLevel::silence;
+				break;
+			}
+		}
+		catch (std::runtime_error e)
+		{
+			throw runtime_error("Invaild verbose level.");
+		}
+	}
+	else
+	{
+		serverProperty.verbose = VerboseLevel::silence;
+	}
+	
 
 }
 
@@ -241,7 +276,7 @@ void TinyHttpd::StartHandleRequest() noexcept
 					connectedClients.insert({ clientfd, clientInfo });
 					AddEvent(epollfd, clientfd, EPOLLIN);
 				}
-				else
+				else if (serverProperty.verbose >= VerboseLevel::full)
 				{
 					std::cout << errno << std::endl;
 				}
@@ -256,7 +291,11 @@ void TinyHttpd::StartHandleRequest() noexcept
 				if (length > 0)
 				{
 					connectedClients[clientfd].readBuffer += receiveBuffer.get();
-					std::cout << connectedClients[clientfd].readBuffer << std::flush;
+					if (serverProperty.verbose >= VerboseLevel::full)
+					{
+						std::cout << connectedClients[clientfd].readBuffer << std::flush;
+					}
+
 					HTTPProfiler(clientfd);
 					connectedClients[clientfd].lastAlive = time(nullptr);
 					
@@ -306,14 +345,17 @@ void TinyHttpd::StartHandleRequest() noexcept
 		std::set<int> willDeleted;
 		for (auto client = connectedClients.begin(); client != connectedClients.end(); ++client)
 		{
-			//(currentTime - client->second.lastAlive < 60) && 
+			if ((client->second.keepAlive == true) && (currentTime - client->second.lastAlive < 60))
+			{
+				client->second.readShutdown = true;
+			}
 			if ((client->second.fullShutdown == false))
 			{
 				if (client->second.writeBuffer.length() > 0)
 				{
 					ModifyEvent(epollfd, client->first, EPOLLIN | EPOLLOUT | EPOLLRDHUP);
 				}
-				else if(client->second.writeShutdown == true)
+				else if(client->second.readShutdown == true)
 				{
 					ModifyEvent(epollfd, client->first, EPOLLRDHUP);
 					
@@ -559,7 +601,10 @@ void TinyHttpd::AddEvent(int epollfd, int fd, int flags) noexcept
 	event.data.fd = fd;
 
 	epoll_ctl(epollfd, EPOLL_CTL_ADD , fd, &event);
-	std::cout << "addevent: " << fd << std::endl;
+	if (serverProperty.verbose >= VerboseLevel::full)
+	{
+		std::cout << "addevent: " << fd << std::endl;
+	}
 }
 
 
@@ -570,7 +615,10 @@ void TinyHttpd::ModifyEvent(int epollfd, int fd, int flags) noexcept
 	event.data.fd = fd;
 
 	epoll_ctl(epollfd, EPOLL_CTL_MOD, fd, &event);
-	std::cout << "modifyEnvent: " << fd << std::endl;
+	if (serverProperty.verbose >= VerboseLevel::full)
+	{
+		std::cout << "modifyEnvent: " << fd << std::endl;
+	}
 }
 
 void TinyHttpd::DeleteEvent(int epollfd, int fd, int flags) noexcept
@@ -580,7 +628,10 @@ void TinyHttpd::DeleteEvent(int epollfd, int fd, int flags) noexcept
 	event.data.fd = fd;
 
 	epoll_ctl(epollfd, EPOLL_CTL_DEL, fd, &event);
-	std::cout << "delevent: " << fd << std::endl;
+	if (serverProperty.verbose >= VerboseLevel::full)
+	{
+		std::cout << "delevent: " << fd << std::endl;
+	}
 }
 
 void TinyHttpd::RaiseHTPPError(int fd, int code, std::string additional) noexcept
@@ -639,7 +690,7 @@ void TinyHttpd::RaiseHTPPError(int fd, int code, std::string additional) noexcep
 	response.responseHeaders.insert({ "Content-Length", std::to_string(response.body.length())});
 	response.responseHeaders.insert({ "Content-Type", "text/html" });
 	connectedClients[fd].writeBuffer = ResponseToString(response);
-	connectedClients[fd].writeShutdown = true;
+	connectedClients[fd].readShutdown = true;
 }
 
 

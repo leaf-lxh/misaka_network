@@ -71,11 +71,18 @@ private:
 		std::string body;
 	};
 
+	//调试信息输出等级，使用>=操作符来判断是否应输出。最啰嗦的是full模式，其次是essential模式，再是less模式。
+	enum class VerboseLevel : unsigned char {
+		full = 3,
+		essential = 2,
+		less = 1,
+		silence = 0
+	};
 	///服务器配置
 	struct ServerProperty
 	{
 		//调试模式的等级设定，0为不调试
-		int verbose;
+		VerboseLevel verbose;
 		//当前服务器的监听套接字
 		int listenfd;
 		//本服务器最多接受的客户数，即listen函数的第二个参数
@@ -111,11 +118,12 @@ private:
 		//当前正在处理的文件
 		std::shared_ptr<std::fstream> file;
 		//当前连接应在写缓冲区的数据发送完毕后当关闭。其读缓冲区的数据不应再读取
-		bool writeShutdown;
+		bool readShutdown;
 		//当前连接应当立即关闭，无论数据是否读取或发送完毕
 		bool fullShutdown;
 		//accept该客户端连接时使用的sockaddr_in结构
 		struct sockaddr_in clientInfo;
+		bool keepAlive;
 		//上次活动的unix时间戳
 		time_t lastAlive;
 		//用于map比较用的判断操作符
