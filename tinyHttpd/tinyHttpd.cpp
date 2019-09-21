@@ -168,7 +168,37 @@ void TinyHttpd::Init(std::string confPath) noexcept(false)
 		serverProperty.verbose = VerboseLevel::silence;
 	}
 	
+	if (setting.count("KeepAliveTimeout") != 0)
+	{
+		try
+		{
+			serverProperty.timeout = stoi(setting["KeepAliveTimeout"]);
+		}
+		catch (runtime_error e)
+		{
+			throw runtime_error("Invaild timeout value.");
+		}
+	}
+	else
+	{
+		serverProperty.timeout = 5;
+	}
 
+	if (setting.count("KeepAliveMaxRequestNum") != 0)
+	{
+		try
+		{
+			serverProperty.maxRequestsNum = stoi(setting["KeepAliveMaxRequestNum"]);
+		}
+		catch (runtime_error e)
+		{
+			throw runtime_error("Invaild timeout value.");
+		}
+	}
+	else
+	{
+		serverProperty.maxRequestsNum = 60;
+	}
 }
 
 void TinyHttpd::LoadMIME(std::string path) noexcept
@@ -259,7 +289,9 @@ void TinyHttpd::StartHandleRequest() noexcept
 	int clientfd;
 	while (true)
 	{
-		readyEvents = epoll_wait(epollfd, events.get(), serverProperty.maxClients, 5);
+		//这里应该使用异步IO来读取文件，因为fstream无法支持异步IO，无法与epoll进行结合
+		//这里暂时用非阻塞epoll来代替。
+		readyEvents = epoll_wait(epollfd, events.get(), serverProperty.maxClients, 0);
 		for (int index = 0; index < readyEvents; ++index)
 		{
 			clientfd = events[index].data.fd;
@@ -273,6 +305,7 @@ void TinyHttpd::StartHandleRequest() noexcept
 				clientfd = accept(clientfd, (sockaddr*)&clientInfo.clientInfo, &length);
 				if (clientfd > 0)
 				{
+					clientInfo.fd = clientfd;
 					connectedClients.insert({ clientfd, clientInfo });
 					AddEvent(epollfd, clientfd, EPOLLIN);
 				}
@@ -286,6 +319,11 @@ void TinyHttpd::StartHandleRequest() noexcept
 
 			if (events[index].events & EPOLLIN)
 			{
+				if (connectedClients[clientfd].readShutdown == true)
+				{
+					continue;
+				}
+				
 				memset(receiveBuffer.get(), 0, 4096);
 				ssize_t length = recv(clientfd, receiveBuffer.get(), 4096, MSG_DONTWAIT);
 				if (length > 0)
@@ -304,6 +342,7 @@ void TinyHttpd::StartHandleRequest() noexcept
 				{
 					DeleteEvent(epollfd, clientfd, EPOLLIN|EPOLLOUT| EPOLLRDHUP);
 					CloseConnection(clientfd);
+					continue;
 				}
 				else
 				{
@@ -328,6 +367,7 @@ void TinyHttpd::StartHandleRequest() noexcept
 						{
 							DeleteEvent(epollfd, clientfd, EPOLLIN | EPOLLOUT | EPOLLRDHUP);
 							CloseConnection(events[index].data.fd);
+							continue;
 						}
 					}
 				}
@@ -340,35 +380,56 @@ void TinyHttpd::StartHandleRequest() noexcept
 			}
 		}
 
+
+		//KeepAlive timeout处理
 		time_t currentTime = time(nullptr);
 		
 		std::set<int> willDeleted;
 		for (auto client = connectedClients.begin(); client != connectedClients.end(); ++client)
 		{
-			if ((client->second.keepAlive == true) && (currentTime - client->second.lastAlive < 60))
+			//如果超时，读关闭，发送完数据再关闭
+			if ((client->second.keepAlive == true) && ((currentTime - client->second.lastAlive) > serverProperty.timeout))
 			{
+				shutdown(client->first, SHUT_RD);
 				client->second.readShutdown = true;
 			}
-			if ((client->second.fullShutdown == false))
+
+			//如果要立即关闭，则加入到关闭队列中
+			if (client->second.fullShutdown == true)
+			{
+				willDeleted.insert(client->first);
+				continue;
+			}
+
+			//如果readShutdown启用
+			if (client->second.readShutdown == true)
+			{
+				if (client->second.writeBuffer.length() > 0)
+				{
+					//如果还有要write的数据，继续监听写的状态
+					ModifyEvent(epollfd, client->first, EPOLLOUT | EPOLLRDHUP);
+				}
+				else
+				{
+					//发送完数据，关闭当前连接
+					willDeleted.insert(client->first);
+					continue;
+				}
+			}
+			else
 			{
 				if (client->second.writeBuffer.length() > 0)
 				{
 					ModifyEvent(epollfd, client->first, EPOLLIN | EPOLLOUT | EPOLLRDHUP);
 				}
-				else if(client->second.readShutdown == true)
-				{
-					ModifyEvent(epollfd, client->first, EPOLLRDHUP);
-					
-				}
 				else
 				{
 					ModifyEvent(epollfd, client->first, EPOLLIN | EPOLLRDHUP);
 				}
-				continue;
 			}
-			willDeleted.insert(client->first);
 		}
 
+		//关闭连接
 		for (auto fd : willDeleted)
 		{
 			CloseConnection(fd);
@@ -491,8 +552,6 @@ void TinyHttpd::HTTPPacketHandler(int clientfd, HTTPRequestPacket request) noexc
 	response.version = "HTTP/1.1";
 	response.responseHeaders.insert({ "Server", SERVER_SIGNATURE });
 	response.responseHeaders.insert({ "Content-Encoding", "plain" });
-	response.responseHeaders.insert({ "Connection", "Closed" });
-	//response.responseHeaders.insert({ "Keep-Alive", "timeout=5, max=60" });
 	std::string path;
 	if (request.method == "GET")
 	{
@@ -503,52 +562,70 @@ void TinyHttpd::HTTPPacketHandler(int clientfd, HTTPRequestPacket request) noexc
 		}
 		else
 		{
+			//实际上Linux系统会将多个斜线视为一个斜线...
 			path = serverProperty.documentRoot + webstring::LeftStrip(request.requestPath, " /");
 		}
 
 
 		std::vector<char> urldecoded = webstring::URLdecode(path);
 		path = std::string(urldecoded.data(), urldecoded.size());
-		try
+
+		switch (IsAccessableFile(path))
 		{
-
-			//假定所请求的文件较小，几乎可以瞬间读取完毕，不影响正常执行响应，则可以使用该函数来读取文件内容
-			//response.body += GetFileContent(path);
-			//否则则应该使用延时读取, 不过一个请求只能响应一个读文件请求
-			IsAccessableFile(path);
-
-			connectedClients[clientfd].file.reset(new std::fstream(path, std::fstream::in));
-			connectedClients[clientfd].file->seekg(0, std::fstream::end);
-			std::streamsize fileSize = connectedClients[clientfd].file->tellg();
-			response.responseHeaders.insert({ "Content-Length", std::to_string(fileSize) });
-			connectedClients[clientfd].file->seekg(0, std::fstream::beg);
-			connectedClients[clientfd].aviliableFileBytesNum = fileSize;
-
-		}
-		catch (std::runtime_error e)
-		{
-			if (std::string(e.what()) == "403")
+		case FileAccessableStat::normalFile:
+			break;
+		case FileAccessableStat::directory:
+			if (IsAccessableFile(path + "/index.html") == FileAccessableStat::normalFile)
+			{
+				path += "/index.html";
+				break;
+			}
+			else
 			{
 				RaiseHTPPError(clientfd, 403);
 				return;
 			}
-			if (std::string(e.what()) == "404")
-			{
-				RaiseHTPPError(clientfd, 404);
-				return;
-			}
-			if (std::string(e.what()) == "500")
-			{
-				RaiseHTPPError(clientfd, 500);
-				return;
-			}
+		case FileAccessableStat::forbiden:
+			RaiseHTPPError(clientfd, 403);
+			return;
+		case FileAccessableStat::noneExist:
+			RaiseHTPPError(clientfd, 404);
+			return;
+		case FileAccessableStat::unknow:
+		default:
+			RaiseHTPPError(clientfd, 500);
+			return;
+		}
+
+		std::streamsize filesize = GetFileLength(path);
+		response.responseHeaders.insert({ "Content-Type", GetResponseType(path) });
+		response.responseHeaders.insert({ "Content-Length", std::to_string(filesize) });
+		if (filesize > 4096)
+		{
+			//如果文件过大应该使用延时读取,避免影响其他请求的响应。此时该连接只能响应这个读文件请求
+			response.responseHeaders.insert({ "Connection", "Closed" });
+			connectedClients[clientfd].file.reset(new std::fstream(path, std::fstream::in|std::fstream::binary));
+			connectedClients[clientfd].aviliableFileBytesNum = filesize;
+			connectedClients[clientfd].readShutdown = true;
+			connectedClients[clientfd].writeBuffer += ResponseToString(response);
+		}
+		else
+		{
+			//如果所请求的文件较小，几乎可以瞬间读取完毕，不影响正常执行响应，则可以使用该函数来读取文件内容
+			response.body += GetFileContent(path);
+			std::stringstream param;
+			param << std::noskipws;
+			param << "timeout=" << serverProperty.timeout << ", max=" << serverProperty.maxRequestsNum;
+			response.responseHeaders.insert({ "Connection", "Keep-Alive" });
+			response.responseHeaders.insert({ "Keep-Alive", param.str() });
+			connectedClients[clientfd].writeBuffer += ResponseToString(response);
 		}
 	}
+	else
+	{
+		RaiseHTPPError(clientfd, 501);
+	}
 
-	response.responseHeaders.insert({ "Content-Type", GetResponseType(path) });
-	//response.responseHeaders.insert({ "Content-Length", std::to_string(response.body.length()) });
-	connectedClients[clientfd].writeBuffer += ResponseToString(response);
-	
 }
 
 std::string TinyHttpd::ResponseToString(HTTPResponsePacket response) noexcept
@@ -570,7 +647,6 @@ std::string TinyHttpd::ResponseToString(HTTPResponsePacket response) noexcept
 std::string TinyHttpd::GetFileContent(std::string &path) noexcept(false)
 {
 	using namespace std;
-	IsAccessableFile(path);
 
 	fstream file(path, fstream::in|fstream::binary);
 	if (file.good() == false)
@@ -677,6 +753,14 @@ void TinyHttpd::RaiseHTPPError(int fd, int code, std::string additional) noexcep
 		page << SERVER_SIGNATURE;
 		response.body = page.str();
 		break;
+	case 501:
+		response.code += "Not Implemented";
+		page << "<h1>Not Implemented</h1>\n";
+		page << "<p>" << additional << "</p>\n";
+		page << "<hr>\n";
+		page << SERVER_SIGNATURE;
+		response.body = page.str();
+		break;
 	default:
 		response.code += " Undefined";
 		page << "<h1>Undefined Error Code</h1>\n";
@@ -707,37 +791,55 @@ std::string TinyHttpd::GetResponseType(std::string path) noexcept
 	}
 }
 
-void TinyHttpd::IsAccessableFile(std::string& path)
+TinyHttpd::FileAccessableStat TinyHttpd::IsAccessableFile(std::string path) noexcept
 {
 	using namespace std;
 	if (access(path.c_str(), F_OK | R_OK) == -1)
 	{
 		if (errno == EACCES)
 		{
-			throw runtime_error("403");
+			return FileAccessableStat::forbiden;
 		}
 		else if (errno == ENOENT)
 		{
-			throw runtime_error("404");
+			return FileAccessableStat::noneExist;
 		}
 		else
 		{
-			throw runtime_error(to_string(errno) + " unknow");
+			return FileAccessableStat::unknow;
 		}
 	}
 
-	//检查是否是常规文件，而不是目录。如果是目录且没有index文件，此处暂时抛出403错误，关于列目录的页面这里暂时不做。
+	//判断是否是目录
 	FILE* fp = fopen(path.c_str(), "r");
 	struct stat fileInfo;
 	fstat(fileno(fp), &fileInfo);
+	fclose(fp);
+
 	if (!S_ISREG(fileInfo.st_mode))
 	{
-		path += "/index.html";
+		return FileAccessableStat::directory;
+	}
+	else
+	{
+		return FileAccessableStat::normalFile;
+	}
+	
 
-		if (access(path.c_str(), F_OK | R_OK) == -1)
-		{
-			fclose(fp);
-			throw runtime_error("403");
-		}
+}
+
+std::streamsize TinyHttpd::GetFileLength(std::string path) noexcept(false)
+{
+	using namespace std;
+	if (IsAccessableFile(path) == FileAccessableStat::normalFile)
+	{
+		fstream file(path, fstream::in | fstream::binary);
+		file.seekg(0, fstream::end);
+		streamsize fileSize = file.tellg();
+		return fileSize;
+	}
+	else
+	{
+		throw runtime_error("Unable to aquire the file's size.");
 	}
 }

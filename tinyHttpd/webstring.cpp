@@ -146,12 +146,12 @@ namespace webstring
 				std::smatch result;
 				if (std::regex_match(assumedEncodedString, result, format))
 				{
-					char byteValue;
+					unsigned int byteValue;
 					stream << std::hex << result[1];
 					stream >> byteValue;
 					stream.clear();
 
-					convertedBytes.push_back(byteValue);
+					convertedBytes.push_back(static_cast<char>(byteValue));
 					index += 3;
 				}
 				else

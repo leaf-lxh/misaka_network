@@ -97,6 +97,10 @@ private:
 		std::string documentRoot;
 		//文件后缀-MIME类型映射表，first为文件类型，second为对应的mime类型
 		std::map<std::string, std::string> mimeMap;
+		//KeepAlive的超时时间
+		int timeout;
+		//每个KeepAlive连接能发送的最多请求数量
+		int maxRequestsNum;
 	}serverProperty;
 
 	///每个已连接的客户的属性
@@ -104,7 +108,7 @@ private:
 	{
 		ClientProperty() = default;
 		//当前客户的fd
-		int fd;
+		int fd = -1;
 		//读缓冲区的锁
 		int readBufferLock;
 		//写缓冲区的锁
@@ -118,9 +122,9 @@ private:
 		//当前正在处理的文件
 		std::shared_ptr<std::fstream> file;
 		//当前连接应在写缓冲区的数据发送完毕后当关闭。其读缓冲区的数据不应再读取
-		bool readShutdown;
+		bool readShutdown = false;
 		//当前连接应当立即关闭，无论数据是否读取或发送完毕
-		bool fullShutdown;
+		bool fullShutdown = false;
 		//accept该客户端连接时使用的sockaddr_in结构
 		struct sockaddr_in clientInfo;
 		bool keepAlive;
@@ -218,16 +222,34 @@ private:
 	*/
 	std::string GetResponseType(std::string path) noexcept;
 
+	//错误类型
+	enum class FileAccessableStat : int {
+		normalFile = 0,
+		forbiden = 1,
+		noneExist = 2,
+		directory = 3,
+		unknow = -1
+	};
 	/*!
 	判断是否是一个可访问的文件
 	参数：path | 文件路径
-	异常：如果不可访问则抛出runtime_error，what()返回错误码：权限不足-403， 文件不存在-404
+	返回：0-是正常的可读文件， 1-权限不足，2-路径不存在，3-路径指向一个目录，-1-未知错误
 	*/
-	void IsAccessableFile(std::string& path) noexcept(false);
+	FileAccessableStat IsAccessableFile(std::string path) noexcept;
+
+	/*!
+	获取文件的大小，单位为KBytes
+	参数：path | 文件路径
+	返回：文件的大小
+	异常：文件读取失败则抛出runtime_error，what()返回错误原因
+	*/
+	std::streamsize GetFileLength(std::string path) noexcept(false);
 
 	/*!
 	对于每个HTTP请求的处理函数，默认函数为一个静态文件提供服务
 	*/
 	virtual void HTTPPacketHandler(int clientfd, HTTPRequestPacket request) noexcept;
+
+
 
 };
