@@ -26,6 +26,7 @@ import AssignmentIcon from '@material-ui/icons/Assignment'
 import MainContainer from './MainContainer'
 import "./css/NavBar.css"
 
+var API_PROVIDER_SERVER = "http://api.leaflxh.com";
 
 const indexStyle = makeStyles({
     indicatorColor : {
@@ -219,7 +220,7 @@ function StatusZone (className){
         }
     }
     //    return [false, "LegendLXH", "lxhcat.jpg"];
-    request.open("GET", "/api/v1/GetUserInfo", true)
+    request.open("GET", API_PROVIDER_SERVER + "/api/v1/passport/GetUserInfo", true)
     request.send(null);
 
     return "";
