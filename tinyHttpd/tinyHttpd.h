@@ -49,7 +49,7 @@ public:
 	打印当前服务器的serverProperty结构
 	*/
 	void DumpProperty() noexcept;
-private:
+
 	
 	///HTTP请求报文结构
 	struct HTTPRequestPacket
@@ -101,7 +101,7 @@ private:
 		int timeout;
 		//每个KeepAlive连接能发送的最多请求数量
 		int maxRequestsNum;
-	}serverProperty;
+	};
 
 	///每个已连接的客户的属性
 	struct ClientProperty
@@ -138,6 +138,8 @@ private:
 
 	};
 
+	//服务器配置信息
+	ServerProperty serverProperty;
 	//已连接的客户端信息
 	std::map<int, struct ClientProperty> connectedClients;
 
