@@ -1,8 +1,12 @@
-#include <tinyHttpd>
+#include <tinyHttpd.h>
 
 class BlogSpacePassport : public TinyHttpd
 {
 public:
-	void InitRoutePath();
-	void HTTPPacketHandler(int clientfd, HTTPRequestPacket request);
+	void InitRouteTabel() noexcept;
+
+
+private:
+	void HTTPPacketHandler(int clientfd, TinyHttpd::HTTPRequestPacket request) noexcept;
+	TinyHttpd::HTTPResponsePacket GetUserInfo(int clientfd, TinyHttpd::HTTPRequestPacket request) noexcept(false);
 };

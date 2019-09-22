@@ -1,5 +1,5 @@
 #include "./interfaces/passport.h"
-
+#include <iostream>
 BlogSpacePassport server;
 
 int main()
@@ -7,13 +7,12 @@ int main()
 	try
 	{
 		server.Init();
-		server.LoadMime();
-		server.AddRoute("/api/v1/passport");
+		server.InitRouteTabel();
 		server.StartListen();
 		server.StartHandleRequest();
 	}
 	catch (std::runtime_error e)
 	{
-		std::cout << e.what() << sd::endl;
+		std::cout << e.what() << std::endl;
 	}
 };
