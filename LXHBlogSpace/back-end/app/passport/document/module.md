@@ -38,9 +38,9 @@ create table user_details(
 | 字段名   | 说明                          | 数据格式                      |
 | -------- | ----------------------------- | ----------------------------- |
 | user_id  | 用户id，与user_info表中的相同 | 整数型数值，如1，2，3         |
-| username | 用户的昵称                    | 字符串，如张三                |
+| username | 用户的昵称                    | 字符串，如张三，应当唯一      |
 | avatar   | 用户头像文件的文件名          | SHA1(文件名称+上传时间戳).jpg |
-| email    | 用户当前的邮箱                | xxx@xxx.com                   |
+| email    | 用户当前的邮箱                | xxx@xxx.com，应当唯一         |
 
 ### 用户认证表(user_auth)
 
@@ -65,14 +65,34 @@ create table user_auth(
 | auth_salt  | 生成当前用户密码的数据摘要时使用的盐 | 字符串                |
 | user_token | 用户token                            | 字符串                |
 | token_date | 用户token生成时的unix时间戳          | 整数型数值，精确到秒  |
-| email_code | 用户使用邮箱认证时使用的认证码       | 整数型数值            |
-| code_date  | 认证码生成时的unix时间戳             | 整数型属猪            |
+
+### 用户邮箱认证码表(user_email_code)
+
+邮箱认证码表存储着邮箱-认证码，用于进行邮箱认证
+
+```mysql
+create table user_email_code(
+    email tinytext not null,
+    email_code int not null,
+    code_date int not null,
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+```
+
+| 字段名     | 说明                   | 数据格式             |
+| ---------- | ---------------------- | -------------------- |
+| email      | 邮箱                   | 字符串               |
+| email_code | 对应的验证码           | 6位整数              |
+| code_date  | 验证码产生的unix时间戳 | 整数型数值，精确到秒 |
 
 ### 用户注册模块
 
+用户注册时应当提供邮箱，用户名，邮箱验证码，密码
 
+具体调用见api文档
 
 ### 用户登录模块
 
+用户登录时应提供邮箱或用户名，以及密码
 
+具体调用见api文档
 
