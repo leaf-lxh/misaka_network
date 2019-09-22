@@ -1,3 +1,0 @@
-/mnt/d/ProgrammingCode/C++/misaka_network/tinyHttpd/build/CMakeFiles/edit_cache.dir
-/mnt/d/ProgrammingCode/C++/misaka_network/tinyHttpd/build/CMakeFiles/rebuild_cache.dir
-/mnt/d/ProgrammingCode/C++/misaka_network/tinyHttpd/build/CMakeFiles/tinyHttpd.dir
