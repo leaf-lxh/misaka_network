@@ -12,9 +12,10 @@ public:
 	/*!
 	用于服务器的配置文件读取
 	参数：confPath | 配置文件的路径
+	返回：从配置文件中读取的配置项。
 	异常：读取异常会抛出runtime_error，what()中包含错误信息
 	*/
-	void Init(std::string confPath = "setting.conf") noexcept(false);
+	std::map<std::string, std::string> Init(std::string confPath = "setting.conf") noexcept(false);
 
 	/*!
 	析构函数，用于服务器关闭时所有套接字描述符的关闭
@@ -246,6 +247,14 @@ public:
 	异常：文件读取失败则抛出runtime_error，what()返回错误原因
 	*/
 	std::streamsize GetFileLength(std::string path) noexcept(false);
+
+	/*!
+	记录日志，依赖于syslog
+	参数：clientfd | 客户的套接字描述符
+	参数：request  | 要记录的请求
+	参数：message  | 要记录的消息
+	*/
+	void LogRequestError(int clientfd, TinyHttpd::HTTPRequestPacket request, std::string message) noexcept;
 
 	/*!
 	对于每个HTTP请求的处理函数，默认函数为一个静态文件提供服务

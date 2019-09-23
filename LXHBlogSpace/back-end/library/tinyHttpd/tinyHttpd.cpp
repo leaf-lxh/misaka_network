@@ -15,6 +15,8 @@
 #include <netinet/in.h>
 #include <netdb.h>
 
+#include <syslog.h>
+
 #include "webstring.h"
 
 #define WATERLINE_WRITE_BUFFER 4096
@@ -78,7 +80,7 @@ TinyHttpd::~TinyHttpd()
 	close(serverProperty.listenfd);
 }
 
-void TinyHttpd::Init(std::string confPath) noexcept(false)
+std::map<std::string, std::string> TinyHttpd::Init(std::string confPath) noexcept(false)
 {
 	using namespace std;
 	map<string, string> setting = RetrieveFromKeyValueFmt(confPath);
@@ -199,6 +201,8 @@ void TinyHttpd::Init(std::string confPath) noexcept(false)
 	{
 		serverProperty.maxRequestsNum = 60;
 	}
+
+	return setting;
 }
 
 void TinyHttpd::LoadMIME(std::string path) noexcept
@@ -745,6 +749,14 @@ void TinyHttpd::RaiseHTPPError(int fd, int code, std::string additional) noexcep
 		page << SERVER_SIGNATURE;
 		response.body = page.str();
 		break;
+	case 405:
+		response.code += " Method Not Allowed";
+		page << "<h1>Method Not Allowed</h1>\n";
+		page << "<p>" << additional << "</p>\n";
+		page << "<hr>\n";
+		page << SERVER_SIGNATURE;
+		response.body = page.str();
+		break;
 	case 500:
 		response.code += " Internal Server Error";
 		page << "<h1>Internal Server Error</h1>\n";
@@ -842,4 +854,31 @@ std::streamsize TinyHttpd::GetFileLength(std::string path) noexcept(false)
 	{
 		throw runtime_error("Unable to aquire the file's size.");
 	}
+}
+
+void TinyHttpd::LogRequestError(int clientfd, HTTPRequestPacket request, std::string message) noexcept
+{
+	using namespace std;
+	unique_ptr<char[]> strBuffer(new char[INET_ADDRSTRLEN + 1]());
+	inet_ntop(AF_INET, &connectedClients[clientfd].clientInfo.sin_addr.s_addr, strBuffer.get(), INET_ADDRSTRLEN);
+
+	auto useragentIter = request.requestHeaders.find("user-agent");
+	string useragent = " ";
+	if (useragentIter != request.requestHeaders.end())
+	{
+		useragent = useragentIter->second;
+	}
+
+	auto xRealIPIter = request.requestHeaders.find("x-real-ip");
+	string xRealIP = "undefine";
+	if (xRealIPIter != request.requestHeaders.end())
+	{
+		xRealIP = xRealIPIter->second;
+	}
+
+	stringstream ss;
+	ss << skipws;
+	ss << message << "; requester ip: " << strBuffer.get() << " -> " << request.method << " " << request.requestPath << " user-agent: " << useragent << " X-Real-IP: " << xRealIP;
+
+	syslog(LOG_INFO | LOG_USER, "%s", ss.str().c_str());
 }
