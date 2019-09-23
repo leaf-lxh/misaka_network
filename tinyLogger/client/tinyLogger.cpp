@@ -7,6 +7,7 @@
 
 #include <unistd.h>
 #include <sys/socket.h>
+#include <sys/epoll.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
@@ -15,19 +16,13 @@
 
 TinyLoggerClient::~TinyLoggerClient()
 {
-	close(connectionFD);
+	close(connectionfd);
 }
 
-TinyLoggerClient::Response TinyLoggerClient::Send(std::string logText, std::string timefmt)
+TinyLoggerClient::Response TinyLoggerClient::Send(std::string logText, std::string timefmt) noexcept(false)
 {
-	if (connectionFD == -1)
-	{
-		if (Connect() == false)
-		{
-			throw std::runtime_error("Connect to server failed."); 
-		}
-	}
 
+	// 准备日志报文
 	std::unique_ptr<char[]> timestr(new char[256]());
 	
 	time_t currentTime = time(nullptr);
@@ -47,32 +42,45 @@ TinyLoggerClient::Response TinyLoggerClient::Send(std::string logText, std::stri
 	msg << log;
 	
 	log = msg.str();
-	send(connectionFD, log.c_str(), log.length(), 0);
+
+	//发送日志报文至服务器
+	send(connectionfd, log.c_str(), log.length(), 0);
 
 	std::unique_ptr<char[]> responsePtr(new char[1024]());
 	int i = 0;
 	int rlength = 0;
-	for (i = 0; i < 4000; i++)
+
+	int epollfd = epoll_create(1);
+	struct epoll_event event = {};
+	event.events = EPOLLIN;
+	event.data.fd = connectionfd;
+
+	epoll_ctl(epollfd, EPOLL_CTL_ADD, connectionfd, &event);
+
+	struct epoll_event received_event;
+
+	int state = epoll_wait(epollfd, &received_event, 1, 2);
+	if (state == -1)
 	{
-		//best way to do this is using select/epool, not this.
-		rlength = recv(connectionFD, responsePtr.get(), 1023, 0);
-		if (rlength >= 0)
-		{
-			break;
-		}
-		//usleep(500);
+		throw std::runtime_error("Connection error");
 	}
-	if (i == 5)
+	else if (state == 0)
 	{
-		throw std::runtime_error("Receive timeout");
+		throw std::runtime_error("Receiving timeout");
 	}
 
+	rlength = recv(connectionfd, responsePtr.get(), 1023, 0);
 	if (rlength == 0)
 	{
-		close(connectionFD);
-		connectionFD = -1;
+		close(connectionfd);
+
 		throw std::runtime_error("Connection Closed");
 	}
+
+	epoll_ctl(epollfd, EPOLL_CTL_DEL, connectionfd, &event);
+	close(epollfd);
+
+	//返回报文分析
 
 	std::string response(responsePtr.get());
 	struct Response rmsg;
@@ -112,9 +120,9 @@ TinyLoggerClient::Response TinyLoggerClient::Send(std::string logText, std::stri
 }
 
 
-bool TinyLoggerClient::Connect()
+bool TinyLoggerClient::Connect() noexcept(false)
 {
-	connectionFD = socket(AF_INET, SOCK_STREAM, 0);
+	connectionfd = socket(AF_INET, SOCK_STREAM, 0);
 	struct sockaddr_in serverInfo = {};
 	serverInfo.sin_family = AF_INET;
 	serverInfo.sin_port = htons(remote.second);
@@ -137,7 +145,7 @@ bool TinyLoggerClient::Connect()
 		inet_pton(AF_INET, address.get(), &serverInfo.sin_addr.s_addr);
 	}
 
-	if (connect(connectionFD, (sockaddr *)&serverInfo, sizeof(sockaddr_in)))
+	if (connect(connectionfd, (sockaddr *)&serverInfo, sizeof(sockaddr_in)))
 	{
 		
 		throw std::runtime_error(std::to_string(errno) + " Failed to connect to server.");
