@@ -53,7 +53,7 @@ function UserPanel(userMsgInfo, className){
         <>
             <div className="control-panel">
                 <div className="control-elements">
-                    <Button style={{display:"inline-block"}}>
+                    <Button style={{display:"inline-block"}} href="/edit/">
                         <div className="control-elements-icon">
                             <NoteAdd />
                         </div>
@@ -63,7 +63,7 @@ function UserPanel(userMsgInfo, className){
                     </Button>
                 </div>
                 <div className="control-elements">
-                    <Button style={{display:"inline-block"}}>
+                    <Button style={{display:"inline-block"}} href="/user/">
                         <div className="control-elements-icon">
                             <ViewList />
                         </div>

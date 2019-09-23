@@ -1,0 +1,108 @@
+.edit-container
+{
+    margin: 0 auto 0 auto;
+    width: 70%;
+    min-width: 800px;
+    opacity: 0.85;
+    margin-top: 80px !important;
+
+    
+}
+
+.tool-bar
+{
+    padding-top: 20px;
+    padding-bottom: 20px;
+    background: white;
+    box-shadow: 0 2px 4px -1px rgba(0,0,0,.2), 0 4px 5px 0 rgba(0,0,0,.14), 0 1px 10px 0 rgba(0,0,0,.12);
+}
+
+.tool-bar-savetime
+{
+    color: black !important;
+    margin-top: 20px !important;
+    margin-left: 20px !important;
+}
+
+.tool-bar-buttons
+{
+    display: flex;
+}
+.tool-bar-button
+{
+    border: 1px solid black !important;
+    border-radius: 3px !important;
+    margin-left: 20px !important;
+}
+
+.tool-bar-button-preview
+{
+    margin-left: auto !important;
+}
+.tool-bar-button-submit-ok
+{
+    border: none !important;
+    position: relative !important;
+    right: 0px !important;  
+    margin-left: 20px !important;
+    margin-right: 20px !important;
+    background: rgb(50, 160, 50) !important;
+    color: white !important;
+}
+
+.tool-bar-button-submit-err
+{
+    border: none !important;
+    position: relative !important;
+    right: 0px !important;  
+    margin-left: 20px !important;
+    margin-right: 20px !important;
+    background: rgb(212, 62, 17) !important;
+    color: white !important;
+}
+
+
+.article-title
+{
+    margin-top: 20px;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    display: flex;
+    background: white;
+    box-shadow: 0 2px 4px -1px rgba(0,0,0,.2), 0 4px 5px 0 rgba(0,0,0,.14), 0 1px 10px 0 rgba(0,0,0,.12);
+}
+
+.article-title-input
+{
+    flex-grow: 1;
+    font-size: 2em !important;
+    font-weight: bold;
+    margin: 5px 20px 5px 20px;
+    width: auto;
+}
+
+.article-content-container
+{
+    max-width: 100% !important;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    padding: 20px 0 20px 0 !important;
+    display: flex;
+    background: white;
+    box-shadow: 0 2px 4px -1px rgba(0,0,0,.2), 0 4px 5px 0 rgba(0,0,0,.14), 0 1px 10px 0 rgba(0,0,0,.12);
+}
+
+.flexable-container
+{
+    width: 100%;
+    display: flex;
+}
+
+.article-content-region
+{
+    border: 1px solid black !important;
+    margin-left: 20px;
+    margin-right: 20px;
+    flex-grow: 1;
+    width: auto;
+}

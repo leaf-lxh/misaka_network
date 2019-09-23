@@ -74,7 +74,7 @@ class MainApp extends React.Component
     {
         var selectedState = [this.state.selectedUserInfo, this.state.selectedSystemMsg, this.state.selectedMyMsg, this.state.selectedMyFavorite]
         var icons = [<AccountBox />, <Feedback />, <Message />, <Class />]
-        var buttons = ["个人资料", "系统通知", "我的消息", "我的收藏"]
+        var buttons = ["个人资料", "系统通知", "我的消息", "我的收藏", "我的草稿", "浏览历史"]
         return (
             <>
                 <Drawer variant="permanent">
