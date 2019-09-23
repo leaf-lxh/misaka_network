@@ -85,6 +85,7 @@
 
 .tag-item{
     margin-right:5px;
+    background: #ebeff1 !important;
 }
 
 .blog-inter-info{
@@ -97,10 +98,12 @@
     display: inline-block;
     margin-right:5px;
     width: 110px;
+    background: #ebeff1 !important;
 }
 
 .info-comments{
     display: inline-block;
     margin-right:5px;
     width: 110px;
+    background: #ebeff1 !important;
 }
