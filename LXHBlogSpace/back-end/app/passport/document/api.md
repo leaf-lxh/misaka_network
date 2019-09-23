@@ -16,7 +16,7 @@ ver 1.0
 
 ### 用户登录
 
-接口路径：`/api/v1/passport/login`
+接口路径：`/blog/v1/passport/login`
 
 请求方法：`POST`
 
@@ -42,7 +42,7 @@ ver 1.0
 
 ### 用户注册
 
-接口路径：`/api/v1/passport/register`
+接口路径：`/blog/v1/passport/register`
 
 请求方法：`POST`
 
@@ -61,7 +61,7 @@ ver 1.0
 
 校验cookie中的token是否有效
 
-接口路径：`/api/v1/passport/GerUserInfo`
+接口路径：`/blog/v1/passport/GerUserInfo`
 
 请求方法：`GET`
 
