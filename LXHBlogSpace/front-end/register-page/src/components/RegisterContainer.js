@@ -37,7 +37,7 @@ class RegisterContainer extends React.Component{
 
                 <InputLabel className="register-inputlabel">密码</InputLabel>
                 <div className="input-region">
-                    <Input id="input-password" className="register-input" disableUnderline classes={{focused: 'focused'}}></Input>
+                    <Input id="input-password" className="register-input" disableUnderline classes={{focused: 'focused'}} type="password"></Input>
                     <InputLabel className={this.state.notice_notice_password_style} variant="filled">{this.state.notice_password}</InputLabel>
                 </div>
 
