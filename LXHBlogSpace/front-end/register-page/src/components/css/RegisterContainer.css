@@ -1,0 +1,100 @@
+.register-container
+{
+    margin-top: 5%;
+    margin-left: auto;
+    margin-right: auto;
+    padding-top: 25px;
+    padding-bottom: 25px;
+    padding-left: 10px;
+    padding-right: 10px;
+    max-width: 800px !important;
+    height:100%;
+    background: white;
+    background-size:cover;
+    box-shadow: 0 2px 4px -1px rgba(0,0,0,.2), 0 4px 5px 0 rgba(0,0,0,.14), 0 1px 10px 0 rgba(0,0,0,.12);
+    opacity: 0.85
+}
+
+.input-region
+{
+    display: flex
+}
+
+.register-input
+{
+    border: 1px solid #d3d2d2 !important;
+    margin-top: 3px;
+    margin-bottom: 3px;
+    border-radius: 3% !important;
+    padding-top: 5px !important;
+    padding-left: 8px !important;
+    min-width: 300px !important;
+    display: inline-block;
+}
+
+.register-input.focused
+{
+    border: 1px solid #3d64e6 !important;
+}
+
+.register-inputlabel
+{
+    color: black !important;
+    padding-top: 20px !important;
+    display: inline-block;
+}
+
+
+.register-emailcode-button
+{
+    margin-left: 30px !important;
+    color: rgb(157, 157, 245) !important;
+}
+
+.register-emailcode-button:hover
+{
+    background: white !important;
+}
+
+.register-inputnotice
+{
+    color: black !important;
+    font-size: 10px !important;
+    margin-left: 30px;
+    vertical-align: middle !important;
+    flex-grow: 1;
+}
+
+.register-inputnotice-err
+{
+    color: red !important;
+    font-size: 10px !important;
+    margin-left: 30px;
+    vertical-align: middle !important;
+    flex-grow: 1;
+}
+
+.register-inputnotice-ok
+{
+    color: rgb(64, 202, 36) !important;
+    font-size: 10px !important;
+    margin-left: 20px;
+    vertical-align: middle !important;
+    flex-grow: 1;
+}
+
+.register-submit
+{
+    display: flex;
+    text-align: center;
+}
+
+.register-submit-button
+{
+
+    width: 100%;
+    height: 50px;
+    color: white !important;
+    margin: 30px auto 10px auto !important;
+    background: rgb(113, 161, 233) !important;
+}
