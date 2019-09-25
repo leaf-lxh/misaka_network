@@ -193,4 +193,60 @@ namespace webstring
 
 		return convertedBytes;
 	}
+
+	std::map<std::string, std::string> ParseKeyValue(std::string param, char assginChar='=', char splitChar = '&')
+	{
+		using namespace std;
+
+		std::map<std::string, std::string> result;
+		if (assginChar == splitChar)
+		{
+			return result;
+		}
+
+		std::string key;
+		std::string value;
+		std::string temp_str;
+
+		size_t begin_pos = 0;
+		size_t str_length = param.length();
+		size_t split_pos;
+		size_t equal_pos;
+
+		while (begin_pos < str_length)
+		{
+			split_pos = param.find(splitChar, begin_pos);
+			if (split_pos == string::npos)
+			{
+				//匹配到最后一个键值对
+				equal_pos = param.find(assginChar);
+				if (equal_pos != string::npos)
+				{
+					key = param.substr(begin_pos, equal_pos - begin_pos);
+					value = param.substr(equal_pos + 1);
+					result.insert({ key, value });
+				}
+
+				break;
+			}
+			else
+			{
+				temp_str = param.substr(begin_pos, split_pos);
+				equal_pos = temp_str.find(assginChar);
+				if (equal_pos != string::npos)
+				{
+					key = temp_str.substr(0, equal_pos);
+					value = temp_str.substr(equal_pos + 1);
+					result.insert({ key, value });
+				}
+
+				begin_pos = split_pos + 1;
+				continue;
+			}
+		}
+		
+		return result;
+	}
+
+
 }
