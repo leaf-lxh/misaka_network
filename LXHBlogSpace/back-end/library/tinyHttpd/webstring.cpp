@@ -194,7 +194,7 @@ namespace webstring
 		return convertedBytes;
 	}
 
-	std::map<std::string, std::string> ParseKeyValue(std::string param, char assginChar='=', char splitChar = '&')
+	std::map<std::string, std::string> ParseKeyValue(std::string param, char assginChar, char splitChar)
 	{
 		using namespace std;
 

@@ -19,6 +19,7 @@
 
 #include "webstring.h"
 
+
 #define WATERLINE_WRITE_BUFFER 4096
 #define SERVER_SIGNATURE "TinyHttpd/0.1a"
 
@@ -471,12 +472,11 @@ void TinyHttpd::ReadFileStreamToBuffer(int fd) noexcept(false)
 
 void TinyHttpd::HTTPProfiler(int fd) noexcept
 {
-	
 	using namespace std;
 	regex requestLineFmt("^([A-Z]+?) (\\S+?) HTTP/(.+?)\r\n");
 	regex requestHeaderFmt("(.+?):(.*?)\r\n");
 
-	HTTPRequestPacket packet;
+	HTTPPacket::HTTPRequestPacket packet;
 	smatch requestLine;
 	smatch requestHeaders;
 
@@ -493,11 +493,11 @@ void TinyHttpd::HTTPProfiler(int fd) noexcept
 		sregex_iterator itend;
 		for (sregex_iterator it(connectedClients[fd].readBuffer.cbegin(), connectedClients[fd].readBuffer.cbegin() + requestHeaderEnd + 2, requestHeaderFmt); it != itend; ++it)
 		{
-			packet.requestHeaders.insert({ webstring::tolower(it->operator[](1).str()), it->operator[](2).str() });
+			packet.requestHeaders.insert({ it->operator[](1).str(), it->operator[](2).str() });
 		}
 
 		//如果没有host头，则为bad request
-		if (packet.requestHeaders.count("host") == 0)
+		if (packet.IsHeaderExist("host", true) == 0)
 		{
 			RaiseHTPPError(fd, 400);
 			return;
@@ -505,19 +505,20 @@ void TinyHttpd::HTTPProfiler(int fd) noexcept
 
 		//判断是否有body
 		size_t contentLength = 0;
-		if (packet.requestHeaders.count("content-length") > 0)
+		try
 		{
-			try
+			std::string contentLengthStr = packet.GetContentLength();
+			if (contentLengthStr != "")
 			{
-				//取第一个content-length
-				contentLength = stoul(packet.requestHeaders.find("content-length")->second);
-			}
-			catch (...)
-			{
-				RaiseHTPPError(fd, 400);
-				return;
+				contentLength = stoul(contentLengthStr);
 			}
 		}
+		catch (...)
+		{
+			RaiseHTPPError(fd, 400);
+			return;
+		}
+		
 
 		//判断当前剩余的数据长度是否满足content-length的长度
 		if (connectedClients[fd].readBuffer.length() - (requestHeaderEnd + 4) >= contentLength)
@@ -528,13 +529,15 @@ void TinyHttpd::HTTPProfiler(int fd) noexcept
 			{
 				packet.requestPath = requestLine[2].str().substr(0, paramStart);
 				packet.requestParam = requestLine[2].str().substr(paramStart + 1);
+				packet.fullURL = requestLine[2].str();
 			}
 			else
 			{
 				packet.requestPath = requestLine[2].str();
+				packet.fullURL = requestLine[2].str();
 			}
 
-			packet.version = requestLine[3].str();
+			packet.httpVersion = requestLine[3].str();
 
 			packet.body = connectedClients[fd].readBuffer.substr(requestHeaderEnd + 4, requestHeaderEnd + 4 + contentLength);
 			connectedClients[fd].readBuffer = connectedClients[fd].readBuffer.substr(requestHeaderEnd + 4 + contentLength);
@@ -549,7 +552,7 @@ void TinyHttpd::CloseConnection(int fd)
 	connectedClients.erase(fd);
 }
 
-void TinyHttpd::HTTPPacketHandler(int clientfd, HTTPRequestPacket request) noexcept
+void TinyHttpd::HTTPPacketHandler(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept
 {
 	HTTPResponsePacket response;
 	response.code = "200 OK";
@@ -856,7 +859,7 @@ std::streamsize TinyHttpd::GetFileLength(std::string path) noexcept(false)
 	}
 }
 
-void TinyHttpd::LogRequestError(int clientfd, HTTPRequestPacket request, std::string message) noexcept
+void TinyHttpd::LogRequestError(int clientfd, HTTPPacket::HTTPRequestPacket request, std::string message) noexcept
 {
 	using namespace std;
 	unique_ptr<char[]> strBuffer(new char[INET_ADDRSTRLEN + 1]());

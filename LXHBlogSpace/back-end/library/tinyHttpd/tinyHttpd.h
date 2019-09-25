@@ -6,6 +6,8 @@
 #include "netinet/in.h"
 #include <ctime>
 
+#include "HTTPPacket.h"
+
 class TinyHttpd
 {
 public:
@@ -52,18 +54,7 @@ public:
 	void DumpProperty() noexcept;
 
 	
-	///HTTP请求报文结构
-	struct HTTPRequestPacket
-	{
-		std::string method;
-		std::string requestPath;
-		std::string requestParam;
-		std::string version;
-		std::multimap<std::string, std::string> requestHeaders;
-		std::string body;
-	};
-
-	///HTTP响应报文结构
+	///HTTP响应报文结构（仅用于遇到错误请求时报错使用，请使用HTTPPacket.h中提供的报文封装）
 	struct HTTPResponsePacket
 	{
 		std::string version;
@@ -254,12 +245,12 @@ public:
 	参数：request  | 要记录的请求
 	参数：message  | 要记录的消息
 	*/
-	void LogRequestError(int clientfd, TinyHttpd::HTTPRequestPacket request, std::string message) noexcept;
+	void LogRequestError(int clientfd, HTTPPacket::HTTPRequestPacket request, std::string message) noexcept;
 
 	/*!
 	对于每个HTTP请求的处理函数，默认函数为一个静态文件提供服务
 	*/
-	virtual void HTTPPacketHandler(int clientfd, HTTPRequestPacket request) noexcept;
+	virtual void HTTPPacketHandler(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept;
 
 
 
