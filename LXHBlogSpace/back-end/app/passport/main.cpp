@@ -9,7 +9,6 @@ int main()
 	try
 	{
 		server.ModuleInit();
-
 		server.StartListen();
 		server.StartHandleRequest();
 		//daemon(0, 0);
