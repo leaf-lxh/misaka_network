@@ -239,7 +239,7 @@ namespace HTTPPacket
 		responseHeaders.insert({ "Server", server });
 	}
 
-	void HTTPResponsePacket::SetContentLength(unsigned int length)
+	void HTTPResponsePacket::SetContentLength(std::size_t length)
 	{
 		responseHeaders.insert({ "Content-Length", std::to_string(length) });
 	}

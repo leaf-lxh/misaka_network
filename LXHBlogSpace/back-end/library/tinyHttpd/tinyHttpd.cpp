@@ -493,7 +493,7 @@ void TinyHttpd::HTTPProfiler(int fd) noexcept
 		sregex_iterator itend;
 		for (sregex_iterator it(connectedClients[fd].readBuffer.cbegin(), connectedClients[fd].readBuffer.cbegin() + requestHeaderEnd + 2, requestHeaderFmt); it != itend; ++it)
 		{
-			packet.requestHeaders.insert({ it->operator[](1).str(), it->operator[](2).str() });
+			packet.requestHeaders.insert({ webstring::strip(it->operator[](1).str()), webstring::strip(it->operator[](2).str()) });
 		}
 
 		//如果没有host头，则为bad request
@@ -574,8 +574,7 @@ void TinyHttpd::HTTPPacketHandler(int clientfd, HTTPPacket::HTTPRequestPacket re
 		}
 
 
-		std::vector<char> urldecoded = webstring::URLdecode(path);
-		path = std::string(urldecoded.data(), urldecoded.size());
+		path = webstring::URLdecode(path);
 
 		switch (IsAccessableFile(path))
 		{
@@ -865,23 +864,10 @@ void TinyHttpd::LogRequestError(int clientfd, HTTPPacket::HTTPRequestPacket requ
 	unique_ptr<char[]> strBuffer(new char[INET_ADDRSTRLEN + 1]());
 	inet_ntop(AF_INET, &connectedClients[clientfd].clientInfo.sin_addr.s_addr, strBuffer.get(), INET_ADDRSTRLEN);
 
-	auto useragentIter = request.requestHeaders.find("user-agent");
-	string useragent = " ";
-	if (useragentIter != request.requestHeaders.end())
-	{
-		useragent = useragentIter->second;
-	}
-
-	auto xRealIPIter = request.requestHeaders.find("x-real-ip");
-	string xRealIP = "undefine";
-	if (xRealIPIter != request.requestHeaders.end())
-	{
-		xRealIP = xRealIPIter->second;
-	}
 
 	stringstream ss;
 	ss << skipws;
-	ss << message << "; requester ip: " << strBuffer.get() << " -> " << request.method << " " << request.requestPath << " user-agent: " << useragent << " X-Real-IP: " << xRealIP;
+	ss << message << "; requester ip: " << strBuffer.get() << " -> " << request.method << " " << request.fullURL << " User-Agent: " << request.GetUserAgent() << " X-Real-IP: " << request.GetRealIP();
 
 	syslog(LOG_INFO | LOG_USER, "%s", ss.str().c_str());
 }

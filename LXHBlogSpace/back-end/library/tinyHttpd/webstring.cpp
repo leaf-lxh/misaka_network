@@ -2,6 +2,15 @@
 #include <regex>
 #include <sstream>
 #include <iomanip>
+#include <ctime>
+
+//compile with option -lcrypto
+#include <openssl/md5.h>
+#include <openssl/sha.h>
+
+#include <boost/uuid/uuid.hpp>            // uuid class
+#include <boost/uuid/uuid_generators.hpp> // generators
+#include <boost/uuid/uuid_io.hpp>         // streaming operators etc.
 
 namespace webstring
 {
@@ -131,8 +140,10 @@ namespace webstring
 		return result;
 	}
 
-	std::vector<char> URLdecode(std::string text)
+
+	std::string URLdecode(std::string text)
 	{
+		//这vector用的..凑合着用吧，还能离不成
 		std::vector<char> convertedBytes;
 		std::stringstream stream;
 
@@ -167,27 +178,27 @@ namespace webstring
 			}
 		}
 
-		return convertedBytes;
+		return std::string(convertedBytes.data(), convertedBytes.size());
 	}
 
-	std::string URLencode(std::vector<unsigned char> text)
+	std::string URLencode(std::string text)
 	{
 		std::string convertedBytes;
 		std::string temp;
 		std::stringstream stream;
-		for (auto index : text)
+		for (auto chr : text)
 		{
 
-			if (!((index >= 0x41 && index <= 0x5A) || (index >= 0x61 && index <= 0x7A) || (index >= 0x30 && index <= 0x39)) && (index != '-' && index != '_' && index != '.' && index != '`'))
+			if (!((chr >= 0x41 && chr <= 0x5A) || (chr >= 0x61 && chr <= 0x7A) || (chr >= 0x30 && chr <= 0x39)) && (chr != '-' && chr != '_' && chr != '.' && chr != '`'))
 			{
-				stream << std::setfill('0') << std::setw(2) << std::hex << (static_cast<unsigned int>(index) & 0xFF);
+				stream << std::setfill('0') << std::setw(2) << std::hex << (static_cast<unsigned int>(chr) & 0xFF);
 				stream >> temp;
 				convertedBytes += '%' + temp;
 				stream.clear();
 			}
 			else
 			{
-				convertedBytes += index;
+				convertedBytes += chr;
 			}
 		}
 
@@ -219,7 +230,7 @@ namespace webstring
 			if (split_pos == string::npos)
 			{
 				//匹配到最后一个键值对
-				equal_pos = param.find(assginChar);
+				equal_pos = param.find(assginChar, begin_pos);
 				if (equal_pos != string::npos)
 				{
 					key = param.substr(begin_pos, equal_pos - begin_pos);
@@ -248,5 +259,44 @@ namespace webstring
 		return result;
 	}
 
+	std::string md5(std::string text)
+	{
+		std::unique_ptr<unsigned char> digest(new unsigned char[MD5_DIGEST_LENGTH]());
+		MD5((unsigned char*)text.c_str(), text.length(), digest.get());
 
+		std::stringstream hexdigest;
+		hexdigest << std::hex;
+		for (int i = 0; i < MD5_DIGEST_LENGTH; ++i)
+		{
+			hexdigest << std::setw(2) << std::setfill('0') << static_cast<unsigned int>(digest.get()[i]);
+		}
+
+		return hexdigest.str();
+	}
+
+	std::string sha1(std::string text)
+	{
+		std::unique_ptr<unsigned char> digest(new unsigned char[SHA_DIGEST_LENGTH]());
+		SHA1((unsigned char*)text.c_str(), text.length(), digest.get());
+
+		std::stringstream hexdigest;
+		hexdigest << std::hex;
+		for (int i = 0; i < SHA_DIGEST_LENGTH; ++i)
+		{
+			hexdigest << std::setw(2) << std::setfill('0') << static_cast<unsigned int>(digest.get()[i]);
+		}
+
+		return hexdigest.str();
+	}
+
+	std::string GenUUID()
+	{
+		boost::uuids::uuid uuid = boost::uuids::random_generator()();
+		return boost::uuids::to_string(uuid);
+	}
+
+	std::string GenTimeStamp()
+	{
+		return std::to_string(time(nullptr));
+	}
 }

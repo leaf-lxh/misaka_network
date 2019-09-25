@@ -85,7 +85,7 @@ namespace HTTPPacket
 		/*!
 		设定Content-Length。本函数默认情况下无需手工调用，在ToString方法中会自动调用
 		*/
-		void SetContentLength(unsigned int length);
+		void SetContentLength(std::size_t  length);
 
 		/*!
 		设定Content-Encoding。
