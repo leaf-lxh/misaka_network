@@ -63,13 +63,13 @@ void BlogSpacePassport::ModuleInit() noexcept(false)
 
 void BlogSpacePassport::InitRouteTabel() noexcept
 {
-	AddRoutePath("/blog/v1/passport/");
-	AddRoutePath("/blog/v1/passport/login");
-	AddRoutePath("/blog/v1/passport/register");
-	AddRoutePath("/blog/v1/passport/GetUserInfo");
-	AddRoutePath("/blog/v1/passport/CheckUserExist");
-	AddRoutePath("/blog/v1/passport/CheckEmailExist");
-	AddRoutePath("/blog/v1/passport/SendEmailAuth");
+	AddRoutePath("/api/v1/passport/");
+	AddRoutePath("/api/v1/passport/login");
+	AddRoutePath("/api/v1/passport/register");
+	AddRoutePath("/api/v1/passport/GetUserInfo");
+	AddRoutePath("/api/v1/passport/CheckUserExist");
+	AddRoutePath("/api/v1/passport/CheckEmailExist");
+	AddRoutePath("/api/v1/passport/SendEmailAuth");
 }
 
 void BlogSpacePassport::InitMysqlConnection() noexcept(false)
@@ -102,12 +102,12 @@ void BlogSpacePassport::HTTPPacketHandler(int clientfd, HTTPPacket::HTTPRequestP
 
 	HTTPPacket::HTTPResponsePacket response;
 
-	if (request.requestPath == "/blog/v1/passport/login")
+	if (request.requestPath == "/api/v1/passport/login")
 	{
 		try
 		{
 			response = Login(clientfd, request);
-			response.responseHeaders.insert({ "Access-Control-Allow-Origin", "http://blog.leaflxh.com" });
+			response.responseHeaders.insert({ "Access-Control-Allow-Origin", "http://blog.leaflxh.com:4564" });
 
 			connectedClients[clientfd].writeBuffer += response.ToString();
 			LogResponse(clientfd, request, response.code);
@@ -119,12 +119,12 @@ void BlogSpacePassport::HTTPPacketHandler(int clientfd, HTTPPacket::HTTPRequestP
 		return;
 	}
 
-	if (request.requestPath == "/blog/v1/passport/CheckUserExist")
+	if (request.requestPath == "/api/v1/passport/CheckUserExist")
 	{
 		try
 		{
 			response = CheckUserExist(clientfd, request);
-			response.responseHeaders.insert({ "Access-Control-Allow-Origin", "http://blog.leaflxh.com" });
+			response.responseHeaders.insert({ "Access-Control-Allow-Origin", "http://blog.leaflxh.com:4564" });
 
 			connectedClients[clientfd].writeBuffer += response.ToString();
 			LogResponse(clientfd, request, response.code);
@@ -136,12 +136,12 @@ void BlogSpacePassport::HTTPPacketHandler(int clientfd, HTTPPacket::HTTPRequestP
 		return;
 	}
 
-	if (request.requestPath == "/blog/v1/passport/CheckEmailExist")
+	if (request.requestPath == "/api/v1/passport/CheckEmailExist")
 	{
 		try
 		{
 			response = CheckEmailExist(clientfd, request);
-			response.responseHeaders.insert({ "Access-Control-Allow-Origin", "http://blog.leaflxh.com" });
+			response.responseHeaders.insert({ "Access-Control-Allow-Origin", "http://blog.leaflxh.com:4564" });
 
 			connectedClients[clientfd].writeBuffer += response.ToString();
 			LogResponse(clientfd, request, response.code);
@@ -153,12 +153,12 @@ void BlogSpacePassport::HTTPPacketHandler(int clientfd, HTTPPacket::HTTPRequestP
 		return;
 	}
 
-	if (request.requestPath == "/blog/v1/passport/register")
+	if (request.requestPath == "/api/v1/passport/register")
 	{
 		try
 		{
 			response = Register(clientfd, request);
-			response.responseHeaders.insert({ "Access-Control-Allow-Origin", "http://blog.leaflxh.com" });
+			response.responseHeaders.insert({ "Access-Control-Allow-Origin", "http://blog.leaflxh.com:4564" });
 
 			connectedClients[clientfd].writeBuffer += response.ToString();
 			LogResponse(clientfd, request, response.code);
@@ -170,12 +170,12 @@ void BlogSpacePassport::HTTPPacketHandler(int clientfd, HTTPPacket::HTTPRequestP
 		return;
 	}
 
-	if (request.requestPath == "/blog/v1/passport/SendEmailAuth")
+	if (request.requestPath == "/api/v1/passport/SendEmailAuth")
 	{
 		try
 		{
 			response = SendEmailAuth(clientfd, request);
-			response.responseHeaders.insert({ "Access-Control-Allow-Origin", "http://blog.leaflxh.com" });
+			response.responseHeaders.insert({ "Access-Control-Allow-Origin", "http://blog.leaflxh.com:4564" });
 
 			connectedClients[clientfd].writeBuffer += response.ToString();
 			LogResponse(clientfd, request, response.code);
@@ -187,12 +187,12 @@ void BlogSpacePassport::HTTPPacketHandler(int clientfd, HTTPPacket::HTTPRequestP
 		return;
 	}
 
-	if (request.requestPath == "/blog/v1/passport/GetUserInfo")
+	if (request.requestPath == "/api/v1/passport/GetUserInfo")
 	{
 		try
 		{
 			response = GetUserInfo(clientfd, request);
-			response.responseHeaders.insert({ "Access-Control-Allow-Origin", "http://blog.leaflxh.com" });
+			response.responseHeaders.insert({ "Access-Control-Allow-Origin", "http://blog.leaflxh.com:4564" });
 
 			connectedClients[clientfd].writeBuffer += response.ToString();
 			LogResponse(clientfd, request, response.code);
@@ -408,8 +408,9 @@ HTTPPacket::HTTPResponsePacket BlogSpacePassport::Login(int clientfd, HTTPPacket
 					statement->setString(3, webstring::GenTimeStamp());
 					statement->executeUpdate();
 
-					response.SetCookie("_sessionToken",token);
-					response.SetCookie("_uuid", userUUID);
+					response.SetCookie("_sessionToken", token, 2592000, "blog.leaflxh.com");
+					response.SetCookie("_uuid", userUUID, 2592000, "blog.leaflxh.com");
+
 					response.SetResponseCode(HTTPPacket::ResponseCode::Found);
 				}
 				else
@@ -814,7 +815,8 @@ HTTPPacket::HTTPResponsePacket BlogSpacePassport::GetUserInfo(int clientfd, HTTP
 
 	try
 	{
-		PtrPreparedStatement statement(mysqlProperty.connection->prepareStatement("SELECT user_uuid, token_value, token_date FROM user_token where user_uuid = ?"));
+		mysqlProperty.connection->setSchema("lxhblogspace_passport");
+		PtrPreparedStatement statement(mysqlProperty.connection->prepareStatement("SELECT user_uuid, token_value, token_date FROM user_token WHERE user_uuid = ?"));
 		statement->setString(1, uuid);
 		PtrResultSet result(statement->executeQuery());
 
@@ -846,7 +848,7 @@ HTTPPacket::HTTPResponsePacket BlogSpacePassport::GetUserInfo(int clientfd, HTTP
 		result.reset(statement->executeQuery());
 		while (result->next())
 		{
-			resultJson["valid"] = "true";
+			resultJson["vaild"] = "true";
 			resultJson["avatar"] = result->getString(1);
 			resultJson["description"] = result->getString(2);
 		}
@@ -952,9 +954,13 @@ bool BlogSpacePassport::IsVaildPassword(std::string password) noexcept
 		{
 			return false;
 		}
+		else
+		{
+			return true;
+		}
 	}
 
-	return true;
+	return false;
 }
 
 bool BlogSpacePassport::IsVaildEmailAddress(std::string email) noexcept

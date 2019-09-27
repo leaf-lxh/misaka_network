@@ -1,6 +1,7 @@
 #include <vector>
 #include <string>
 #include <map>
+#include <ctime>
 
 #pragma once
 
@@ -57,8 +58,11 @@ namespace HTTPPacket
 		使用等号（=）做键与值的分割，使用分号（;）做键值对之间的分割
 		参数：key | 欲添加的键
 		参数：value | 欲添加的值
+		参数：expires_seconds | 多少秒后本cookie过期
+		参数：domain | 适配的域名
+		参数：path |适配的路径
 		*/
-		void SetCookie(std::string key, std::string value);
+		void SetCookie(std::string key, std::string value, time_t expires_seconds=-1, std::string domain="", std::string path="");
 
 		/*!
 		设定Content-Type

@@ -259,8 +259,8 @@ namespace webstring
 				equal_pos = param.find(assginChar, begin_pos);
 				if (equal_pos != string::npos)
 				{
-					key = param.substr(begin_pos, equal_pos - begin_pos);
-					value = param.substr(equal_pos + 1);
+					key = strip(param.substr(begin_pos, equal_pos - begin_pos));
+					value = strip(param.substr(equal_pos + 1));
 					result.insert({ key, value });
 				}
 
@@ -272,8 +272,8 @@ namespace webstring
 				equal_pos = temp_str.find(assginChar);
 				if (equal_pos != string::npos)
 				{
-					key = temp_str.substr(0, equal_pos);
-					value = temp_str.substr(equal_pos + 1);
+					key = strip(temp_str.substr(0, equal_pos));
+					value = strip(temp_str.substr(equal_pos + 1));
 					result.insert({ key, value });
 				}
 

@@ -2,6 +2,7 @@
 #include "webstring.h"
 
 #include <sstream>
+#include <memory>
 
 namespace HTTPPacket
 {
@@ -69,7 +70,7 @@ namespace HTTPPacket
 
 	std::string HTTPRequestPacket::GetCookieValue(const std::string& key)
 	{
-		auto cookieset = GetHeaderContent("cookie", false);
+		auto cookieset = GetHeaderContent("cookie", true);
 		if (cookieset.size() == 0)
 		{
 			return "";
@@ -205,17 +206,29 @@ namespace HTTPPacket
 		responseHeaders.insert({ "Set-Cookie", cookie });
 	}
 
-	void HTTPResponsePacket::SetCookie(std::string key, std::string value)
+	void HTTPResponsePacket::SetCookie(std::string key, std::string value, time_t expires_seconds, std::string domain, std::string path)
 	{
-		auto setcookieIter = responseHeaders.find("Set-Cookie");
-		if (setcookieIter == responseHeaders.end())
+		std::string cookie = key + "=" + value;
+		if (expires_seconds != -1)
 		{
-			SetCookie(key + "=" + value);
+			cookie += "; Expires=";
+			time_t expairedTimeStamp = time(nullptr) + expires_seconds;
+			std::unique_ptr<char[]> buffer(new char[512]());
+			std::size_t length = strftime(buffer.get(), 500, "%a, %d-%b-%Y %T GMT", gmtime(&expairedTimeStamp));
+			cookie.append(buffer.get(), length);
 		}
-		else
+
+		if (domain != "")
 		{
-			setcookieIter->second = setcookieIter->second + "; " + key + "=" + value;
+			cookie += "; Domain=" + domain;
 		}
+
+		if (path != "")
+		{
+			cookie += "; Expires= " + path;
+		}
+
+		SetCookie(cookie);
 	}
 
 	void HTTPResponsePacket::SetContentType(std::string type)
