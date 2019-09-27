@@ -11,39 +11,51 @@ namespace webstring
 	std::string toupper(const std::string& str);
 
 	std::string URLdecode(std::string text);
-	std::string URLencode(std::vector<unsigned char> text);
+	std::string URLencode(std::string text);
 
 	/*!
-	½âÎöHTTPÇëÇó²ÎÊı(&key=value&key=valueµÄ²ÎÊı¸ñÊ½)
-	²ÎÊı£ºparam | Òª½âÎöµÄ×Ö·û´®
-	²ÎÊı£ºassginChar | ¼üÓëÖµÖ®¼äµÄ¹ØÏµ·ûºÅ£¬Ä¬ÈÏÎªµÈºÅ
-	²ÎÊı£ºsplitChar  | ¼üÖµ¶ÔÖ®¼ä·Ö¸îµÄ·ûºÅ
-	·µ»Ø£ºÒ»¸ö¹ØÁªÈİÆ÷£¬°üº¬×Å¼üÖµ¶ÔµÄ²ÎÊı
+	ç»Ÿè®¡æŒ‡å®šçš„UTF8ç¼–ç çš„å­—ç¬¦ä¸²ä¸­æœ‰å¤šå°‘ä¸ªå­—ç¬¦
+	å‚æ•°ï¼šutf8String | UTF8ç¼–ç çš„å­—ç¬¦ä¸²
+	è¿”å›ï¼šå­—ç¬¦ä¸ªæ•°
+	*/
+	std::size_t UTF8Strlen(const std::string& utf8String);
+
+	/*!
+	è§£æHTTPè¯·æ±‚å‚æ•°(&key=value&key=valueçš„å‚æ•°æ ¼å¼)
+	å‚æ•°ï¼šparam | è¦è§£æçš„å­—ç¬¦ä¸²
+	å‚æ•°ï¼šassginChar | é”®ä¸å€¼ä¹‹é—´çš„å…³ç³»ç¬¦å·ï¼Œé»˜è®¤ä¸ºç­‰å·
+	å‚æ•°ï¼šsplitChar  | é”®å€¼å¯¹ä¹‹é—´åˆ†å‰²çš„ç¬¦å·
+	è¿”å›ï¼šä¸€ä¸ªå…³è”å®¹å™¨ï¼ŒåŒ…å«ç€é”®å€¼å¯¹çš„å‚æ•°
 	*/
 	std::map<std::string, std::string> ParseKeyValue(std::string param, char assginChar = '=', char splitChar = '&');
 
 	/*!
-	Ê¹ÓÃMD5Ëã·¨¼ÆËãÖ¸¶¨×Ö·û´®µÄÊı¾İÕªÒª
-	²ÎÊı£ºtext | Òª¼ÆËãµÄ×Ö·û´®
-	·µ»Ø£º³¤¶ÈÎª16×Ö½Ú(128Î»)µÄÊı¾İÕªÒªµÄÊ®Áù½øÖÆ±íÊ¾£¬Ã¿¸ö×Ö½Ú³¤¶ÈÎªÁ½Î»¡£ÊäÈë"helloworld"Êä³ö"fc5e038d38a57032085441e7fe7010b0"
+	ä½¿ç”¨MD5ç®—æ³•è®¡ç®—æŒ‡å®šå­—ç¬¦ä¸²çš„æ•°æ®æ‘˜è¦
+	å‚æ•°ï¼štext | è¦è®¡ç®—çš„å­—ç¬¦ä¸²
+	è¿”å›ï¼šé•¿åº¦ä¸º16å­—èŠ‚(128ä½)çš„æ•°æ®æ‘˜è¦çš„åå…­è¿›åˆ¶è¡¨ç¤ºï¼Œæ¯ä¸ªå­—èŠ‚é•¿åº¦ä¸ºä¸¤ä½ã€‚è¾“å…¥"helloworld"è¾“å‡º"fc5e038d38a57032085441e7fe7010b0"
 	*/
 	std::string md5(std::string text);
 
 	/*!
-	Ê¹ÓÃSHA1Ëã·¨¼ÆËãÖ¸¶¨×Ö·û´®µÄÊı¾İÕªÒª
-	²ÎÊı£ºtext | Òª¼ÆËãµÄ×Ö·û´®
-	·µ»Ø£º³¤¶ÈÎª20×Ö½Ú(160Î»)µÄÊı¾İÕªÒªµÄÊ®Áù½øÖÆ±íÊ¾£¬Ã¿¸ö×Ö½Ú³¤¶ÈÎªÁ½Î»¡£ÊäÈë"helloworld"Êä³ö"6adfb183a4a2c94a2f92dab5ade762a47889a5a1"
+	ä½¿ç”¨SHA1ç®—æ³•è®¡ç®—æŒ‡å®šå­—ç¬¦ä¸²çš„æ•°æ®æ‘˜è¦
+	å‚æ•°ï¼štext | è¦è®¡ç®—çš„å­—ç¬¦ä¸²
+	è¿”å›ï¼šé•¿åº¦ä¸º20å­—èŠ‚(160ä½)çš„æ•°æ®æ‘˜è¦çš„åå…­è¿›åˆ¶è¡¨ç¤ºï¼Œæ¯ä¸ªå­—èŠ‚é•¿åº¦ä¸ºä¸¤ä½ã€‚è¾“å…¥"helloworld"è¾“å‡º"6adfb183a4a2c94a2f92dab5ade762a47889a5a1"
 	*/
 	std::string sha1(std::string text);
 
 	/*!
-	»ñÈ¡Ò»¸öUUID
-	·µ»Ø£ºÒ»¸ö×Ö·û´®ÀàĞÍµÄUUID£¬ÀıÈçf05c8857-d456-494d-a988-3904899a7aea
+	è·å–ä¸€ä¸ªUUID
+	è¿”å›ï¼šä¸€ä¸ªå­—ç¬¦ä¸²ç±»å‹çš„UUIDï¼Œä¾‹å¦‚f05c8857-d456-494d-a988-3904899a7aea
 	*/
 	std::string GenUUID();
 
 	/*!
-	Éú³Éµ±Ç°µÄUnixÊ±¼ä´Á
+	ç”Ÿæˆå½“å‰çš„Unixæ—¶é—´æˆ³
 	*/
 	std::string GenTimeStamp();
+
+	/*!
+	å°†stringç±»å‹çš„mapè½¬åŒ–ä¸ºJSONå­—ç¬¦ä¸²
+	*/
+	std::string JsonStringify(std::map<std::string, std::string> object);
 }

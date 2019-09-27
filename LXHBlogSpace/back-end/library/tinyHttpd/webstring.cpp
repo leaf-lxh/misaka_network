@@ -8,6 +8,9 @@
 #include <openssl/md5.h>
 #include <openssl/sha.h>
 
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
+
 #include <boost/uuid/uuid.hpp>            // uuid class
 #include <boost/uuid/uuid_generators.hpp> // generators
 #include <boost/uuid/uuid_io.hpp>         // streaming operators etc.
@@ -205,6 +208,29 @@ namespace webstring
 		return convertedBytes;
 	}
 
+	std::size_t UTF8Strlen(const std::string &utf8String)
+	{
+		//来源：https://blog.csdn.net/yangxudong/article/details/24267155
+		size_t length = 0;
+		for (size_t i = 0, len = 0; i != utf8String.length(); i += len) {
+			unsigned char byte = utf8String[i];
+			if (byte >= 0xFC)
+				len = 6;
+			else if (byte >= 0xF8)
+				len = 5;
+			else if (byte >= 0xF0)
+				len = 4;
+			else if (byte >= 0xE0)
+				len = 3;
+			else if (byte >= 0xC0)
+				len = 2;
+			else
+				len = 1;
+			length++;
+		}
+		return length;
+	}
+
 	std::map<std::string, std::string> ParseKeyValue(std::string param, char assginChar, char splitChar)
 	{
 		using namespace std;
@@ -242,7 +268,7 @@ namespace webstring
 			}
 			else
 			{
-				temp_str = param.substr(begin_pos, split_pos);
+				temp_str = param.substr(begin_pos, split_pos - begin_pos);
 				equal_pos = temp_str.find(assginChar);
 				if (equal_pos != string::npos)
 				{
@@ -298,5 +324,18 @@ namespace webstring
 	std::string GenTimeStamp()
 	{
 		return std::to_string(time(nullptr));
+	}
+
+	std::string JsonStringify(std::map<std::string, std::string> object)
+	{
+		boost::property_tree::ptree jsonTree;
+		for (auto pair : object)
+		{
+			jsonTree.put(pair.first, pair.second);
+		}
+
+		std::ostringstream buffer;
+		boost::property_tree::write_json(buffer, jsonTree, false);
+		return buffer.str();
 	}
 }
