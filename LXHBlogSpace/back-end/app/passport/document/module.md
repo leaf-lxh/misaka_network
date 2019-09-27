@@ -27,7 +27,7 @@ create table user_info(
 | user_uuid | 用户UUID                 | 字符值UUID                 |
 | register_date | 用户注册时间                   | 整数型unix时间戳，精确到秒 |
 | email    | 用户当前的邮箱                | xxx@xxx.com，应当唯一         |
-| username | 用户的昵称                    | 字符串，如张三，应当唯一      |
+| username | 用户的昵称         | 字符串，如张三，应当唯一      |
 | is_locked     | 是否被锁定，1为锁定，0为未锁定 | 整数型数值                 |
 
 ### 用户详细信息表(user_details)
@@ -51,7 +51,7 @@ create table user_details(
 
 ### 用户认证表(user_auth)
 
-用户认证表存储着用户的认证信息，包括密码的数据摘要，token，邮箱验证码等
+用户认证表存储着用户的认证信息，包括密码的数据摘要
 
 ```mysql
 create table user_auth(
@@ -64,7 +64,7 @@ create table user_auth(
 | 字段名    | 说明                                                       | 数据格式       |
 | --------- | ---------------------------------------------------------- | -------------- |
 | user_uuid | 用户UUID，与user_info表中的相同                            | 字符值UUID     |
-| auth_hex  | SHA1(MD5(用户密码)+auth_salt)                              | 字符串数据摘要 |
+| auth_hex  | SHA1(用户密码+auth_salt)                                   | 字符串数据摘要 |
 | auth_salt | 生成当前用户密码的数据摘要时使用的盐，使用UUID确保不可预测 | 字符串         |
 
 ### 用户令牌表(user_token)
@@ -74,7 +74,7 @@ create table user_auth(
 ```mysql
 create table user_token(
     user_uuid tinytext not null,
-    user_token tinytext not null,
+    token_value tinytext not null,
     token_date int not null
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 ```
@@ -94,8 +94,8 @@ create table user_token(
 ```mysql
 create table user_email_code(
     email tinytext not null,
-    email_code int not null,
-    code_date int not null
+    email_code tinytext not null,
+    code_date int unsigned not null
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 ```
 

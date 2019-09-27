@@ -28,6 +28,7 @@ create table user_token(
 
 create table user_email_code(
     email tinytext not null,
-    email_code int not null,
-    code_date int not null
+    email_code tinytext not null,
+    code_date int unsigned not null
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
