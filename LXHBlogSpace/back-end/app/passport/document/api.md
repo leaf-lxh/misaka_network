@@ -16,7 +16,7 @@ ver 1.0
 
 ### 用户登录
 
-接口路径：`/blog/v1/passport/login`
+接口路径：`/api/v1/passport/login`
 
 请求方法：`POST`
 
@@ -40,7 +40,7 @@ ver 1.0
 
 ### 用户注册
 
-接口路径：`/blog/v1/passport/register`
+接口路径：`/api/v1/passport/register`
 
 请求方法：`POST`
 
@@ -62,11 +62,11 @@ ver 1.0
 | "ecode"  | 整数型的错误码，无错误发生时为0 | 0        |
 | "reason" | 原因，字符串类型                | 注册成功 |
 
-### 
+
 
 ### 检查用户是否存在
 
-接口路径：`/blog/v1/passport/CheckUserExist`
+接口路径：`/api/v1/passport/CheckUserExist`
 
 请求方法：`GET`
 
@@ -86,7 +86,7 @@ ver 1.0
 
 ### 检查邮箱是否已注册
 
-接口路径：`/blog/v1/passport/CheckEmailExist`
+接口路径：`/api/v1/passport/CheckEmailExist`
 
 请求方法：`GET`
 
@@ -106,7 +106,7 @@ ver 1.0
 
 ### 发送邮件验证码
 
-接口路径：`/blog/v1/passport/SendEmailAuth`
+接口路径：`/api/v1/passport/SendEmailAuth`
 
 请求方法：`POST`
 
@@ -130,7 +130,7 @@ ver 1.0
 
 校验cookie中的token和uuid是否匹配，如果是将继续检查token是否有效
 
-接口路径：`/blog/v1/passport/GerUserInfo`
+接口路径：`/api/v1/passport/GerUserInfo`
 
 请求方法：`GET`
 
