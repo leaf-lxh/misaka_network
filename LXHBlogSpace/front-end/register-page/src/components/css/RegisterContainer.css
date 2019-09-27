@@ -74,6 +74,15 @@
     flex-grow: 1;
 }
 
+.register-inputnotice-warn
+{
+    color: rgb(238, 210, 54) !important;
+    font-size: 10px !important;
+    margin-left: 30px;
+    vertical-align: middle !important;
+    flex-grow: 1;
+}
+
 .register-inputnotice-ok
 {
     color: rgb(64, 202, 36) !important;

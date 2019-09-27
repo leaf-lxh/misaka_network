@@ -25,7 +25,6 @@ import AccountBoxIcon from '@material-ui/icons/AccountBox'
 
 import "./css/Navbar.css"
 
-var API_PROVIDER_SERVER = "http://api.leaflxh.com:4564";
 
 
 //以下为重构的代码
@@ -87,7 +86,7 @@ class NavBar extends React.Component
                                     </div>
                                 </DialogContent>
                                 <DialogAction>
-                                    <Button onClick={props=>this.DoLoginAction(props)}>登录</Button>
+                                    <Button onClick={this.DoLoginAction.bind(this)}>登录</Button>
                                     <Button onClick={this.HideDialog.bind(this)}>关闭</Button>
                                 </DialogAction>
                                 <Snackbar  open={this.state.noticeOpenState} onClose={this.setNoticeClose.bind(this)} message={this.state.noticeMsg} autoHideDuration={3000} />
@@ -116,31 +115,52 @@ class NavBar extends React.Component
     }
 
 
-    DoLoginAction(props)
+    DoLoginAction()
     {
-        console.log(props);
-        var request = new XMLHttpRequest();
-        request.onreadystatechange = function() {
-            if (request.status === 302 && request.readyState === 4)
+        var username = document.getElementById("login-username").value;
+        var password = document.getElementById("login-password").value;
+
+        fetch("/api/v1/passport/login", {
+            method: "POST",
+            header: {
+                "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: encodeURI("username=" + username + "&password=" + password)
+        }).then(res=>{
+            if (res.status === 302)
             {
                 this.setState({
                     noticeOpenState: true,
                     noticeMsg: "登录成功"
                 })
-
-                setTimeout(window.location.reload, 1000);
+                setTimeout(()=>{window.location="/"}, 3000);
+                return;
             }
-            else if (request.status === 200 && request.readyState === 4)
+            else if (res.status === 200)
             {
-                var response = JSON.parse(request.responseText);
+               return res.json()
+            }
+            else
+            {
+
                 this.setState({
                     noticeOpenState: true,
-                    noticeMsg: "登录失败：" + response.reason
+                    noticeMsg: "登录失败，服务器未响应"
+                })
+                return;
+            }
+        }, (error)=>{
+            console.log(error);
+        })
+        .then(json=>{
+            if (json !== undefined)
+            {
+                this.setState({
+                    noticeOpenState: true,
+                    noticeMsg: "登录失败，原因：" + json.reason
                 })
             }
-        }
-        request.open("POST", API_PROVIDER_SERVER + "/api/v1/passport/login", true)
-        request.send(null);
+        })
     }
 
     IndexZone = () => {
@@ -171,12 +191,10 @@ class NavBar extends React.Component
     componentDidMount()
     {
         //初始化右边的状态栏，流程为：检查是否登录，如果是则显示用户信息，否则显示登录按钮
-        fetch(API_PROVIDER_SERVER + "/blog/v1/passport/GetUserInfo")
+        fetch("/api/v1/passport/GetUserInfo")
             .then(response=>response.json(), (error) => {
-
             })
             .then((userinfo)=>{
-                console.log(userinfo);
                 if (userinfo !== undefined && userinfo.vaild === "true")
                 {
                     window.location = "/";                        
