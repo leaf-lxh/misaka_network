@@ -92,7 +92,7 @@ class NavBar extends React.Component
         //初始化右边的状态栏，流程为：检查是否登录，如果是则显示用户信息，否则显示登录按钮
         fetch("/api/v1/GetUserInfo")
             .then(response=>response.json(), (error) => {
-                window.location = "/";
+                //window.location = "/";
             })
             .then((userinfo)=>{
                 if (userinfo.vaild)
@@ -111,7 +111,7 @@ class NavBar extends React.Component
                 }
                 else
                 {
-                    window.location = "/";
+                    //window.location = "/";
                 }
             });
     }

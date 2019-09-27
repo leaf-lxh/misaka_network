@@ -25,7 +25,7 @@ import AccountBoxIcon from '@material-ui/icons/AccountBox'
 
 import "./css/Navbar.css"
 
-var API_PROVIDER_SERVER = "http://api.leaflxh.com";
+var API_PROVIDER_SERVER = "http://api.leaflxh.com:4564";
 
 
 //以下为重构的代码
@@ -171,14 +171,13 @@ class NavBar extends React.Component
     componentDidMount()
     {
         //初始化右边的状态栏，流程为：检查是否登录，如果是则显示用户信息，否则显示登录按钮
-        fetch("/api/v1/GetUserInfo")
+        fetch(API_PROVIDER_SERVER + "/blog/v1/passport/GetUserInfo")
             .then(response=>response.json(), (error) => {
-                this.setState({
-                    srcStatusZone: this.LoginRegion()
-                });
+
             })
             .then((userinfo)=>{
-                if (userinfo.vaild)
+                console.log(userinfo);
+                if (userinfo !== undefined && userinfo.vaild === "true")
                 {
                     window.location = "/";                        
                 }

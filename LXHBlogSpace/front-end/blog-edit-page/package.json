@@ -2,6 +2,7 @@
   "name": "blog-edit-page",
   "version": "0.1.0",
   "private": true,
+  "homepage": "/edit",
   "dependencies": {
     "@material-ui/core": "^4.4.3",
     "@material-ui/icons": "^4.4.3",

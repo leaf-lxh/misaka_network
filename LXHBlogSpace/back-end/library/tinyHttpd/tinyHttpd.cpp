@@ -858,6 +858,20 @@ std::streamsize TinyHttpd::GetFileLength(std::string path) noexcept(false)
 	}
 }
 
+void TinyHttpd::LogResponse(int clientfd, HTTPPacket::HTTPRequestPacket request, HTTPPacket::ResponseCode rcode) noexcept
+{
+	using namespace std;
+	unique_ptr<char[]> strBuffer(new char[INET_ADDRSTRLEN + 1]());
+	inet_ntop(AF_INET, &connectedClients[clientfd].clientInfo.sin_addr.s_addr, strBuffer.get(), INET_ADDRSTRLEN);
+
+
+	stringstream ss;
+	ss << skipws;
+	ss << "requester ip: " << strBuffer.get() << " -> " << (int)rcode << " " << request.method << " " << request.fullURL << " User-Agent: " << request.GetUserAgent() << " X-Real-IP: " << request.GetRealIP();
+
+	syslog(LOG_INFO | LOG_USER, "%s", ss.str().c_str());
+}
+
 void TinyHttpd::LogRequestError(int clientfd, HTTPPacket::HTTPRequestPacket request, std::string message) noexcept
 {
 	using namespace std;

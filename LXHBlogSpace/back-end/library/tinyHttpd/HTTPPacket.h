@@ -24,76 +24,76 @@ namespace HTTPPacket
 		ServiceUnavailable = 503
 	};
 	/*!
-	HTTPÏìÓ¦±¨ÎÄ·â×°£¬Ê¹×é×°HTTPÏìÓ¦±¨ÎÄ±äµÃÈİÒ×
+	HTTPå“åº”æŠ¥æ–‡å°è£…ï¼Œä½¿ç»„è£…HTTPå“åº”æŠ¥æ–‡å˜å¾—å®¹æ˜“
 	*/
 	class HTTPResponsePacket
 	{
 	public:
-		//HTTPĞ­Òé°æ±¾
+		//HTTPåè®®ç‰ˆæœ¬
 		std::string version = "HTTP/1.1";
-		//HTTPÏìÓ¦×´Ì¬Âë£¬Àı£º200
+		//HTTPå“åº”çŠ¶æ€ç ï¼Œä¾‹ï¼š200
 		ResponseCode code = ResponseCode::OK;
-		//ÏìÓ¦×´Ì¬Âë¶ÔÓ¦µÄÏûÏ¢£¬Àı£ºOK
+		//å“åº”çŠ¶æ€ç å¯¹åº”çš„æ¶ˆæ¯ï¼Œä¾‹ï¼šOK
 		std::string msg = "OK";
-		//ÏìÓ¦±¨ÎÄÍ·
+		//å“åº”æŠ¥æ–‡å¤´
 		std::multimap<std::string, std::string> responseHeaders;
-		//ÏìÓ¦±¨ÎÄÌå
+		//å“åº”æŠ¥æ–‡ä½“
 		std::string body;
 
 		/*!
-		Éè¶¨·µ»Ø×´Ì¬ÂëºÍ·µ»ØÏûÏ¢
-		²ÎÊı£ºcode | ×´Ì¬Âë
+		è®¾å®šè¿”å›çŠ¶æ€ç å’Œè¿”å›æ¶ˆæ¯
+		å‚æ•°ï¼šcode | çŠ¶æ€ç 
 		*/
 		void SetResponseCode(ResponseCode rcode);
 
 		/*!
-		Ìí¼ÓSet-Cookie±¨ÎÄÍ·£¬¿ÉÌí¼Ó¶à¸ö
-		²ÎÊı£ºcookieÊıÖµ
+		æ·»åŠ Set-CookieæŠ¥æ–‡å¤´ï¼Œå¯æ·»åŠ å¤šä¸ª
+		å‚æ•°ï¼šcookieæ•°å€¼
 		*/
 		void SetCookie(std::string cookie);
 
 		/*!
-		ÉèÖÃSet-Cookie£¬Ö»»áÔÚÃ»ÓĞSet-Cookie±¨ÎÄÍ·µÄÇé¿öÏÂ²Å»áÌí¼ÓSet-Cookie±¨ÎÄÍ·£¬´æÔÚµÄÇé¿öÏÂ»áÖ±½ÓÏòÕÒµ½µÄµÚÒ»¸öSet-Cookie±¨ÎÄÍ·ÖĞÌí¼ÓÄÚÈİ
-		Ê¹ÓÃµÈºÅ£¨=£©×ö¼üÓëÖµµÄ·Ö¸î£¬Ê¹ÓÃ·ÖºÅ£¨;£©×ö¼üÖµ¶ÔÖ®¼äµÄ·Ö¸î
-		²ÎÊı£ºkey | ÓûÌí¼ÓµÄ¼ü
-		²ÎÊı£ºvalue | ÓûÌí¼ÓµÄÖµ
+		è®¾ç½®Set-Cookieï¼Œåªä¼šåœ¨æ²¡æœ‰Set-CookieæŠ¥æ–‡å¤´çš„æƒ…å†µä¸‹æ‰ä¼šæ·»åŠ Set-CookieæŠ¥æ–‡å¤´ï¼Œå­˜åœ¨çš„æƒ…å†µä¸‹ä¼šç›´æ¥å‘æ‰¾åˆ°çš„ç¬¬ä¸€ä¸ªSet-CookieæŠ¥æ–‡å¤´ä¸­æ·»åŠ å†…å®¹
+		ä½¿ç”¨ç­‰å·ï¼ˆ=ï¼‰åšé”®ä¸å€¼çš„åˆ†å‰²ï¼Œä½¿ç”¨åˆ†å·ï¼ˆ;ï¼‰åšé”®å€¼å¯¹ä¹‹é—´çš„åˆ†å‰²
+		å‚æ•°ï¼škey | æ¬²æ·»åŠ çš„é”®
+		å‚æ•°ï¼švalue | æ¬²æ·»åŠ çš„å€¼
 		*/
 		void SetCookie(std::string key, std::string value);
 
 		/*!
-		Éè¶¨Content-Type
+		è®¾å®šContent-Type
 		*/
 		void SetContentType(std::string type);
 
 		/*!
-		Éè¶¨Location
+		è®¾å®šLocation
 		*/
 		void SetLocation(std::string location);
 
 		/*!
-		Éè¶¨Connection: Keep-Alive£¬²¢ÉèÖÃKeep-AliveÎªÖ¸¶¨µÄÖµ
-		²ÎÊı£ºtimeout | ³¬Ê±Ê±¼ä
-		²ÎÊı£ºmaxRequests | ±¾Á¬½Ó×î´óµÄÇëÇóÊıÁ¿
+		è®¾å®šConnection: Keep-Aliveï¼Œå¹¶è®¾ç½®Keep-Aliveä¸ºæŒ‡å®šçš„å€¼
+		å‚æ•°ï¼štimeout | è¶…æ—¶æ—¶é—´
+		å‚æ•°ï¼šmaxRequests | æœ¬è¿æ¥æœ€å¤§çš„è¯·æ±‚æ•°é‡
 		*/
 		void SetKeepAlive(unsigned int timeout, unsigned int maxRequests);
 
 		/*!
-		Éè¶¨Server
+		è®¾å®šServer
 		*/
 		void SetServer(std::string server);
 
 		/*!
-		Éè¶¨Content-Length¡£±¾º¯ÊıÄ¬ÈÏÇé¿öÏÂÎŞĞèÊÖ¹¤µ÷ÓÃ£¬ÔÚToString·½·¨ÖĞ»á×Ô¶¯µ÷ÓÃ
+		è®¾å®šContent-Lengthã€‚æœ¬å‡½æ•°é»˜è®¤æƒ…å†µä¸‹æ— éœ€æ‰‹å·¥è°ƒç”¨ï¼Œåœ¨ToStringæ–¹æ³•ä¸­ä¼šè‡ªåŠ¨è°ƒç”¨
 		*/
 		void SetContentLength(std::size_t  length);
 
 		/*!
-		Éè¶¨Content-Encoding¡£
+		è®¾å®šContent-Encodingã€‚
 		*/
 		void SetContentEncoding(std::string encoding);
 
 		/*!
-		½«±¾ÏìÓ¦±¨ÎÄ¶ÔÏó×ª»»Îª×Ö·û´®¡£»á×Ô¶¯¸ù¾İbodyµÄ³¤¶ÈÌí¼ÓContent-Length±¨ÎÄÍ·
+		å°†æœ¬å“åº”æŠ¥æ–‡å¯¹è±¡è½¬æ¢ä¸ºå­—ç¬¦ä¸²ã€‚ä¼šè‡ªåŠ¨æ ¹æ®bodyçš„é•¿åº¦æ·»åŠ Content-LengthæŠ¥æ–‡å¤´
 		*/
 		std::string ToString();
 
@@ -101,88 +101,88 @@ namespace HTTPPacket
 
 
 	/*!
-	HTTPÇëÇó±¨ÎÄ·â×°£¬Ê¹½âÎöHTTPÇëÇó±¨ÎÄ±äµÃÈİÒ×
+	HTTPè¯·æ±‚æŠ¥æ–‡å°è£…ï¼Œä½¿è§£æHTTPè¯·æ±‚æŠ¥æ–‡å˜å¾—å®¹æ˜“
 	*/
 	class HTTPRequestPacket
 	{
 	public:
 		
-		//ÇëÇó·½·¨
+		//è¯·æ±‚æ–¹æ³•
 		std::string method;
-		//ÇëÇóµÄÕû¸öurl
+		//è¯·æ±‚çš„æ•´ä¸ªurl
 		std::string fullURL;
-		//ÇëÇóÂ·¾¶
+		//è¯·æ±‚è·¯å¾„
 		std::string requestPath;
-		//ÇëÇóURLÖĞµÄ²ÎÊı
+		//è¯·æ±‚URLä¸­çš„å‚æ•°
 		std::string requestParam;
-		//HTTPĞ­Òé°æ±¾
+		//HTTPåè®®ç‰ˆæœ¬
 		std::string httpVersion;
-		//ÇëÇóÍ·
+		//è¯·æ±‚å¤´
 		std::multimap<std::string, std::string> requestHeaders;
-		//ÇëÇóÏûÏ¢Ìå
+		//è¯·æ±‚æ¶ˆæ¯ä½“
 		std::string body;
 
 		/*!
-		½âÎörequestrParam(?key=value&key=value¸ñÊ½)£¬×ª»»Îª¼üÖµ¶Ô¹ØÁªÈİÆ÷
-		·µ»Ø£º½âÎöºóµÄÇëÇó²ÎÊı
+		è§£ærequestrParam(?key=value&key=valueæ ¼å¼)ï¼Œè½¬æ¢ä¸ºé”®å€¼å¯¹å…³è”å®¹å™¨
+		è¿”å›ï¼šè§£æåçš„è¯·æ±‚å‚æ•°
 		*/
 		std::map<std::string, std::string> ParseURLParamter();
 
 		/*!
-		¼ì²é±¾±¨ÎÄÖĞËùÖ¸¶¨±¨ÎÄÍ·ÊÇ·ñ´æÔÚ
-		²ÎÊı£ºheader     | ±¨ÎÄÍ·µÄÃû³Æ
-		²ÎÊı£ºignoreCase | ÊÇ·ñºöÂÔ±¨ÎÄÍ·¼üÃûµÄ´óĞ¡Ğ´
-		·µ»Ø£º±¨ÎÄÍ·µÄÊıÁ¿£¬Î´ÕÒµ½Îª0
+		æ£€æŸ¥æœ¬æŠ¥æ–‡ä¸­æ‰€æŒ‡å®šæŠ¥æ–‡å¤´æ˜¯å¦å­˜åœ¨
+		å‚æ•°ï¼šheader     | æŠ¥æ–‡å¤´çš„åç§°
+		å‚æ•°ï¼šignoreCase | æ˜¯å¦å¿½ç•¥æŠ¥æ–‡å¤´é”®åçš„å¤§å°å†™
+		è¿”å›ï¼šæŠ¥æ–‡å¤´çš„æ•°é‡ï¼Œæœªæ‰¾åˆ°ä¸º0
 		*/
 		unsigned int IsHeaderExist(const std::string& header, bool ignoreCase);
 
 		/*!
-		»ñÈ¡±¾±¨ÎÄÖĞÖ¸¶¨±¨ÎÄÍ·µÄÄÚÈİ
-		²ÎÊı£ºheader | ±¨ÎÄÍ·µÄÃû³Æ
-		²ÎÊı£ºignoreCase | ÊÇ·ñºöÂÔ±¨ÎÄÍ·¼üÃûµÄ´óĞ¡Ğ´
-		·µ»Ø£ºÂú×ã±¨ÎÄÍ·Ãû³ÆµÄÄÚÈİÁĞ±í
+		è·å–æœ¬æŠ¥æ–‡ä¸­æŒ‡å®šæŠ¥æ–‡å¤´çš„å†…å®¹
+		å‚æ•°ï¼šheader | æŠ¥æ–‡å¤´çš„åç§°
+		å‚æ•°ï¼šignoreCase | æ˜¯å¦å¿½ç•¥æŠ¥æ–‡å¤´é”®åçš„å¤§å°å†™
+		è¿”å›ï¼šæ»¡è¶³æŠ¥æ–‡å¤´åç§°çš„å†…å®¹åˆ—è¡¨
 		*/
 		std::vector<std::string> GetHeaderContent(const std::string& header, bool ignoreCase);
 
 		/*!
-		»ñÈ¡CookieÖĞÖ¸¶¨ÏîµÄÄÚÈİ
-		²ÎÊı£ºkey | ÏîÃû³Æ
-		·µ»Ø£º¶ÔÓ¦µÄÄÚÈİ, Èç¹ûÎª¿ÕÔò·µ»Ø¿Õ×Ö·û´®
+		è·å–Cookieä¸­æŒ‡å®šé¡¹çš„å†…å®¹
+		å‚æ•°ï¼škey | é¡¹åç§°
+		è¿”å›ï¼šå¯¹åº”çš„å†…å®¹, å¦‚æœä¸ºç©ºåˆ™è¿”å›ç©ºå­—ç¬¦ä¸²
 		*/
 		std::string GetCookieValue(const std::string& key);
 
 		/*!
-		»ñÈ¡ÇëÇóÍ·ÖĞX-Real-IPµÄÄÚÈİ
-		²ÎÊı£ºignoreCase | ÊÇ·ñºöÂÔÇëÇóÍ·Ãû³ÆµÄ´óĞ¡Ğ´
+		è·å–è¯·æ±‚å¤´ä¸­X-Real-IPçš„å†…å®¹
+		å‚æ•°ï¼šignoreCase | æ˜¯å¦å¿½ç•¥è¯·æ±‚å¤´åç§°çš„å¤§å°å†™
 		*/
 		std::string GetRealIP(bool ignoreCase = true);
 
 		/*!
-		»ñÈ¡ÇëÇóÍ·ÖĞUser-AgentµÄÄÚÈİ
-		²ÎÊı£ºignoreCase | ÊÇ·ñºöÂÔÇëÇóÍ·Ãû³ÆµÄ´óĞ¡Ğ´
+		è·å–è¯·æ±‚å¤´ä¸­User-Agentçš„å†…å®¹
+		å‚æ•°ï¼šignoreCase | æ˜¯å¦å¿½ç•¥è¯·æ±‚å¤´åç§°çš„å¤§å°å†™
 		*/
 		std::string GetUserAgent(bool ignoreCase = true);
 
 		/*!
-		»ñÈ¡ÇëÇóÍ·ÖĞContent-TypeÄÚÈİ
-		²ÎÊı£ºignoreCase | ÊÇ·ñºöÂÔÇëÇóÍ·Ãû³ÆµÄ´óĞ¡Ğ´
+		è·å–è¯·æ±‚å¤´ä¸­Content-Typeå†…å®¹
+		å‚æ•°ï¼šignoreCase | æ˜¯å¦å¿½ç•¥è¯·æ±‚å¤´åç§°çš„å¤§å°å†™
 		*/
 		std::string GetContentType(bool ignoreCase = true);
 
 		/*!
-		»ñÈ¡ÇëÇóÍ·ÖĞContent-EncodingµÄÄÚÈİ
-		²ÎÊı£ºignoreCase | ÊÇ·ñºöÂÔÇëÇóÍ·Ãû³ÆµÄ´óĞ¡Ğ´
+		è·å–è¯·æ±‚å¤´ä¸­Content-Encodingçš„å†…å®¹
+		å‚æ•°ï¼šignoreCase | æ˜¯å¦å¿½ç•¥è¯·æ±‚å¤´åç§°çš„å¤§å°å†™
 		*/
 		std::string GetContentEncoding(bool ignoreCase = true);
 
 		/*!
-		»ñÈ¡ÇëÇóÍ·ÖĞµÄContent-Length×Ö¶Î
-		²ÎÊı£ºignoreCase | ÊÇ·ñºöÂÔÇëÇóÍ·Ãû³ÆµÄ´óĞ¡Ğ´
+		è·å–è¯·æ±‚å¤´ä¸­çš„Content-Lengthå­—æ®µ
+		å‚æ•°ï¼šignoreCase | æ˜¯å¦å¿½ç•¥è¯·æ±‚å¤´åç§°çš„å¤§å°å†™
 		*/
 		std::string GetContentLength(bool ignoreCase = true);
 
 		/*!
-		½«±¾±¨ÎÄÀà×ª»»Îª×Ö·û´®
+		å°†æœ¬æŠ¥æ–‡ç±»è½¬æ¢ä¸ºå­—ç¬¦ä¸²
 		*/
 		std::string ToString();
 	};

@@ -31,6 +31,14 @@ private:
 		std::unique_ptr<sql::Connection> connection;
 	}mysqlProperty;
 
+	struct EmailProperty
+	{
+		std::string server;
+		std::string port;
+		std::string sender;
+		std::string auth;
+	}emailProperty;
+
 	/*!
 	仅初始化MYSQL数据库连接。如需重新连接请使用reconnect方法
 	异常：初始化失败（如无法连接数据库，账密错误等），抛出runtime_error
@@ -39,6 +47,7 @@ private:
 
 	///MySQL对象指针的包装
 	using PtrPreparedStatement = std::unique_ptr<sql::PreparedStatement>;
+	using PtrStatement = std::unique_ptr<sql::Statement>;
 	using PtrResultSet = std::unique_ptr<sql::ResultSet>;
 
 	/*!
@@ -46,8 +55,38 @@ private:
 	*/
 	void HTTPPacketHandler(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept;
 
-
+	/****************外部公开接口***************/
 	HTTPPacket::HTTPResponsePacket Login(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false);
+	HTTPPacket::HTTPResponsePacket CheckUserExist(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false);
+	HTTPPacket::HTTPResponsePacket CheckEmailExist(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false);
 	HTTPPacket::HTTPResponsePacket Register(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false);
+	HTTPPacket::HTTPResponsePacket SendEmailAuth(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false);
 	HTTPPacket::HTTPResponsePacket GetUserInfo(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false);
+
+	/*****************内部调用接口**************/
+	/*!
+	检查指定用户是否存在
+	参数：username | 指定的用户名
+	返回：存在为true, 不存在为false
+	异常：在MySQL调用过程中发生异常时抛出sql::SQLException
+	*/
+	bool CheckUserExist(std::string username) noexcept(false);
+
+	/*!
+	检查指定用户是否存在
+	参数：email | 指定的用户名
+	返回：存在为true, 不存在为false
+	异常：在MySQL调用过程中发生异常时抛出sql::SQLException
+	*/
+	bool CheckEmailExist(std::string email) noexcept(false);
+
+	bool IsVaildUserName(std::string username) noexcept;
+
+	bool IsVaildPassword(std::string password) noexcept;
+
+	/*!
+	检查邮箱地址格式是否符合格式，详见API文档中用户注册部分
+	返回：合乎规范为true，否则返回false
+	*/
+	bool IsVaildEmailAddress(std::string email) noexcept;
 };

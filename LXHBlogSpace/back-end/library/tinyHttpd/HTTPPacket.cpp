@@ -8,13 +8,13 @@ namespace HTTPPacket
 	std::map<std::string, std::string> HTTPRequestPacket::ParseURLParamter()
 	{
 		using namespace std;
-		size_t paramStart = requestParam.find("?");
+		size_t paramStart = fullURL.find("?");
 		if (paramStart == string::npos)
 		{
 			return {};
 		}
 
-		std::string param = requestParam.substr(paramStart + 1);
+		std::string param = fullURL.substr(paramStart + 1);
 		return webstring::ParseKeyValue(param);
 	}
 

@@ -244,6 +244,15 @@ public:
 	参数：clientfd | 客户的套接字描述符
 	参数：request  | 要记录的请求
 	参数：message  | 要记录的消息
+	参数：rcode    | 该请求响应的状态码
+	*/
+	void LogResponse(int clientfd, HTTPPacket::HTTPRequestPacket request, HTTPPacket::ResponseCode rcode ) noexcept;
+
+	/*!
+	记录日志，依赖于syslog
+	参数：clientfd | 客户的套接字描述符
+	参数：request  | 要记录的请求
+	参数：message  | 要记录的消息
 	*/
 	void LogRequestError(int clientfd, HTTPPacket::HTTPRequestPacket request, std::string message) noexcept;
 

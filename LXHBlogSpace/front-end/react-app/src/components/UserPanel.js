@@ -63,7 +63,7 @@ function UserPanel(userMsgInfo, className){
                     </Button>
                 </div>
                 <div className="control-elements">
-                    <Button style={{display:"inline-block"}} href="/user/">
+                    <Button style={{display:"inline-block"}} href="/member/">
                         <div className="control-elements-icon">
                             <ViewList />
                         </div>
