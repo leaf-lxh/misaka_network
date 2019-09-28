@@ -89,19 +89,21 @@ class NavBar extends React.Component
 
     componentDidMount()
     {
-        //初始化右边的状态栏，流程为：检查是否登录，如果是则显示用户信息，否则显示登录按钮
-        fetch("/api/v1/GetUserInfo")
+		//初始化用户信息，如果未登录则跳转至首页
+        fetch("/api/v1/passport/GetUserInfo", {
+            credentials: "include"
+        })
             .then(response=>response.json(), (error) => {
-                //window.location = "/";
+                window.location = "/";
             })
             .then((userinfo)=>{
-                if (userinfo.vaild)
+                if (userinfo !== undefined && userinfo.vaild === "true")
                 {
                     ReactDOM.render(
                     <>
                         <div className="navstyle-userZone">
                             <div className="navstyle-userId">
-                                <Link href={"/user/" + userinfo.name} underline="none" >{userinfo.name}</Link>
+                                <Link href={"/user/" + userinfo.username} underline="none" >{userinfo.username}</Link>
                             </div>
                             <Avatar src={userinfo.avatar}/>
                         </div>
@@ -111,7 +113,7 @@ class NavBar extends React.Component
                 }
                 else
                 {
-                    //window.location = "/";
+                    window.location = "/";
                 }
             });
     }

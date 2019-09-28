@@ -90,7 +90,7 @@ class NavBar extends React.Component
                                     </div>
                                 </DialogContent>
                                 <DialogAction>
-                                    <Button onClick={props=>this.DoLoginAction(props)}>登录</Button>
+                                    <Button onClick={this.DoLoginAction.bind(this)}>登录</Button>
                                     <Button onClick={this.HideDialog.bind(this)}>关闭</Button>
                                 </DialogAction>
                                 <Snackbar  open={this.state.noticeOpenState} onClose={this.setNoticeClose.bind(this)} message={this.state.noticeMsg} autoHideDuration={3000} />
@@ -135,31 +135,52 @@ class NavBar extends React.Component
         );
     }
 
-    DoLoginAction(props)
+    DoLoginAction()
     {
-        console.log(props);
-        var request = new XMLHttpRequest();
-        request.onreadystatechange = function() {
-            if (request.status === 302 && request.readyState === 4)
+        var username = document.getElementById("login-username").value;
+        var password = document.getElementById("login-password").value;
+
+        fetch("/api/v1/passport/login", {
+            method: "POST",
+            header: {
+                "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: encodeURI("username=" + username + "&password=" + password)
+        }).then(res=>{
+            if (res.status === 302)
             {
                 this.setState({
                     noticeOpenState: true,
                     noticeMsg: "登录成功"
                 })
-
-                setTimeout(window.location.reload, 1000);
+                setTimeout(()=>{window.location="/"}, 3000);
+                return;
             }
-            else if (request.status === 200 && request.readyState === 4)
+            else if (res.status === 200)
             {
-                var response = JSON.parse(request.responseText);
+               return res.json()
+            }
+            else
+            {
+
                 this.setState({
                     noticeOpenState: true,
-                    noticeMsg: "登录失败：" + response.reason
+                    noticeMsg: "登录失败，服务器未响应"
+                })
+                return;
+            }
+        }, (error)=>{
+            console.log(error);
+        })
+        .then(json=>{
+            if (json !== undefined)
+            {
+                this.setState({
+                    noticeOpenState: true,
+                    noticeMsg: "登录失败，原因：" + json.reason
                 })
             }
-        }
-        request.open("POST", API_PROVIDER_SERVER + "/api/v1/passport/login", true)
-        request.send(null);
+        })
     }
 
     setNoticeClose()
@@ -173,20 +194,22 @@ class NavBar extends React.Component
     componentDidMount()
     {
         //初始化右边的状态栏，流程为：检查是否登录，如果是则显示用户信息，否则显示登录按钮
-        fetch("/api/v1/GetUserInfo")
+        fetch("/api/v1/passport/GetUserInfo", {
+            credentials: "include"
+        })
             .then(response=>response.json(), (error) => {
                 this.setState({
                     srcStatusZone: this.LoginRegion()
                 });
             })
             .then((userinfo)=>{
-                if (userinfo.vaild)
+                if (userinfo !== undefined && userinfo.vaild === "true")
                 {
                     ReactDOM.render(
                     <>
                         <div className="navstyle-userZone">
                             <div className="navstyle-userId">
-                                <Link href={"/user/" + userinfo.name} underline="none" >{userinfo.name}</Link>
+                                <Link href={"/user/" + userinfo.username} underline="none" >{userinfo.username}</Link>
                             </div>
                             <Avatar src={userinfo.avatar}/>
                         </div>
