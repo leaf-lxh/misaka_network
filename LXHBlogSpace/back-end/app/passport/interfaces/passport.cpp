@@ -56,7 +56,7 @@ void BlogSpacePassport::ModuleInit() noexcept(false)
 	}
 
 
-	//初始化路由表
+	//其他的初始化
 	InitRouteTabel();
 	InitMysqlConnection();
 }
@@ -82,7 +82,6 @@ void BlogSpacePassport::InitMysqlConnection() noexcept(false)
 	catch (sql::SQLException &e)
 	{
 		std::stringstream ss;
-		ss << std::skipws;
 		ss << "Encountered error while initializing mysql connection.\n";
 		ss << "Mysql error code: " << e.getErrorCode(); 
 		ss << "Error Msg: " << e.what();
@@ -92,8 +91,6 @@ void BlogSpacePassport::InitMysqlConnection() noexcept(false)
 
 void BlogSpacePassport::HTTPPacketHandler(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept
 {
-	std::cout << request.requestPath << std::endl;
-
 	if (serverProperty.routeTable.count(request.requestPath) == 0)
 	{
 		RaiseHTPPError(clientfd, 404);
@@ -102,12 +99,22 @@ void BlogSpacePassport::HTTPPacketHandler(int clientfd, HTTPPacket::HTTPRequestP
 
 	HTTPPacket::HTTPResponsePacket response;
 
+	if (request.requestPath == "/api/v1/passport/")
+	{
+		response.SetResponseCode(HTTPPacket::ResponseCode::Found);
+		response.SetLocation("http://blog.leaflxh.com");
+		connectedClients[clientfd].writeBuffer += response.ToString();
+		LogResponse(clientfd, request, response.code);
+
+		return;
+	}
+
 	if (request.requestPath == "/api/v1/passport/login")
 	{
 		try
 		{
 			response = Login(clientfd, request);
-			response.responseHeaders.insert({ "Access-Control-Allow-Origin", "http://blog.leaflxh.com:4564" });
+			response.responseHeaders.insert({ "Access-Control-Allow-Origin", "http://blog.leaflxh.com" });
 
 			connectedClients[clientfd].writeBuffer += response.ToString();
 			LogResponse(clientfd, request, response.code);
@@ -124,7 +131,7 @@ void BlogSpacePassport::HTTPPacketHandler(int clientfd, HTTPPacket::HTTPRequestP
 		try
 		{
 			response = CheckUserExist(clientfd, request);
-			response.responseHeaders.insert({ "Access-Control-Allow-Origin", "http://blog.leaflxh.com:4564" });
+			response.responseHeaders.insert({ "Access-Control-Allow-Origin", "http://blog.leaflxh.com" });
 
 			connectedClients[clientfd].writeBuffer += response.ToString();
 			LogResponse(clientfd, request, response.code);
@@ -141,7 +148,7 @@ void BlogSpacePassport::HTTPPacketHandler(int clientfd, HTTPPacket::HTTPRequestP
 		try
 		{
 			response = CheckEmailExist(clientfd, request);
-			response.responseHeaders.insert({ "Access-Control-Allow-Origin", "http://blog.leaflxh.com:4564" });
+			response.responseHeaders.insert({ "Access-Control-Allow-Origin", "http://blog.leaflxh.com" });
 
 			connectedClients[clientfd].writeBuffer += response.ToString();
 			LogResponse(clientfd, request, response.code);
@@ -158,7 +165,7 @@ void BlogSpacePassport::HTTPPacketHandler(int clientfd, HTTPPacket::HTTPRequestP
 		try
 		{
 			response = Register(clientfd, request);
-			response.responseHeaders.insert({ "Access-Control-Allow-Origin", "http://blog.leaflxh.com:4564" });
+			response.responseHeaders.insert({ "Access-Control-Allow-Origin", "http://blog.leaflxh.com" });
 
 			connectedClients[clientfd].writeBuffer += response.ToString();
 			LogResponse(clientfd, request, response.code);
@@ -175,7 +182,7 @@ void BlogSpacePassport::HTTPPacketHandler(int clientfd, HTTPPacket::HTTPRequestP
 		try
 		{
 			response = SendEmailAuth(clientfd, request);
-			response.responseHeaders.insert({ "Access-Control-Allow-Origin", "http://blog.leaflxh.com:4564" });
+			response.responseHeaders.insert({ "Access-Control-Allow-Origin", "http://blog.leaflxh.com" });
 
 			connectedClients[clientfd].writeBuffer += response.ToString();
 			LogResponse(clientfd, request, response.code);
@@ -192,7 +199,7 @@ void BlogSpacePassport::HTTPPacketHandler(int clientfd, HTTPPacket::HTTPRequestP
 		try
 		{
 			response = GetUserInfo(clientfd, request);
-			response.responseHeaders.insert({ "Access-Control-Allow-Origin", "http://blog.leaflxh.com:4564" });
+			response.responseHeaders.insert({ "Access-Control-Allow-Origin", "http://blog.leaflxh.com" });
 
 			connectedClients[clientfd].writeBuffer += response.ToString();
 			LogResponse(clientfd, request, response.code);
@@ -408,8 +415,8 @@ HTTPPacket::HTTPResponsePacket BlogSpacePassport::Login(int clientfd, HTTPPacket
 					statement->setString(3, webstring::GenTimeStamp());
 					statement->executeUpdate();
 
-					response.SetCookie("_sessionToken", token, 2592000, "blog.leaflxh.com");
-					response.SetCookie("_uuid", userUUID, 2592000, "blog.leaflxh.com");
+					response.SetCookie("_sessionToken", token, 2592000, "blog.leaflxh.com", "/");
+					response.SetCookie("_uuid", userUUID, 2592000, "blog.leaflxh.com", "/");
 
 					response.SetResponseCode(HTTPPacket::ResponseCode::Found);
 				}
@@ -680,6 +687,7 @@ HTTPPacket::HTTPResponsePacket BlogSpacePassport::Register(int clientfd, HTTPPac
 	
 }
 
+//缺少一个验证码发送间隔的限制
 HTTPPacket::HTTPResponsePacket BlogSpacePassport::SendEmailAuth(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false)
 {
 	using boost::property_tree::ptree;
@@ -853,7 +861,7 @@ HTTPPacket::HTTPResponsePacket BlogSpacePassport::GetUserInfo(int clientfd, HTTP
 			resultJson["description"] = result->getString(2);
 		}
 
-		statement.reset(mysqlProperty.connection->prepareStatement("SELECT register_date, email, username FROM user_info where user_uuid = ?"));
+		statement.reset(mysqlProperty.connection->prepareStatement("SELECT register_date, email, username, is_locked FROM user_info where user_uuid = ?"));
 		statement->setString(1, uuid);
 		result.reset(statement->executeQuery());
 		while (result->next())
@@ -861,6 +869,7 @@ HTTPPacket::HTTPResponsePacket BlogSpacePassport::GetUserInfo(int clientfd, HTTP
 			resultJson["register_date"] = result->getString(1);
 			resultJson["email"] = result->getString(2);
 			resultJson["username"] = result->getString(3);
+			resultJson["is_locked"] = result->getString(4);
 		}
 
 		response.body = webstring::JsonStringify(resultJson);

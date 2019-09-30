@@ -8,10 +8,12 @@ int main()
 {
 	try
 	{
+		
 		server.ModuleInit();
 		server.StartListen();
-		server.StartHandleRequest();
 		//daemon(0, 0);
+		server.StartHandleRequest();
+		
 	}
 	catch (std::runtime_error e)
 	{

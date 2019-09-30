@@ -278,9 +278,12 @@ void TinyHttpd::StartListen() noexcept(false)
 		throw std::runtime_error("listen error");
 	}
 
+	/*
 	int flags = fcntl(serverProperty.listenfd, F_GETFL, 0);
 	flags |= O_NONBLOCK;
 	fcntl(serverProperty.listenfd, F_SETFL, flags);
+	*/
+	
 }
 
 void TinyHttpd::StartHandleRequest() noexcept
@@ -295,8 +298,7 @@ void TinyHttpd::StartHandleRequest() noexcept
 	while (true)
 	{
 		//这里应该使用异步IO来读取文件，因为fstream无法支持异步IO，无法与epoll进行结合
-		//这里暂时用非阻塞epoll来代替。
-		readyEvents = epoll_wait(epollfd, events.get(), serverProperty.maxClients, 0);
+		readyEvents = epoll_wait(epollfd, events.get(), serverProperty.maxClients, -1);
 		for (int index = 0; index < readyEvents; ++index)
 		{
 			clientfd = events[index].data.fd;
@@ -333,7 +335,8 @@ void TinyHttpd::StartHandleRequest() noexcept
 				ssize_t length = recv(clientfd, receiveBuffer.get(), 4096, MSG_DONTWAIT);
 				if (length > 0)
 				{
-					connectedClients[clientfd].readBuffer += receiveBuffer.get();
+					//对于字节流，应当使用append方法将数据复制过去。而不是直接append一个const char*指针，因为这样做可能会被追加数据中的\0截断
+					connectedClients[clientfd].readBuffer.append(receiveBuffer.get(), length);
 					if (serverProperty.verbose >= VerboseLevel::full)
 					{
 						std::cout << connectedClients[clientfd].readBuffer << std::flush;
@@ -519,7 +522,6 @@ void TinyHttpd::HTTPProfiler(int fd) noexcept
 			return;
 		}
 		
-
 		//判断当前剩余的数据长度是否满足content-length的长度
 		if (connectedClients[fd].readBuffer.length() - (requestHeaderEnd + 4) >= contentLength)
 		{

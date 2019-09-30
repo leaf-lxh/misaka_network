@@ -124,7 +124,8 @@ class NavBar extends React.Component
             });
 
             ReactDOM.render(MainContainer("container-loading"), document.getElementById('main-panel-root'));
-            ReactDOM.render(MainContainer(newTab), document.getElementById('main-panel-root'));
+            //ReactDOM.render(MainContainer(newTab), document.getElementById('main-panel-root'));
+            setTimeout(function(){ReactDOM.render(MainContainer(newTab), document.getElementById('main-panel-root'));}, 1000);
         };
     
         return(

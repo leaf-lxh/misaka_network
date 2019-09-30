@@ -225,7 +225,7 @@ namespace HTTPPacket
 
 		if (path != "")
 		{
-			cookie += "; Expires= " + path;
+			cookie += "; Path= " + path;
 		}
 
 		SetCookie(cookie);

@@ -141,8 +141,9 @@ ver 1.0
 | "vaild"         | 是否有效->true/false | "true"                                       |
 | "name"          | 用户名称             | “leaf"                                       |
 | "avatar"        | 用户头像的url        | "https://static.leaflxh.com/avatar/xxxx.jpg" |
-| "register_date" | 用户注册日期         |                                              |
-| "description"   | 用户的描述           |                                              |
+| "register_date" | 用户注册日期         | unix时间戳                                   |
+| "description"   | 用户的描述           | 字符串                                       |
+| "is_locked"     | 用户是否被锁定       | 0为未锁定，1为锁定                           |
 
 
 
