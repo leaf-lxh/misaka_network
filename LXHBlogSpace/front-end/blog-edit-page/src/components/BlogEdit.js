@@ -19,15 +19,50 @@ class BlogEdit extends React.Component
         };
     }
 
+    UploadBackground()
+    {
+
+        var backgroundImageInput = document.getElementById("input-upload-background");
+        console.log(backgroundImageInput);
+        backgroundImageInput.click();
+        backgroundImageInput.onchange = function(){
+            var file = backgroundImageInput.files[0];
+            if (file.type !== "image/png" && file.type !== "image/jpeg" && file.type !== "image/bmp")
+            {
+                alert("仅允许使用png, jpeg或bmp格式的图片");
+                return;
+            }
+            
+            //
+            fetch("/api/v1/content/UploadImage", {
+                method: "POST",
+                credentials: "include",
+                body: backgroundImageInput.files[0]
+            })
+            .then(res=>res.json(), (error)=>{})
+            .then(response=>{
+                if (response !== undefined && response.ecode === "0")
+                {
+                    document.getElementsByTagName("body")[0].style.backgroundImage = "url(" + response.img_path + ")";
+                }
+                else
+                {
+
+                }
+                return;
+            })
+        }
+    }
+
     render()
     {
         return (
             <div className="edit-container">
                 <div className="tool-bar">
                     <div className="tool-bar-buttons">
-                        <Input className="tool-bar-button" type="file" style={{display: "none"}}>上传背景</Input>
-                        <Input className="tool-bar-button" type="file" style={{display: "none"}}>上传图片</Input>
-                        <Button className="tool-bar-button">上传背景</Button>
+                        <Input id="input-upload-background" type="file" style={{display: "none"}}>上传背景</Input>
+                        <Input id="input-upload-img" type="file" style={{display: "none"}}>上传图片</Input>
+                        <Button className="tool-bar-button" onClick={this.UploadBackground.bind(this)}>上传背景</Button>
                         <Button className="tool-bar-button">上传图片</Button>
                         <Button className="tool-bar-button">保存草稿</Button>
                         <Button className="tool-bar-button tool-bar-button-preview">预览博文</Button>
@@ -40,7 +75,7 @@ class BlogEdit extends React.Component
                 </div>
                 <Container fixed className="article-content-container">
                     <div className="flexable-container">
-                        <Input id="article-content-input" className="article-content-region" disableUnderline placeholder="在此输入文章内容" multiline></Input>
+                        <Input id="article-content-input" className="article-content-region" disableUnderline placeholder="在此输入文章内容" multiline rows={25} rowsMax={1000}></Input>
                     </div>
                 </Container>
             </div>

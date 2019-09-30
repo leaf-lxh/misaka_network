@@ -93,29 +93,29 @@ class NavBar extends React.Component
         fetch("/api/v1/passport/GetUserInfo", {
             credentials: "include"
         })
-            .then(response=>response.json(), (error) => {
-                window.location = "/";
-            })
-            .then((userinfo)=>{
-                if (userinfo !== undefined && userinfo.vaild === "true")
-                {
-                    ReactDOM.render(
-                    <>
-                        <div className="navstyle-userZone">
-                            <div className="navstyle-userId">
-                                <Link href={"/user/" + userinfo.username} underline="none" >{userinfo.username}</Link>
-                            </div>
-                            <Avatar src={userinfo.avatar}/>
+        .then(response=>response.json(), (error) => {
+            window.location = "/";
+        })
+        .then((userinfo)=>{
+            if (userinfo !== undefined && userinfo.vaild === "true")
+            {
+                ReactDOM.render(
+                <>
+                    <div className="navstyle-userZone">
+                        <div className="navstyle-userId">
+                            <Link href={"/user/" + userinfo.username} underline="none" >{userinfo.username}</Link>
                         </div>
-                    </>
-                    , document.getElementsByClassName("navstyle-status")[0]);
-                        
-                }
-                else
-                {
-                    window.location = "/";
-                }
-            });
+                        <Avatar src={userinfo.avatar}/>
+                    </div>
+                </>
+                , document.getElementsByClassName("navstyle-status")[0]);
+                    
+            }
+            else
+            {
+                window.location = "/";
+            }
+        });
     }
 };
 
