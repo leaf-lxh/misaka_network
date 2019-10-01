@@ -93,8 +93,15 @@ class NavBar extends React.Component
         fetch("/api/v1/passport/GetUserInfo", {
             credentials: "include"
         })
-        .then(response=>response.json(), (error) => {
-            window.location = "/";
+        .then(response=>{
+            if (response.ok === false)
+            {
+                window.location = "/";
+            }
+            else
+            {
+                return response.json();
+            }
         })
         .then((userinfo)=>{
             if (userinfo !== undefined && userinfo.vaild === "true")
