@@ -9,4 +9,4 @@ add_subdirectory(interfaces)
 #For building this app: 
 aux_source_directory (. SOURCE_ROOT)
 add_executable (blogspace_backend_passport ${SOURCE_ROOT})
-target_link_libraries (blogspace_backend_passport interfaces)
+target_link_libraries (blogspace_backend_passport passport_interfaces)
