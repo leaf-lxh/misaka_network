@@ -15,6 +15,14 @@
 #include <boost/uuid/uuid_generators.hpp> // generators
 #include <boost/uuid/uuid_io.hpp>         // streaming operators etc.
 
+#include <boost/archive/iterators/base64_from_binary.hpp>
+#include <boost/archive/iterators/binary_from_base64.hpp>
+#include <boost/archive/iterators/transform_width.hpp>
+#include <boost/archive/iterators/insert_linebreaks.hpp>
+#include <boost/archive/iterators/remove_whitespace.hpp>
+#include <boost/archive/iterators/ostream_iterator.hpp>
+#include <algorithm>
+
 namespace webstring
 {
 	std::string strip(const std::string& str, const std::string chr)
@@ -211,8 +219,9 @@ namespace webstring
 	std::size_t UTF8Strlen(const std::string &utf8String)
 	{
 		//来源：https://blog.csdn.net/yangxudong/article/details/24267155
+		//修正了潜在的越位读取造成的死循环
 		size_t length = 0;
-		for (size_t i = 0, len = 0; i != utf8String.length(); i += len) {
+		for (size_t i = 0, len = 0; i < utf8String.length(); i += len) {
 			unsigned char byte = utf8String[i];
 			if (byte >= 0xFC)
 				len = 6;
@@ -337,5 +346,43 @@ namespace webstring
 		std::ostringstream buffer;
 		boost::property_tree::write_json(buffer, jsonTree, false);
 		return buffer.str();
+	}
+
+	//copy from https://stackoverflow.com/questions/46349697/decode-base64-string-using-boost
+	//without code review
+	std::string Base64Decode(std::string input)
+	{
+		using namespace boost::archive::iterators;
+		typedef transform_width<binary_from_base64<remove_whitespace<std::string::const_iterator> >, 8, 6> ItBinaryT;
+
+		try
+		{
+			// If the input isn't a multiple of 4, pad with =
+			size_t num_pad_chars((4 - input.size() % 4) % 4);
+			input.append(num_pad_chars, '=');
+
+			size_t pad_chars(std::count(input.begin(), input.end(), '='));
+			std::replace(input.begin(), input.end(), '=', 'A');
+			std::string output(ItBinaryT(input.begin()), ItBinaryT(input.end()));
+			output.erase(output.end() - pad_chars, output.end());
+			return output;
+		}
+		catch (std::exception const&)
+		{
+			return std::string("");
+		}
+	}
+
+	//copy from https://stackoverflow.com/questions/10521581/base64-encode-using-boost-throw-exception
+	std::string Base64Encode(std::string input)
+	{
+		using namespace boost::archive::iterators;
+		typedef base64_from_binary<transform_width<std::string::const_iterator, 6, 8> > base64_text;
+
+		unsigned int writePaddChars = (3 - input.length() % 3) % 3;
+		std::string base64(base64_text(input.begin()), base64_text(input.end()));
+
+		base64.append(writePaddChars, '=');
+		return base64;
 	}
 }

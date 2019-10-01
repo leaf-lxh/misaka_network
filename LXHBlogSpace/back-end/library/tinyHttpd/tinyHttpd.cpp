@@ -331,22 +331,22 @@ void TinyHttpd::StartHandleRequest() noexcept
 					continue;
 				}
 				
-				memset(receiveBuffer.get(), 0, 4096);
-				ssize_t length = recv(clientfd, receiveBuffer.get(), 4096, MSG_DONTWAIT);
-				if (length > 0)
+				ssize_t totalLength = 0;
+				ssize_t length = 0;
+				do
 				{
-					//对于字节流，应当使用append方法将数据复制过去。而不是直接append一个const char*指针，因为这样做可能会被追加数据中的\0截断
-					connectedClients[clientfd].readBuffer.append(receiveBuffer.get(), length);
-					if (serverProperty.verbose >= VerboseLevel::full)
+					memset(receiveBuffer.get(), 0, 4096);
+					length = recv(clientfd, receiveBuffer.get(), 4096, MSG_DONTWAIT);
+					if (length > 0)
 					{
-						std::cout << connectedClients[clientfd].readBuffer << std::flush;
+						//对于字节流，应当使用append方法将数据复制过去。而不是直接append一个const char*指针，因为这样做可能会被追加数据中的\0截断
+						connectedClients[clientfd].readBuffer.append(receiveBuffer.get(), length);
+						totalLength += length;
 					}
-
-					HTTPProfiler(clientfd);
-					connectedClients[clientfd].lastAlive = time(nullptr);
-					
 				}
-				else if (length == 0)
+				while(length > 0);
+
+				if (length == 0)
 				{
 					DeleteEvent(epollfd, clientfd, EPOLLIN|EPOLLOUT| EPOLLRDHUP);
 					CloseConnection(clientfd);
@@ -354,6 +354,11 @@ void TinyHttpd::StartHandleRequest() noexcept
 				}
 				else
 				{
+					if (totalLength > 0)
+					{
+						HTTPProfiler(clientfd);
+						connectedClients[clientfd].lastAlive = time(nullptr);
+					}
 					continue;
 				}
 			}

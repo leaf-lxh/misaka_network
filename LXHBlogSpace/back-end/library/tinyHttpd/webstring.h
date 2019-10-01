@@ -58,4 +58,11 @@ namespace webstring
 	将string类型的map转化为JSON字符串
 	*/
 	std::string JsonStringify(std::map<std::string, std::string> object);
+
+	/*!
+	base64编解码, 自动进行补全操作
+	*/
+	std::string Base64Encode(std::string input);
+
+	std::string Base64Decode(std::string input);
 }
