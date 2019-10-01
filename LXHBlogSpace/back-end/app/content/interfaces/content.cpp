@@ -108,6 +108,7 @@ void BlogSpaceContent::HTTPPacketHandler(int clientfd, HTTPPacket::HTTPRequestPa
 
 HTTPPacket::HTTPResponsePacket BlogSpaceContent::UploadImage(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false)
 {
+	
 	HTTPPacket::HTTPResponsePacket response;
 	response.SetServer(SERVER_SIGNATURE);
 	std::map<std::string, std::string> responseJson;
@@ -145,8 +146,6 @@ HTTPPacket::HTTPResponsePacket BlogSpaceContent::UploadImage(int clientfd, HTTPP
 
 	//检查文件头部，确定文件类型。只允许JPEG, PNG, BMP格式的文件
 	std::string fileHeader = request.body.substr(0, 2);
-	std::cout << std::hex << int((char)fileHeader[0]) << std::endl;
-	std::cout << std::hex << int((char)fileHeader[1]) << std::endl;
 	std::string fileExtention;
 	if (fileHeader == "\xFF\xD8")
 	{
@@ -154,11 +153,11 @@ HTTPPacket::HTTPResponsePacket BlogSpaceContent::UploadImage(int clientfd, HTTPP
 	}
 	else if (fileHeader == "\x42\x4d")
 	{
-		fileExtention = ".png";
+		fileExtention = ".bmp";
 	}
 	else if (fileHeader == "\x89\x50")
 	{
-		fileExtention = ".bmp";
+		fileExtention = ".png";
 	}
 	else
 	{
@@ -201,7 +200,7 @@ HTTPPacket::HTTPResponsePacket BlogSpaceContent::UploadImage(int clientfd, HTTPP
 		PtrPreparedStatement statement(mysqlProperty.connection->prepareStatement("INSERT INTO image_path VALUES(?,?,?)"));
 		statement->setString(1, request.GetCookieValue("_uuid"));
 		statement->setString(2, webstring::GenTimeStamp());
-		statement->setString(3, request.GetCookieValue("_sessionToken"));
+		statement->setString(3, request.GetCookieValue(filepath));
 		statement->execute();
 	}
 	catch (sql::SQLException e)
@@ -221,6 +220,114 @@ HTTPPacket::HTTPResponsePacket BlogSpaceContent::UploadImage(int clientfd, HTTPP
 
 	response.SetContentType("application/json; charset=UTF-8");
 	response.body = webstring::JsonStringify(responseJson);
+
+	return response;
+}
+
+HTTPPacket::HTTPResponsePacket BlogSpaceContent::SaveDraft(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false)
+{
+	HTTPPacket::HTTPResponsePacket response;
+	response.SetServer(SERVER_SIGNATURE);
+
+	std::map<std::string, std::string> responseJson;
+
+	try
+	{
+		if (CheckUserToken(request) == false)
+		{
+			RaiseHTPPError(clientfd, 403);
+			throw std::runtime_error("BlogSpaceContent::SaveDraft(): Access denied");
+		}
+	}
+	catch (sql::SQLException e)
+	{
+		response.SetResponseCode(HTTPPacket::ResponseCode::ServiceUnavailable);
+		if (serverProperty.verbose >= VerboseLevel::essential)
+		{
+			LogRequestError(clientfd, request, std::string("BlogSpaceContent::UploadImage: MySQL exception occured with code ") + std::to_string(e.getErrorCode()) + ", msg: " + e.what());
+		}
+		else
+		{
+			LogRequestError(clientfd, request, std::string("BlogSpaceContent::UploadImage: MySQL exception occured with code ") + std::to_string(e.getErrorCode()));
+		}
+
+		return response;
+	}
+	
+	auto postParamaters = webstring::ParseKeyValue(request.body);
+	if (postParamaters.count("bg") == 0 || postParamaters.count("imgs") == 0 || postParamaters.count("title") == 0 || postParamaters.count("content") == 0)
+	{
+		responseJson.insert({ "ecode", "-2" });
+		responseJson.insert({ "reason", "请求参数有误" });
+
+		response.SetContentType("application/json; charset=UTF-8");
+		response.body = webstring::JsonStringify(responseJson);
+		return response;
+	}
+
+	std::string backgroundPath = postParamaters["bg"];
+	std::string images = postParamaters["imgs"];
+	std::string draftTitle = postParamaters["title"];
+	std::string draftContent = postParamaters["content"];
+
+	if (draftTitle.length() > 0)
+	{
+		draftTitle = webstring::Base64Decode(draftTitle);
+	}
+
+	if (draftContent.length() > 0)
+	{
+		draftContent = webstring::Base64Encode(draftContent);
+	}
+
+	try
+	{
+		mysqlProperty.connection->setSchema("lxhblogspace_content");
+		PtrPreparedStatement statement(mysqlProperty.connection->prepareStatement("INSERT INTO draft_info(user_uuid, create_date, lastmodify_date, background_img, saved_images) VALUES(?,?,?,?,?)"));
+
+		statement->setString(1, request.GetCookieValue("_uuid"));
+		statement->setInt64(2, time(nullptr));
+		statement->setInt64(3, time(nullptr));
+		statement->setString(4, backgroundPath);
+		statement->setString(5, images);
+		statement->executeUpdate();
+
+		std::string draftID;
+		PtrResultSet result(statement->executeQuery("SELECT LAST_INSERT_ID()"));
+		while (result->next())
+		{
+			draftID = result->getString(1);
+		}
+
+		statement.reset(mysqlProperty.connection->prepareStatement("INSERT INTO draft_content VALUES(?,?,?)"));
+		statement->setString(1, draftID);
+		statement->setString(2, draftTitle);
+		statement->setString(3, draftContent);
+		statement->executeUpdate();
+
+		responseJson.insert({ "ecode", "0" });
+		responseJson.insert({ "reason", "保存成功" });
+		responseJson.insert({ "draftid", draftID });
+
+		response.SetContentType("application/json; charset=UTF-8");
+		response.body = webstring::JsonStringify(responseJson);
+	}
+	catch (sql::SQLException e)
+	{
+		response.SetResponseCode(HTTPPacket::ResponseCode::ServiceUnavailable);
+		if (serverProperty.verbose >= VerboseLevel::essential)
+		{
+			LogRequestError(clientfd, request, std::string("BlogSpaceContent::UploadImage: MySQL exception occured with code ") + std::to_string(e.getErrorCode()) + ", msg: " + e.what());
+		}
+		else
+		{
+			LogRequestError(clientfd, request, std::string("BlogSpaceContent::UploadImage: MySQL exception occured with code ") + std::to_string(e.getErrorCode()));
+		}
+
+		return response;
+	}
+
+
 	return response;
 }
 
