@@ -15,11 +15,6 @@ public:
 
 
 private:
-	/*!
-	初始化路由表
-	*/
-	void InitRouteTabel() noexcept;
-
 	///MYSQL服务的属性
 	struct MySQLProperty
 	{
@@ -52,12 +47,14 @@ private:
 	/****************外部公开接口***************/
 	HTTPPacket::HTTPResponsePacket UploadImage(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false);
 	HTTPPacket::HTTPResponsePacket SaveDraft(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false);
-	/*
 	HTTPPacket::HTTPResponsePacket ReadDraft(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false);
+	HTTPPacket::HTTPResponsePacket DeleteDraft(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false);
+	HTTPPacket::HTTPResponsePacket GetDraftList(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false);
+	
 	HTTPPacket::HTTPResponsePacket PublishArticle(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false);
 	HTTPPacket::HTTPResponsePacket GetArticleContent(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false);
 	HTTPPacket::HTTPResponsePacket DeleteArticle(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false);
-	*/
+	//HTTPPacket::HTTPResponsePacket GetArticleList(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false);
 
 	/*****************内部调用接口**************/
 	/*!

@@ -4,6 +4,10 @@
 
 ver: 1.0
 
+### 数据库
+
+**lxhblogspace_content**
+
 ### 图片上传历史表
 
 用于记录哪个用户于何时上传了哪张图片
@@ -28,12 +32,13 @@ create table image_path(
 
 ```mysql
 create table draft_info(
-    draft_id int unsigned not null auto_increment primary key
+    draft_id int unsigned not null primary key auto_increment,
     user_uuid tinytext not null,
     create_date int unsigned not null,
     lastmodify_date int unsigned not null,
     background_img text not null,
-    saved_images text not null
+    saved_images text not null,
+    deleted tinyint unsigned
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 ```
 
@@ -45,6 +50,7 @@ create table draft_info(
 | lastmodify_date | 上次编辑的unix时间戳                                         |
 | background_img  | 背景图片的存储路径                                           |
 | saved_images    | 上传的图片，一个js array，请用json.stringfiy()进行序列化后再存储 |
+| deleted         | 1为被删除，0为未被删除                                       |
 
 ### 草稿内容表
 
@@ -54,7 +60,7 @@ create table draft_info(
 create table draft_content(
     draft_id int unsigned not null,
     title tinytext not null,
-    content text not null
+    content mediumtext not null
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 ```
 
@@ -64,3 +70,44 @@ create table draft_content(
 | title    | 文章标题                     |
 | content  | 文章内容                     |
 
+### 文章信息表
+
+用于保存用户的文章信息
+
+```mysql
+create table article_info(
+    article_id int unsigned not null primary key auto_increment,
+    user_uuid tinytext not null,
+    create_date int unsigned not null,
+    background_img text not null,
+    lastmodify_date int unsigned not null,
+    deleted tinyint unsigned
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+```
+
+| 键名            | 说明                     |
+| --------------- | ------------------------ |
+| article_id      | 文章ID，为自增主键       |
+| user_uuid       | 用户的UUID               |
+| create_date     | 文章创建的unix时间戳     |
+| background_img  | 文章的背景图片的存储路径 |
+| lastmodify_date | 上次编辑的unix时间戳     |
+| deleted         | 1为被删除，0为未被删除   |
+
+### 文章内容表
+
+用于保存用户的文章
+
+```mysql
+create table article_content(
+    article_id int unsigned not null,
+    title tinytext not null,
+    content mediumtext not null
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+```
+
+| 键名       | 说明                           |
+| ---------- | ------------------------------ |
+| article_id | 文章的ID，与article_info的相同 |
+| title      | 文章标题                       |
+| content    | 文章内容                       |

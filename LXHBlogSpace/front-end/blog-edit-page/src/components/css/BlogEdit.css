@@ -104,7 +104,7 @@
     box-shadow: 0 2px 4px -1px rgba(0,0,0,.2), 0 4px 5px 0 rgba(0,0,0,.14), 0 1px 10px 0 rgba(0,0,0,.12);
 }
 
-.article-title-input
+.article-title-region
 {
     flex-grow: 1;
     font-size: 2em !important;
@@ -113,12 +113,23 @@
     width: auto;
 }
 
-.article-content-container
+.article-content-edit-container
 {
     max-width: 100% !important;
     margin-top: 20px;
     margin-bottom: 20px;
     padding: 20px 0 20px 0 !important;
+    display: flex;
+    background: white;
+    box-shadow: 0 2px 4px -1px rgba(0,0,0,.2), 0 4px 5px 0 rgba(0,0,0,.14), 0 1px 10px 0 rgba(0,0,0,.12);
+}
+
+.article-content-container
+{
+    max-width: 100% !important;
+    margin-top: 20px;
+    padding-bottom: 20px;
+    margin-bottom: 20px !important;
     display: flex;
     background: white;
     box-shadow: 0 2px 4px -1px rgba(0,0,0,.2), 0 4px 5px 0 rgba(0,0,0,.14), 0 1px 10px 0 rgba(0,0,0,.12);
@@ -132,9 +143,49 @@
 
 .article-content-region
 {
-    border: 1px solid black !important;
+    border: 1px solid rgb(0, 0, 0) !important;
+    padding-left: 5px !important;
+    padding-right: 5px !important;
     margin-left: 20px;
     margin-right: 20px;
     flex-grow: 1;
     width: auto;
+}
+
+a{
+    text-decoration-line: none;
+    color: #4080bb;
+}
+  
+.unmarked-code{
+    display: inline !important;
+    padding: 0 3px 0 3px !important;
+    border-radius: 3px !important;
+    margin-left: 2px !important;
+    margin-right: 2px !important;
+}
+
+.hljs-comment{
+    font-style: normal !important;
+}
+
+.hljs{
+    border-radius: 3px !important;
+}
+
+table{
+    border-color: gray;
+}
+
+
+
+blockquote{
+    background: white;
+    margin-left: 0;
+    padding-left: 40px;
+    color: gray;
+}
+
+div, p,img,code,pre{
+    max-width: inherit
 }

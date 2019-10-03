@@ -94,10 +94,26 @@ void BlogSpacePassport::HTTPPacketHandler(int clientfd, HTTPPacket::HTTPRequestP
 	if (serverProperty.routeTable.count(request.requestPath) == 0)
 	{
 		RaiseHTPPError(clientfd, 404);
+		LogRequestError(clientfd, request, "404");
 		return;
 	}
 
+
+
 	HTTPPacket::HTTPResponsePacket response;
+
+	if (mysqlProperty.connection->isValid() == false)
+	{
+
+		if (mysqlProperty.connection->reconnect() == false)
+		{
+			response.SetResponseCode(HTTPPacket::ResponseCode::ServiceUnavailable);
+			connectedClients[clientfd].writeBuffer += response.ToString();
+
+			LogRequestError(clientfd, request, "MySQL connection failed");
+			return;
+		}
+	}
 
 	if (request.requestPath == "/api/v1/passport/")
 	{
@@ -646,7 +662,7 @@ HTTPPacket::HTTPResponsePacket BlogSpacePassport::Register(int clientfd, HTTPPac
 
 		PtrPreparedStatement user_details(mysqlProperty.connection->prepareStatement("INSERT INTO user_details VALUES(?,?,?)"));
 		user_details->setString(1, uuid);
-		user_details->setString(2, "default.jpg");
+		user_details->setString(2, "/images/default_avatar.jpg");
 		user_details->setString(3, "");
 		user_details->executeUpdate();
 

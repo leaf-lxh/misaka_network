@@ -377,7 +377,8 @@ namespace webstring
 	std::string Base64Encode(std::string input)
 	{
 		using namespace boost::archive::iterators;
-		typedef base64_from_binary<transform_width<std::string::const_iterator, 6, 8> > base64_text;
+		typedef base64_from_binary<transform_width<std::string::const_iterator
+			, 6, 8> > base64_text;
 
 		unsigned int writePaddChars = (3 - input.length() % 3) % 3;
 		std::string base64(base64_text(input.begin()), base64_text(input.end()));

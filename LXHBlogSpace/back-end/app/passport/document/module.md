@@ -18,7 +18,7 @@ create table user_info(
     register_date int unsigned not null,
     email tinytext not null,
     username tinytext not null,
-    is_locked int not null
+    is_locked tinyint unsigned not null
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 ```
 
