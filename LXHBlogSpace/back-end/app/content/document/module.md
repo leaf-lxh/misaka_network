@@ -4,6 +4,10 @@
 
 ver: 1.0
 
+2019-10-4
+
+ver: 1.1
+
 ### 数据库
 
 **lxhblogspace_content**
@@ -80,6 +84,7 @@ create table article_info(
     user_uuid tinytext not null,
     create_date int unsigned not null,
     background_img text not null,
+    vote_num int unsienged not null,
     lastmodify_date int unsigned not null,
     deleted tinyint unsigned
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -91,6 +96,7 @@ create table article_info(
 | user_uuid       | 用户的UUID               |
 | create_date     | 文章创建的unix时间戳     |
 | background_img  | 文章的背景图片的存储路径 |
+| vote_num        | 文章的赞数               |
 | lastmodify_date | 上次编辑的unix时间戳     |
 | deleted         | 1为被删除，0为未被删除   |
 
@@ -111,3 +117,44 @@ create table article_content(
 | article_id | 文章的ID，与article_info的相同 |
 | title      | 文章标题                       |
 | content    | 文章内容                       |
+
+### 文章评论表
+
+```mysql
+create table article_comment(
+    comment_id int unsigned not null primary key auto_increment,
+    article_id int unsigned not null,
+    user_uuid tinytext not null,
+    create_date int unsigned not null,
+    readed tinyint unsigned not null,
+    content text not null
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+```
+
+| 键名        | 说明                           |
+| ----------- | ------------------------------ |
+| comment_id  | 评论ID，自增主键               |
+| article_id  | 文章的ID，与article_info的相同 |
+| user_uuid   | 发送评论的用户                 |
+| create_date | 创建时间                       |
+| readed      | 是否已读                       |
+| content     | 评论内容                       |
+
+
+
+### 热点文章表
+
+```mysql
+create table article_comment(
+    article_id int unsigned not null,
+    user_uuid tinytext not null,
+    last_heat int unsigned not null
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+```
+
+| 字段名     | 说明                   |
+| ---------- | ---------------------- |
+| article_id | 文章id                 |
+| user_uuid  | 作者的uuid             |
+| last_heat  | 上次比较时产生的热度值 |
+

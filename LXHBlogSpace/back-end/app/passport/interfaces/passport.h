@@ -63,6 +63,8 @@ private:
 	HTTPPacket::HTTPResponsePacket SendEmailAuth(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false);
 	HTTPPacket::HTTPResponsePacket GetUserInfo(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false);
 
+	HTTPPacket::HTTPResponsePacket IsLogin(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false);
+
 	/*****************内部调用接口**************/
 	/*!
 	检查指定用户是否存在

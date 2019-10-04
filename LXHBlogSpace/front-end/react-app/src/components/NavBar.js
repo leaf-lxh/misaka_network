@@ -197,7 +197,7 @@ class NavBar extends React.Component
     componentDidMount()
     {
         //初始化右边的状态栏，流程为：检查是否登录，如果是则显示用户信息，否则显示登录按钮
-        fetch("/api/v1/passport/GetUserInfo", {credentials: "include"})
+        fetch("/api/v1/passport/IsLogin", {credentials: "include"})
             .then(response=>response.json(), (error) => {
                 this.setState({
                     srcStatusZone: this.LoginRegion()
@@ -210,7 +210,7 @@ class NavBar extends React.Component
                     <>
                         <div className="navstyle-userZone">
                             <div className="navstyle-userId">
-                                <Link href={"/user/" + userinfo.username} underline="none" >{userinfo.username}</Link>
+                                <Link href={"/member/" + userinfo.username} underline="none" >{userinfo.username}</Link>
                             </div>
                             <Avatar src={userinfo.avatar}/>
                         </div>

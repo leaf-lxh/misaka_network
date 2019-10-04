@@ -190,8 +190,8 @@ class NavBar extends React.Component
 
     componentDidMount()
     {
-        //初始化右边的状态栏，流程为：检查是否登录，如果是则显示用户信息，否则显示登录按钮
-        fetch("/api/v1/passport/GetUserInfo")
+        //如果已登录，则跳转到首页
+        fetch("/api/v1/passport/IsLogin")
             .then(response=>response.json(), (error) => {
             })
             .then((userinfo)=>{

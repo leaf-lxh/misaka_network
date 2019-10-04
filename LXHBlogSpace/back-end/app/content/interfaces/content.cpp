@@ -955,7 +955,7 @@ HTTPPacket::HTTPResponsePacket BlogSpaceContent::PublishArticle(int clientfd, HT
 
 		responseJson.insert({ "ecode", "0" });
 		responseJson.insert({ "reason", "发布成功" });
-		responseJson.insert({ "article_id", articleId });
+		responseJson.insert({ "article_id", insertID });
 
 		response.SetContentType("application/json; charset=UTF-8");
 		response.body = webstring::JsonStringify(responseJson);
@@ -1039,9 +1039,9 @@ HTTPPacket::HTTPResponsePacket BlogSpaceContent::GetArticleContent(int clientfd,
 			statement.reset(mysqlProperty.connection->prepareStatement("SELECT username FROM user_info WHERE user_uuid=?"));
 			statement->setString(1, author_uuid);
 			PtrResultSet authorInfo(statement->executeQuery());
-			while (result->next())
+			while (authorInfo->next())
 			{
-				responseJson["author"] = result->getString(1);
+				responseJson["author"] = authorInfo->getString(1);
 			}
 
 			responseJson.insert({ "ecode", "0" });

@@ -31,7 +31,9 @@ class FunctionButtons extends React.Component
             dialogDisplayState: false,
             noticeDiaplayState: false,
             noticeMsg: "null",
-            srcCommentBlock: <></>
+            srcCommentBlock: <></>,
+            ableToRewrite: false,
+            ableToDelete: false
         }
         this.currentCommentPage = 1;
         this.maxCommentPage = 1;
@@ -91,6 +93,18 @@ class FunctionButtons extends React.Component
                 <AddBox />
                 <div className="button-label">
                 添加收藏
+                </div>
+            </Button>
+            <Button className="func-button" hidden={!this.state.ableToRewrite}>
+                <AddBox />
+                <div className="button-label">
+                修改文章
+                </div>
+            </Button>
+            <Button className="func-button" hidden={!this.state.ableToDelete}>
+                <AddBox />
+                <div className="button-label">
+                删除文章
                 </div>
             </Button>
             <Dialog open={this.state.dialogDisplayState} onClose={this.HideDialog.bind(this)} maxWidth="false">
@@ -272,6 +286,12 @@ class FunctionButtons extends React.Component
                     </>
             })
         })        
+    }
+
+    componentDidMount()
+    {
+        fetch("/api/v1/content/IsArticleAuthor", {credentials: "include"})
+        .then(response=>)
     }
 }
 

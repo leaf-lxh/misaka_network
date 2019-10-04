@@ -67,6 +67,7 @@ void BlogSpacePassport::InitRouteTabel() noexcept
 	AddRoutePath("/api/v1/passport/login");
 	AddRoutePath("/api/v1/passport/register");
 	AddRoutePath("/api/v1/passport/GetUserInfo");
+	AddRoutePath("/api/v1/passport/IsLogin");
 	AddRoutePath("/api/v1/passport/CheckUserExist");
 	AddRoutePath("/api/v1/passport/CheckEmailExist");
 	AddRoutePath("/api/v1/passport/SendEmailAuth");
@@ -227,6 +228,22 @@ void BlogSpacePassport::HTTPPacketHandler(int clientfd, HTTPPacket::HTTPRequestP
 		return;
 	}
 
+	if (request.requestPath == "/api/v1/passport/IsLogin")
+	{
+		try
+		{
+			response = IsLogin(clientfd, request);
+			response.responseHeaders.insert({ "Access-Control-Allow-Origin", "http://blog.leaflxh.com" });
+
+			connectedClients[clientfd].writeBuffer += response.ToString();
+			LogResponse(clientfd, request, response.code);
+		}
+		catch (std::runtime_error e)
+		{
+			LogRequestError(clientfd, request, e.what());
+		}
+		return;
+	}
 	
 	RaiseHTPPError(clientfd, 501);
 }
@@ -824,6 +841,76 @@ HTTPPacket::HTTPResponsePacket BlogSpacePassport::GetUserInfo(int clientfd, HTTP
 	response.SetServer(SERVER_SIGNATURE);
 	response.SetKeepAlive(serverProperty.timeout, serverProperty.maxRequestsNum);
 
+	std::string username = request.ParseURLParamter()["username"];
+	std::map<std::string, std::string> resultJson;
+	response.SetContentType("application/json; charset=UTF-8");
+
+	if (username == "")
+	{
+		resultJson["ecode"] = "-1";
+		resultJson["reason"] = "请求参数有误";
+		response.body = webstring::JsonStringify(resultJson);
+		return response;
+	}
+
+	try
+	{
+		mysqlProperty.connection->setSchema("lxhblogspace_passport");
+		PtrPreparedStatement statement(mysqlProperty.connection->prepareStatement("SELECT user_uuid, register_date, is_locked WHERE username=?"));
+		statement->setString(1, username);
+		PtrResultSet userInfo(statement->executeQuery());
+		if (userInfo->rowsCount() == 0)
+		{
+			resultJson["ecode"] = "-10";
+			resultJson["reason"] = "欲查询用户不存在";
+			response.body = webstring::JsonStringify(resultJson);
+			return response;
+		}
+
+		std::string user_uuid;
+		while (userInfo->next())
+		{
+			user_uuid = userInfo->getString("user_uuid");
+			resultJson["register_date"] = userInfo->getString("register_date");
+			resultJson["is_locked"] = userInfo->getString("is_locked");
+			resultJson["username"] = userInfo->getString("username");
+		}
+		
+		statement.reset(mysqlProperty.connection->prepareStatement("SELECT avatar, description FROM user_details WHERE user_uuid=?"));
+		statement->setString(1, user_uuid);
+		PtrResultSet userDetails(statement->executeQuery());
+		while (userDetails->next())
+		{
+			resultJson["avatar"] = userInfo->getString("avatar");
+			resultJson["description"] = userInfo->getString("description");
+		}
+
+		resultJson["ecode"] = "0";
+		response.body = webstring::JsonStringify(resultJson);
+	}
+	catch (sql::SQLException e)
+	{
+		response.SetResponseCode(HTTPPacket::ResponseCode::ServiceUnavailable);
+		if (serverProperty.verbose >= VerboseLevel::essential)
+		{
+			LogRequestError(clientfd, request, std::string("BlogSpacePassport::GetUserInfo(): MySQL exception occured with code ") + std::to_string(e.getErrorCode()) + ", msg: " + e.what());
+		}
+		else
+		{
+			LogRequestError(clientfd, request, std::string("BlogSpacePassport::GetUserInfo(): MySQL exception occured with code ") + std::to_string(e.getErrorCode()));
+		}
+	}
+
+	return response;
+}
+
+HTTPPacket::HTTPResponsePacket BlogSpacePassport::IsLogin(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false)
+{
+	HTTPPacket::HTTPResponsePacket response;
+	response.SetResponseCode(HTTPPacket::ResponseCode::OK);
+	response.SetServer(SERVER_SIGNATURE);
+	response.SetKeepAlive(serverProperty.timeout, serverProperty.maxRequestsNum);
+
 	std::string uuid = request.GetCookieValue("_uuid");
 	std::string token = request.GetCookieValue("_sessionToken");
 
@@ -867,25 +954,22 @@ HTTPPacket::HTTPResponsePacket BlogSpacePassport::GetUserInfo(int clientfd, HTTP
 			return response;
 		}
 
-		statement.reset(mysqlProperty.connection->prepareStatement("SELECT avatar, description FROM user_details where user_uuid = ?"));
+		statement.reset(mysqlProperty.connection->prepareStatement("SELECT username, is_locked FROM user_info WHERE user_uuid = ?"));
 		statement->setString(1, uuid);
 		result.reset(statement->executeQuery());
 		while (result->next())
 		{
 			resultJson["vaild"] = "true";
-			resultJson["avatar"] = result->getString(1);
-			resultJson["description"] = result->getString(2);
+			resultJson["username"] = result->getString(1);
+			resultJson["is_locked"] = result->getString(2);
 		}
 
-		statement.reset(mysqlProperty.connection->prepareStatement("SELECT register_date, email, username, is_locked FROM user_info where user_uuid = ?"));
+		statement.reset(mysqlProperty.connection->prepareStatement("SELECT avatar FROM user_details WHERE user_uuid = ?"));
 		statement->setString(1, uuid);
 		result.reset(statement->executeQuery());
 		while (result->next())
 		{
-			resultJson["register_date"] = result->getString(1);
-			resultJson["email"] = result->getString(2);
-			resultJson["username"] = result->getString(3);
-			resultJson["is_locked"] = result->getString(4);
+			resultJson["avatar"] = result->getString(1);
 		}
 
 		response.body = webstring::JsonStringify(resultJson);
@@ -895,11 +979,11 @@ HTTPPacket::HTTPResponsePacket BlogSpacePassport::GetUserInfo(int clientfd, HTTP
 		response.SetResponseCode(HTTPPacket::ResponseCode::ServiceUnavailable);
 		if (serverProperty.verbose >= VerboseLevel::essential)
 		{
-			LogRequestError(clientfd, request, std::string("BlogSpacePassport::GetUserInfo(): MySQL exception occured with code ") + std::to_string(e.getErrorCode()) + ", msg: " + e.what());
+			LogRequestError(clientfd, request, std::string("BlogSpacePassport::IsLogin(): MySQL exception occured with code ") + std::to_string(e.getErrorCode()) + ", msg: " + e.what());
 		}
 		else
 		{
-			LogRequestError(clientfd, request, std::string("BlogSpacePassport::GetUserInfo(): MySQL exception occured with code ") + std::to_string(e.getErrorCode()));
+			LogRequestError(clientfd, request, std::string("BlogSpacePassport::IsLogin(): MySQL exception occured with code ") + std::to_string(e.getErrorCode()));
 		}
 	}
 

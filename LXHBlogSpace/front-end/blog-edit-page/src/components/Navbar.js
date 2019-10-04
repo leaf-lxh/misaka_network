@@ -90,7 +90,7 @@ class NavBar extends React.Component
     componentDidMount()
     {
 		//初始化用户信息，如果未登录则跳转至首页
-        fetch("/api/v1/passport/GetUserInfo", {
+        fetch("/api/v1/passport/IsLogin", {
             credentials: "include"
         })
         .then(response=>{
@@ -110,7 +110,7 @@ class NavBar extends React.Component
                 <>
                     <div className="navstyle-userZone">
                         <div className="navstyle-userId">
-                            <Link href={"/user/" + userinfo.username} underline="none" >{userinfo.username}</Link>
+                            <Link href={"/member/" + userinfo.username} underline="none" >{userinfo.username}</Link>
                         </div>
                         <Avatar src={userinfo.avatar}/>
                     </div>
