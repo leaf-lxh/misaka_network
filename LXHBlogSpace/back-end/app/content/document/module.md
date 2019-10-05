@@ -84,7 +84,7 @@ create table article_info(
     user_uuid tinytext not null,
     create_date int unsigned not null,
     background_img text not null,
-    vote_num int unsienged not null,
+    vote_num int unsigned not null,
     lastmodify_date int unsigned not null,
     deleted tinyint unsigned
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -99,6 +99,39 @@ create table article_info(
 | vote_num        | 文章的赞数               |
 | lastmodify_date | 上次编辑的unix时间戳     |
 | deleted         | 1为被删除，0为未被删除   |
+
+### 文章点赞记录表
+
+```mysql
+create table article_vote_history(
+    article_id int unsigned not null primary key auto_increment,
+    user_uuid tinytext not null,
+    action_date int unsigned not null
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+```
+
+| 字段名      | 说明     |
+| ----------- | -------- |
+| article_id  | 文章id   |
+| user_uuid   | 用户uuid |
+| action_date | 操作时间 |
+
+### 文章收藏记录表
+
+```mysql
+create table article_subscribe_history(
+    article_id int unsigned not null primary key auto_increment,
+    user_uuid tinytext not null,
+    action_date int unsigned not null
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+```
+
+| 字段名      | 说明     |
+| ----------- | -------- |
+| article_id  | 文章id   |
+| user_uuid   | 用户uuid |
+| action_date | 操作时间 |
+
 
 ### 文章内容表
 
@@ -124,21 +157,21 @@ create table article_content(
 create table article_comment(
     comment_id int unsigned not null primary key auto_increment,
     article_id int unsigned not null,
-    user_uuid tinytext not null,
+    from_uuid tinytext not null,
+    to_uuid tinytext not null,
     create_date int unsigned not null,
-    readed tinyint unsigned not null,
     content text not null
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 ```
 
-| 键名        | 说明                           |
-| ----------- | ------------------------------ |
-| comment_id  | 评论ID，自增主键               |
-| article_id  | 文章的ID，与article_info的相同 |
-| user_uuid   | 发送评论的用户                 |
-| create_date | 创建时间                       |
-| readed      | 是否已读                       |
-| content     | 评论内容                       |
+| 键名        | 说明                             |
+| ----------- | -------------------------------- |
+| comment_id  | 评论ID，自增主键                 |
+| article_id  | 文章的ID，与article_info的相同   |
+| from_uuid   | 发送评论的用户                   |
+| to_uuid     | 接受评论的用户，如果没有则置空值 |
+| create_date | 创建时间                         |
+| content     | 评论内容                         |
 
 
 

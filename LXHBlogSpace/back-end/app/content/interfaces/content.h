@@ -54,11 +54,17 @@ private:
 	HTTPPacket::HTTPResponsePacket PublishArticle(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false);
 	HTTPPacket::HTTPResponsePacket GetArticleContent(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false);
 	HTTPPacket::HTTPResponsePacket DeleteArticle(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false);
-	//HTTPPacket::HTTPResponsePacket GetArticleList(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false);
+	HTTPPacket::HTTPResponsePacket GetUserArticleList(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false);
+
+	HTTPPacket::HTTPResponsePacket Vote(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false);
+	HTTPPacket::HTTPResponsePacket Subscribe(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false);
+	HTTPPacket::HTTPResponsePacket CheckUserOperation(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false);
+
+	HTTPPacket::HTTPResponsePacket SendComment(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false);
 
 	/*****************内部调用接口**************/
 	/*!
-	验证用户登录是否有效，并且未被封禁
+	验证用户登录是否有效，并且未被封禁。调用本函数后会将schema设置为lxhblogspace_passport
 	参数：request | 当前用户的请求报文
 	返回：符合条件为true, 否则为false
 	异常：执行SQL语句时如遇错误会抛出sql::SQLException
@@ -72,4 +78,26 @@ private:
 	*/
 	std::string PrepareDirectory(std::string fileExtention) noexcept(false);
 
+	/*!
+	根据用户id获取其uuid。
+	异常：可能会抛出sql::SQLException
+	*/
+	std::string GetUUIDByUsername(std::string username) noexcept(false);
+
+	/*!
+	查询指定文章是否存在。
+	异常：可能会抛出sql::SQLException
+	*/
+	bool IsArticleExist(std::string aritcleId) noexcept(false);
+	/*!
+	查询用户是否对指定文章进行过赞同操作
+	异常：可能会抛出sql::SQLException
+	*/
+	bool IsVoted(std::string uuid, std::string articleId) noexcept(false);
+
+	/*!
+	查询用户是否对指定文章进行过收藏操作
+	异常：可能会抛出sql::SQLException
+	*/
+	bool IsSubscribed(std::string uuid, std::string articleId) noexcept(false);
 };

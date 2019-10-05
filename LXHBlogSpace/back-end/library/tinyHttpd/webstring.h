@@ -50,7 +50,7 @@ namespace webstring
 	std::string GenUUID();
 
 	/*!
-	生成当前的Unix时间戳
+	生成当前的Unix时间戳。如果time(nullptr)返回-1则本函数返回"0"
 	*/
 	std::string GenTimeStamp();
 

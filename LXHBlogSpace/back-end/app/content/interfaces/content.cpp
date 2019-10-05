@@ -212,6 +212,22 @@ void BlogSpaceContent::HTTPPacketHandler(int clientfd, HTTPPacket::HTTPRequestPa
 		return;
 	}
 
+	if (request.requestPath == "/api/v1/content/GetUserArticleList")
+	{
+		try
+		{
+			response = GetUserArticleList(clientfd, request);
+
+			connectedClients[clientfd].writeBuffer += response.ToString();
+			LogResponse(clientfd, request, response.code);
+		}
+		catch (std::runtime_error e)
+		{
+			LogRequestError(clientfd, request, e.what());
+		}
+		return;
+	}
+
 	RaiseHTPPError(clientfd, 404);
 	return;
 }
@@ -436,7 +452,7 @@ HTTPPacket::HTTPResponsePacket BlogSpaceContent::SaveDraft(int clientfd, HTTPPac
 					transaction->execute("BEGIN");
 
 					statement.reset(mysqlProperty.connection->prepareStatement("UPDATE draft_info SET lastmodify_date=?, background_img=?, saved_images=? WHERE draft_id=?"));
-					statement->setInt64(1, time(nullptr));
+					statement->setString(1, webstring::GenTimeStamp());
 					statement->setString(2, backgroundPath);
 					statement->setString(3, images);
 					statement->setString(4, draftid);
@@ -476,8 +492,8 @@ HTTPPacket::HTTPResponsePacket BlogSpaceContent::SaveDraft(int clientfd, HTTPPac
 		PtrPreparedStatement statement(mysqlProperty.connection->prepareStatement("INSERT INTO draft_info(user_uuid, create_date, lastmodify_date, background_img, saved_images, deleted) VALUES(?,?,?,?,?,?)"));
 
 		statement->setString(1, request.GetCookieValue("_uuid"));
-		statement->setInt64(2, time(nullptr));
-		statement->setInt64(3, time(nullptr));
+		statement->setString(2, webstring::GenTimeStamp());
+		statement->setString(3, webstring::GenTimeStamp());
 		statement->setString(4, backgroundPath);
 		statement->setString(5, images);
 		statement->setUInt(6, 0);
@@ -764,6 +780,10 @@ HTTPPacket::HTTPResponsePacket BlogSpaceContent::GetDraftList(int clientfd, HTTP
 			{
 				draft["title"] = draftContent->getString(1);
 				draft["content"] = draftContent->getString(2);
+				if (draft["content"].length() > 30)
+				{
+					draft["content"] = draft["content"].substr(0, 30) + "...";
+				}
 			}
 			draftList.push_back(webstring::JsonStringify(draft));
 		}
@@ -892,7 +912,7 @@ HTTPPacket::HTTPResponsePacket BlogSpaceContent::PublishArticle(int clientfd, HT
 					transaction->execute("BEGIN");
 
 					statement.reset(mysqlProperty.connection->prepareStatement("UPDATE article_info SET lastmodify_date=?, background_img=? WHERE article_id=?"));
-					statement->setInt64(1, time(nullptr));
+					statement->setString(1, webstring::GenTimeStamp());
 					statement->setString(2, backgroundPath);
 					statement->setString(3, articleId);
 					statement->executeUpdate();
@@ -928,12 +948,13 @@ HTTPPacket::HTTPResponsePacket BlogSpaceContent::PublishArticle(int clientfd, HT
 		transaction->execute("BEGIN");
 
 		mysqlProperty.connection->setSchema("lxhblogspace_content");
-		PtrPreparedStatement statement(mysqlProperty.connection->prepareStatement("INSERT INTO article_info(user_uuid, create_date, lastmodify_date, background_img, deleted) VALUES(?,?,?,?,?)"));
+		PtrPreparedStatement statement(mysqlProperty.connection->prepareStatement("INSERT INTO article_info(user_uuid, create_date, lastmodify_date, background_img, deleted, vote_num) VALUES(?,?,?,?,?,?)"));
 
 		statement->setString(1, request.GetCookieValue("_uuid"));
-		statement->setInt64(2, time(nullptr));
-		statement->setInt64(3, time(nullptr));
+		statement->setString(2, webstring::GenTimeStamp());
+		statement->setString(3, webstring::GenTimeStamp());
 		statement->setString(4, backgroundPath);
+		statement->setUInt(5, 0);
 		statement->setUInt(5, 0);
 		statement->executeUpdate();
 
@@ -1051,9 +1072,9 @@ HTTPPacket::HTTPResponsePacket BlogSpaceContent::GetArticleContent(int clientfd,
 			return response;
 		}
 
-		//执行至此说明指定的draftId不存在
+		//执行至此说明指定的articleId不存在
 		responseJson["ecode"] = "-4";
-		responseJson["reason"] = "指定草稿不存在";
+		responseJson["reason"] = "指定文章不存在";
 
 		response.SetContentType("application/json; charset=UTF-8");
 		response.body = webstring::JsonStringify(responseJson);
@@ -1126,11 +1147,17 @@ HTTPPacket::HTTPResponsePacket BlogSpaceContent::DeleteArticle(int clientfd, HTT
 
 			resultJson["ecode"] = "0";
 			resultJson["reason"] = "删除成功";
-
 			response.SetContentType("application/json; charset=UTF-8");
 			response.body = webstring::JsonStringify(resultJson);
 			return response;
 		}
+
+		resultJson["ecode"] = "-4";
+		resultJson["reason"] = "指定文章不存在";
+
+		response.SetContentType("application/json; charset=UTF-8");
+		response.body = webstring::JsonStringify(resultJson);
+		return response;
 	}
 	catch (sql::SQLException e)
 	{
@@ -1148,11 +1175,12 @@ HTTPPacket::HTTPResponsePacket BlogSpaceContent::DeleteArticle(int clientfd, HTT
 	}
 }
 
-/*
-HTTPPacket::HTTPResponsePacket BlogSpaceContent::GetArticleList(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false)
+
+HTTPPacket::HTTPResponsePacket BlogSpaceContent::GetUserArticleList(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false)
 {
 	HTTPPacket::HTTPResponsePacket response;
 	response.SetServer(SERVER_SIGNATURE);
+	response.SetContentType("application/json; charset=UTF-8");
 
 	if (request.method != "GET")
 	{
@@ -1160,14 +1188,411 @@ HTTPPacket::HTTPResponsePacket BlogSpaceContent::GetArticleList(int clientfd, HT
 		return response;
 	}
 
-	std::string username = request.ParseURLParamter()["user"];
-	std::
+	std::string username = request.ParseURLParamter()["username"];
+	std::vector<std::string> articleInfoList;
+	std::map<std::string, std::string> articleInfo;
+
 	if (username == "")
 	{
-		
+		response.body = "[]";
+		return response;
+	}
+
+	try
+	{
+		std::string user_uuid = GetUUIDByUsername(username);
+		if (user_uuid == "")
+		{
+			response.body = "[]";
+			return response;
+		}
+		mysqlProperty.connection->setSchema("lxhblogspace_content");
+		PtrPreparedStatement statement(mysqlProperty.connection->prepareStatement("SELECT article_id, create_date, vote_num FROM article_info WHERE user_uuid=?"));
+		statement->setString(1, user_uuid);
+		PtrResultSet article_info_rows(statement->executeQuery());
+		while (article_info_rows->next())
+		{
+			articleInfo["aritcle_id"] = article_info_rows->getString(1);
+			articleInfo["create_date"] = article_info_rows->getString(2);
+			articleInfo["vote_num"] = article_info_rows->getString(3);
+			articleInfo["author"] = username;
+			PtrPreparedStatement st(mysqlProperty.connection->prepareStatement("SELECT title, content FROM article_content WHERE article_id=?"));
+			st->setString(1, articleInfo["aritcle_id"]);
+			PtrResultSet article_content_rows(st->executeQuery());
+			while (article_content_rows->next())
+			{
+				articleInfo["title"] = article_content_rows->getString(1);
+				articleInfo["content"] = article_content_rows->getString(2);
+				if (articleInfo["content"].length() > 30)
+				{
+					articleInfo["content"] = articleInfo["content"].substr(0, 30) + "...";
+				}
+			}
+
+			articleInfoList.push_back(webstring::JsonStringify(articleInfo));
+		}
+	}
+	catch (sql::SQLException e)
+	{
+		response.SetResponseCode(HTTPPacket::ResponseCode::ServiceUnavailable);
+		if (serverProperty.verbose >= VerboseLevel::essential)
+		{
+			LogRequestError(clientfd, request, std::string("BlogSpaceContent::GetUserArticleList(): MySQL exception occured with code ") + std::to_string(e.getErrorCode()) + ", msg: " + e.what());
+		}
+		else
+		{
+			LogRequestError(clientfd, request, std::string("BlogSpaceContent::GetUserArticleList(): MySQL exception occured with code ") + std::to_string(e.getErrorCode()));
+		}
+		return response;
+	}
+
+	std::string result = "[";
+	for (auto article : articleInfoList)
+	{
+		result += article + ", ";
+	}
+	result = result.substr(0, result.length() - 2);
+	result += "]";
+
+	response.body = result;
+	return response;
+}
+
+HTTPPacket::HTTPResponsePacket BlogSpaceContent::Vote(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false)
+{
+	HTTPPacket::HTTPResponsePacket response;
+	response.SetServer(SERVER_SIGNATURE);
+	
+
+	if (request.method != "POST")
+	{
+		response.SetResponseCode(HTTPPacket::ResponseCode::MethodNotAllowed);
+		return response;
+	}
+
+	std::map<std::string, std::string> resultJson;
+	try
+	{
+		if (CheckUserToken(request) == false)
+		{
+			response.SetResponseCode(HTTPPacket::ResponseCode::Forbidden);
+			return response;
+		}
+
+		response.SetContentType("application/json; charset=UTF-8");
+		std::string user_uuid = request.GetCookieValue("_uuid");
+		auto requestParam = webstring::ParseKeyValue(request.body);
+		if (requestParam["article_id"] == "")
+		{
+			resultJson["ecode"] = "-1";
+			resultJson["reason"] = "请求参数有误";
+			response.body = webstring::JsonStringify(resultJson);
+
+			return response;
+		}
+
+		std::string articleId = requestParam["article_id"];
+		if (IsArticleExist(articleId) == false)
+		{
+			resultJson["ecode"] = "-4";
+			resultJson["reason"] = "指定文章不存在";
+			response.body = webstring::JsonStringify(resultJson);
+
+			return response;
+		}
+
+		if (requestParam["action_cancle"] == "1")
+		{
+			if (IsVoted(user_uuid, articleId) == true)
+			{
+				mysqlProperty.connection->setSchema("lxhblogspace_content");
+				PtrPreparedStatement statement(mysqlProperty.connection->prepareStatement("DELETE FROM article_vote_history WHERE user_uuid=? AND article_id=?"));
+				statement->setString(1, user_uuid);
+				statement->setString(2, articleId);
+				statement->executeUpdate();
+			}
+		}
+		else
+		{
+			if (IsVoted(user_uuid, articleId) == false)
+			{
+				mysqlProperty.connection->setSchema("lxhblogspace_content");
+				PtrPreparedStatement statement(mysqlProperty.connection->prepareStatement("INSERT INTO article_vote_history VALUES(?,?,?)"));
+				statement->setString(1, user_uuid);
+				statement->setString(2, articleId);
+				statement->setString(3, webstring::GenTimeStamp());
+				statement->executeUpdate();
+			}
+		}
+
+	}
+	catch (sql::SQLException e)
+	{
+		response.SetResponseCode(HTTPPacket::ResponseCode::ServiceUnavailable);
+		if (serverProperty.verbose >= VerboseLevel::essential)
+		{
+			LogRequestError(clientfd, request, std::string("BlogSpaceContent::Vote(): MySQL exception occured with code ") + std::to_string(e.getErrorCode()) + ", msg: " + e.what());
+		}
+		else
+		{
+			LogRequestError(clientfd, request, std::string("BlogSpaceContent::Vote(): MySQL exception occured with code ") + std::to_string(e.getErrorCode()));
+		}
+		return response;
+	}
+
+	resultJson["ecode"] = "0";
+	resultJson["reason"] = "操作成功";
+	response.body = webstring::JsonStringify(resultJson);
+	return response;
+	
+}
+
+HTTPPacket::HTTPResponsePacket BlogSpaceContent::Subscribe(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false)
+{
+	HTTPPacket::HTTPResponsePacket response;
+	response.SetServer(SERVER_SIGNATURE);
+
+
+	if (request.method != "POST")
+	{
+		response.SetResponseCode(HTTPPacket::ResponseCode::MethodNotAllowed);
+		return response;
+	}
+
+	std::map<std::string, std::string> resultJson;
+	try
+	{
+		if (CheckUserToken(request) == false)
+		{
+			response.SetResponseCode(HTTPPacket::ResponseCode::Forbidden);
+			return response;
+		}
+
+		response.SetContentType("application/json; charset=UTF-8");
+
+		std::string user_uuid = request.GetCookieValue("_uuid");
+		auto requestParam = webstring::ParseKeyValue(request.body);
+		if (requestParam["article_id"] == "")
+		{
+			resultJson["ecode"] = "-5";
+			resultJson["reason"] = "请求参数有误";
+			response.body = webstring::JsonStringify(resultJson);
+
+			return response;
+		}
+		std::string articleId = requestParam["article_id"];
+
+		if (IsArticleExist(articleId) == false)
+		{
+			resultJson["ecode"] = "-4";
+			resultJson["reason"] = "指定文章不存在";
+			response.body = webstring::JsonStringify(resultJson);
+
+			return response;
+		}
+
+		if (requestParam["action_cancle"] == "1")
+		{
+			if (IsSubscribed(user_uuid, articleId) == true)
+			{
+				mysqlProperty.connection->setSchema("lxhblogspace_content");
+				PtrPreparedStatement statement(mysqlProperty.connection->prepareStatement("DELETE FROM article_subscribe_history WHERE user_uuid=? AND article_id=?"));
+				statement->setString(1, user_uuid);
+				statement->setString(2, articleId);
+				statement->executeUpdate();
+			}
+		}
+		else
+		{
+			if (IsSubscribed(user_uuid, articleId) == false)
+			{
+				mysqlProperty.connection->setSchema("lxhblogspace_content");
+				PtrPreparedStatement statement(mysqlProperty.connection->prepareStatement("INSERT INTO article_subscribe_history VALUES(?,?,?)"));
+				statement->setString(1, user_uuid);
+				statement->setString(2, articleId);
+				statement->setString(3, webstring::GenTimeStamp());
+				statement->executeUpdate();
+			}
+		}
+
+	}
+	catch (sql::SQLException e)
+	{
+		response.SetResponseCode(HTTPPacket::ResponseCode::ServiceUnavailable);
+		if (serverProperty.verbose >= VerboseLevel::essential)
+		{
+			LogRequestError(clientfd, request, std::string("BlogSpaceContent::Subscribe(): MySQL exception occured with code ") + std::to_string(e.getErrorCode()) + ", msg: " + e.what());
+		}
+		else
+		{
+			LogRequestError(clientfd, request, std::string("BlogSpaceContent::Subscribe(): MySQL exception occured with code ") + std::to_string(e.getErrorCode()));
+		}
+		return response;
+	}
+
+	resultJson["ecode"] = "0";
+	resultJson["reason"] = "操作成功";
+	response.body = webstring::JsonStringify(resultJson);
+	return response;
+}
+
+HTTPPacket::HTTPResponsePacket BlogSpaceContent::CheckUserOperation(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false)
+{
+	HTTPPacket::HTTPResponsePacket response;
+	response.SetServer(SERVER_SIGNATURE);
+	response.SetContentType("application/json; charset=UTF-8");
+
+	std::map<std::string, std::string> resultJson;
+	std::string articleId = webstring::ParseKeyValue(request.body)["article_id"];
+	if (articleId == "")
+	{
+		resultJson["ecode"] = "-5";
+		resultJson["reason"] = "请求参数有误";
+		response.body = webstring::JsonStringify(resultJson);
+
+		return response;
+	}
+
+	try
+	{
+		std::string user_uuid = request.GetCookieValue("_uuid");
+		mysqlProperty.connection->setSchema("lxhblogspace_content");
+		PtrPreparedStatement statement(mysqlProperty.connection->prepareStatement("SELECT user_uuid FROM article_info WHERE article_id=?"));
+		statement->setString(1, articleId);
+		PtrResultSet result(statement->executeQuery());
+
+		if (result->rowsCount() == 0)
+		{
+			resultJson["ecode"] = "-4";
+			resultJson["reason"] = "指定文章不存在";
+			response.body = webstring::JsonStringify(resultJson);
+		}
+
+		resultJson["ecode"] = "0";
+		while (result->next())
+		{
+			if (result->getString(1) == user_uuid)
+			{
+				resultJson["isAuthor"] = "1";
+			}
+			else
+			{
+				resultJson["isAuthor"] = "0";
+			}
+		}
+
+		if (IsVoted(user_uuid, articleId) == true)
+		{
+			resultJson["can_vote"] = "0";
+		}
+		else
+		{
+			resultJson["can_vote"] = "1";
+		}
+
+		if (IsSubscribed(user_uuid, articleId) == true)
+		{
+			resultJson["can_subscribe"] = "0";
+		}
+		else
+		{
+			resultJson["can_subscribe"] = "1";
+		}
+	}
+	catch (sql::SQLException e)
+	{
+		response.SetResponseCode(HTTPPacket::ResponseCode::ServiceUnavailable);
+		if (serverProperty.verbose >= VerboseLevel::essential)
+		{
+			LogRequestError(clientfd, request, std::string("BlogSpaceContent::CheckUserOperation(): MySQL exception occured with code ") + std::to_string(e.getErrorCode()) + ", msg: " + e.what());
+		}
+		else
+		{
+			LogRequestError(clientfd, request, std::string("BlogSpaceContent::CheckUserOperation(): MySQL exception occured with code ") + std::to_string(e.getErrorCode()));
+		}
+		return response;
+	}
+
+	response.body = webstring::JsonStringify(resultJson);
+	return response;
+}
+
+HTTPPacket::HTTPResponsePacket BlogSpaceContent::SendComment(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false)
+{
+	HTTPPacket::HTTPResponsePacket response;
+	response.SetServer(SERVER_SIGNATURE);
+	
+	std::map<std::string, std::string> resultJson;
+	try
+	{
+		if (CheckUserToken(request) == false)
+		{
+			response.SetResponseCode(HTTPPacket::ResponseCode::Forbidden);
+			return response;
+		}
+
+	
+		auto requestParam = webstring::ParseKeyValue(request.body);
+		std::string articleId = requestParam["article_id"];
+		std::string content = requestParam["content"];
+
+		if (articleId == "" || content == "")
+		{
+			resultJson["ecode"] = "-5";
+			resultJson["reason"] = "请求参数有误";
+
+			response.SetContentType("application/json; charset=UTF-8");
+			response.body = webstring::JsonStringify(resultJson);
+			return response;
+		}
+
+		if (IsArticleExist(articleId) == false)
+		{
+			resultJson["ecode"] = "-4";
+			resultJson["reason"] = "指定文章不存在";
+
+			response.SetContentType("application/json; charset=UTF-8");
+			response.body = webstring::JsonStringify(resultJson);
+			return response;
+		}
+
+		mysqlProperty.connection->setSchema("lxhblogspace_content");
+		PtrPreparedStatement statement(mysqlProperty.connection->prepareStatement("INSERT INTO article_comment(article_id, from_uuid, to_uuid, create_date, content) VALUES(?,?,?,?,?)"));
+		statement->setString(1, articleId);
+		statement->setString(2, request.GetCookieValue("__uuid"));
+		statement->setString(3, "");
+		statement->setString(4, webstring::GenTimeStamp());
+		statement->setString(5, content);
+		statement->execute();
+
+		statement->execute("SET @insert_id=LAST_INSERT_ID()");
+
+		mysqlProperty.connection->setSchema("lxhblogspace_member");
+		PtrPreparedStatement pushst(mysqlProperty.connection->prepareStatement("INSERT INTO user_notice(from_uuid, to_uuid, comment_id, readed) VALUES(?,?,@insert_id,?)"));
+		pushst->setString(1, request.GetCookieValue("__uuid"));
+		pushst->setString(2, "");
+		pushst->setUInt(3, 0);
+		pushst->execute();
+
+		resultJson["ecode"] = "0";
+		response.SetContentType("application/json; charset=UTF-8");
+		response.body = webstring::JsonStringify(resultJson);
+		return response;
+	}
+	catch (sql::SQLException e)
+	{
+		response.SetResponseCode(HTTPPacket::ResponseCode::ServiceUnavailable);
+		if (serverProperty.verbose >= VerboseLevel::essential)
+		{
+			LogRequestError(clientfd, request, std::string("BlogSpaceContent::CheckUserOperation(): MySQL exception occured with code ") + std::to_string(e.getErrorCode()) + ", msg: " + e.what());
+		}
+		else
+		{
+			LogRequestError(clientfd, request, std::string("BlogSpaceContent::CheckUserOperation(): MySQL exception occured with code ") + std::to_string(e.getErrorCode()));
+		}
+		return response;
 	}
 }
-*/
 
 bool BlogSpaceContent::CheckUserToken(HTTPPacket::HTTPRequestPacket &request) noexcept(false)
 {
@@ -1191,7 +1616,13 @@ bool BlogSpaceContent::CheckUserToken(HTTPPacket::HTTPRequestPacket &request) no
 		if (result->getString(1) == token)
 		{
 			//30天有效期
-			if ((time(nullptr) - result->getInt64(2)) < 2592000)
+			time_t currentTime = time(nullptr);
+			if (currentTime == -1)
+			{
+				break;
+			}
+
+			if ((currentTime - result->getInt64(2)) < 2592000)
 			{
 				logined = true;
 				break;
@@ -1234,3 +1665,81 @@ std::string BlogSpaceContent::PrepareDirectory(std::string fileExtention) noexce
 	throw std::runtime_error("建议您今天购买彩票。");
 }
 
+std::string BlogSpaceContent::GetUUIDByUsername(std::string username) noexcept(false)
+{
+	std::string schema = mysqlProperty.connection->getSchema();
+
+	mysqlProperty.connection->setSchema("lxhblogspace_passport");
+	PtrPreparedStatement statement(mysqlProperty.connection->prepareStatement("SELECT user_uuid FROM user_info WHERE username=?"));
+	statement->setString(1, username);
+	PtrResultSet result(statement->executeQuery());
+
+	mysqlProperty.connection->setSchema(schema);
+	while (result->next())
+	{
+		return result->getString("user_uuid");
+	}
+
+	return "";
+}
+
+bool BlogSpaceContent::IsArticleExist(std::string aritcleId) noexcept(false)
+{
+	std::string schema = mysqlProperty.connection->getSchema();
+
+	mysqlProperty.connection->setSchema("lxhblogspace_content");
+	PtrPreparedStatement statement(mysqlProperty.connection->prepareStatement("SELECT * FROM article_info WHERE article_id=?"));
+	statement->setString(1, aritcleId);
+	PtrResultSet result(statement->executeQuery());
+
+	mysqlProperty.connection->setSchema(schema);
+	if (result->rowsCount() == 0)
+	{
+		return false;
+	}
+	{
+		return true;
+	}
+}
+
+bool BlogSpaceContent::IsVoted(std::string uuid, std::string articleId) noexcept(false)
+{
+	std::string schema = mysqlProperty.connection->getSchema();
+
+	mysqlProperty.connection->setSchema("lxhblogspace_content");
+	PtrPreparedStatement statement(mysqlProperty.connection->prepareStatement("SELECT * FROM article_vote_history WHERE user_uuid=? AND article_id=?"));
+	statement->setString(1, uuid);
+	statement->setString(2, articleId);
+	PtrResultSet result(statement->executeQuery());
+
+	mysqlProperty.connection->setSchema(schema);
+	if (result->rowsCount() == 0)
+	{
+		return false;
+	}
+	else
+	{
+		return true;
+	}
+}
+
+bool BlogSpaceContent::IsSubscribed(std::string uuid, std::string articleId) noexcept(false)
+{
+	std::string schema = mysqlProperty.connection->getSchema();
+
+	mysqlProperty.connection->setSchema("lxhblogspace_content");
+	PtrPreparedStatement statement(mysqlProperty.connection->prepareStatement("SELECT * FROM article_subscribe_history WHERE user_uuid=? AND article_id=?"));
+	statement->setString(1, uuid);
+	statement->setString(2, articleId);
+	PtrResultSet result(statement->executeQuery());
+
+	mysqlProperty.connection->setSchema(schema);
+	if (result->rowsCount() == 0)
+	{
+		return false;
+	}
+	else
+	{
+		return true;
+	}
+}

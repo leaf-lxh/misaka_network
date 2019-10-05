@@ -332,7 +332,8 @@ namespace webstring
 
 	std::string GenTimeStamp()
 	{
-		return std::to_string(time(nullptr));
+		time_t currentTime = time(nullptr);
+		return (currentTime == -1) ? "0" : std::to_string(currentTime);
 	}
 
 	std::string JsonStringify(std::map<std::string, std::string> object)
