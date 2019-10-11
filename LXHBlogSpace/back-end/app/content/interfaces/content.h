@@ -58,13 +58,18 @@ private:
 
 	HTTPPacket::HTTPResponsePacket Vote(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false);
 	HTTPPacket::HTTPResponsePacket Subscribe(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false);
+
+	HTTPPacket::HTTPResponsePacket GetSubscribedList(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false);
 	HTTPPacket::HTTPResponsePacket CheckUserOperation(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false);
 
 	HTTPPacket::HTTPResponsePacket SendComment(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false);
+	HTTPPacket::HTTPResponsePacket GetComments(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false);
+
+	HTTPPacket::HTTPResponsePacket GetPublishArticleList(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false);
 
 	/*****************内部调用接口**************/
 	/*!
-	验证用户登录是否有效，并且未被封禁。调用本函数后会将schema设置为lxhblogspace_passport
+	验证用户登录是否有效，并且未被封禁。
 	参数：request | 当前用户的请求报文
 	返回：符合条件为true, 否则为false
 	异常：执行SQL语句时如遇错误会抛出sql::SQLException
@@ -79,10 +84,40 @@ private:
 	std::string PrepareDirectory(std::string fileExtention) noexcept(false);
 
 	/*!
-	根据用户id获取其uuid。
+	根据用户名获取其uuid。
 	异常：可能会抛出sql::SQLException
 	*/
-	std::string GetUUIDByUsername(std::string username) noexcept(false);
+	std::string GetUUIDByUsername(std::string uuid) noexcept(false);
+
+	/*!
+	根据用户uuid获取其头像
+	异常：可能会抛出sql::SQLException
+	*/
+	std::string GetUserAvatar(std::string uuid) noexcept(false);
+
+	/*!
+	根据用户uuid获取其用户名
+	异常：可能会抛出sql::SQLException
+	*/
+	std::string GetUsernameByUUID(std::string username) noexcept(false);
+
+	/*!
+	获取文章的评论数
+	异常：可能会抛出sql::SQLException
+	*/
+	int GetArticleCommentNum(std::string articleId) noexcept(false);
+
+	/*!
+	获取文章的标题
+	异常：可能会抛出sql::SQLException
+	*/
+	std::string GetArticleTitle(std::string articleId) noexcept(false);
+
+	/*!
+	获取文章的作者uuid
+	异常：可能会抛出sql::SQLException
+	*/
+	std::string GetArticleAuthor(std::string articleId) noexcept(false);
 
 	/*!
 	查询指定文章是否存在。
@@ -100,4 +135,6 @@ private:
 	异常：可能会抛出sql::SQLException
 	*/
 	bool IsSubscribed(std::string uuid, std::string articleId) noexcept(false);
+
+	std::string MarkdownBriefPretty(std::string text) noexcept;
 };

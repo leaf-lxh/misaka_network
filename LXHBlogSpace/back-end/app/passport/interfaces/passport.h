@@ -15,11 +15,6 @@ public:
 
 
 private:
-	/*!
-	初始化路由表
-	*/
-	void InitRouteTabel() noexcept;
-
 	///MYSQL服务的属性
 	struct MySQLProperty
 	{
@@ -57,6 +52,8 @@ private:
 
 	/****************外部公开接口***************/
 	HTTPPacket::HTTPResponsePacket Login(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false);
+	HTTPPacket::HTTPResponsePacket Logout(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false);
+
 	HTTPPacket::HTTPResponsePacket CheckUserExist(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false);
 	HTTPPacket::HTTPResponsePacket CheckEmailExist(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false);
 	HTTPPacket::HTTPResponsePacket Register(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false);
@@ -64,6 +61,9 @@ private:
 	HTTPPacket::HTTPResponsePacket GetUserInfo(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false);
 
 	HTTPPacket::HTTPResponsePacket IsLogin(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false);
+
+	HTTPPacket::HTTPResponsePacket UpdateUserDetails(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false);
+
 
 	/*****************内部调用接口**************/
 	/*!
@@ -91,4 +91,13 @@ private:
 	返回：合乎规范为true，否则返回false
 	*/
 	bool IsVaildEmailAddress(std::string email) noexcept;
+
+	/*****************内部调用接口**************/
+	/*!
+	验证用户登录是否有效，并且未被封禁。
+	参数：request | 当前用户的请求报文
+	返回：符合条件为true, 否则为false
+	异常：执行SQL语句时如遇错误会抛出sql::SQLException
+	*/
+	bool CheckUserToken(HTTPPacket::HTTPRequestPacket& request) noexcept(false);
 };

@@ -133,16 +133,18 @@ ver: 1.0
 
 服务端返回：json，包含以下字段
 
-| 键名              | 说明                                                         |
-| ----------------- | ------------------------------------------------------------ |
+| 键名              | 说明                                                       |
+| ----------------- | ---------------------------------------------------------- |
 | "ecode"           | 字符串类型，错误码为 {0 \|4 \|5}。详见最底部的错误码对照表 |
-| "reason"          | 字符串类型，错误原因。                                       |
-| "article_id"      | 文章id                                                       |
-| "author"          | 作者用户名                                                   |
-| "lastmodify_time" | 上次保存的unix时间戳                                         |
-| "bg"              | 背景图片的url，应当使用URI编码                               |
-| "title"           | 文章的标题，使用base64进行编码。                             |
-| "content"         | 文章内容，使用base64进行编码。                               |
+| "reason"          | 字符串类型，错误原因。                                     |
+| "article_id"      | 文章id                                                     |
+| "author"          | 作者用户名                                                 |
+| "lastmodify_time" | 上次保存的unix时间戳                                       |
+| "bg"              | 背景图片的url，应当使用URI编码                             |
+| "title"           | 文章的标题，使用base64进行编码。                           |
+| "content"         | 文章内容，使用base64进行编码。                             |
+| "vote_num"        | 赞数                                                       |
+| "comment_num"     | 评论数                                                     |
 
 ### 删除文章
 
@@ -191,10 +193,10 @@ ver: 1.0
 
 请求方法：POST，要求携带用户Cookie，并包含以下参数
 
-| 参数名        | 说明                                          |
-| ------------- | --------------------------------------------- |
-| action_cancle | 是否取消点赞，如是请提交1，否则为进行点赞操作 |
-| article_id    | 要操作的文章                                  |
+| 参数名     | 说明                                               |
+| ---------- | -------------------------------------------------- |
+| action     | 是否取消点赞，"cancle"为取消点赞，"vote"为进行点赞 |
+| article_id | 要操作的文章                                       |
 
 服务端返回：json，包含以下字段
 
@@ -209,10 +211,10 @@ ver: 1.0
 
 请求方法：POST，要求携带用户Cookie，并包含以下参数
 
-| 参数名        | 说明                                          |
-| ------------- | --------------------------------------------- |
-| action_cancle | 是否取消收藏，如是请提交1，否则为进行收藏操作 |
-| article_id    | 要操作的文章                                  |
+| 参数名     | 说明                                                |
+| ---------- | --------------------------------------------------- |
+| action     | 是否取消收藏，"cancle"为取消收藏，"subscribe"为收藏 |
+| article_id | 要操作的文章                                        |
 
 服务端返回：json，包含以下字段
 
@@ -220,6 +222,24 @@ ver: 1.0
 | -------- | --------------------------------------------------------- |
 | "ecode"  | 字符串类型，错误码为 {0  -4 -5}。详见最底部的错误码对照表 |
 | "reason" | 字符串类型，错误原因。                                    |
+
+### 读取我的收藏
+
+接口路径：`/api/v1/content/GetSubscribedList`
+
+请求方法：GET，要求携带用户Cookie
+
+服务端返回：数组，每个元素为一个json，包含以下字段
+
+| 字段名     | 说明           |
+| ---------- | -------------- |
+| article_id | 文章的id       |
+| title      | 文章的标题     |
+| author     | 作者           |
+| avatar     | 作者的头像     |
+| add_time   | 添加收藏的时间 |
+
+
 
 ### 查询当前用户可对文章进行的操作
 
@@ -249,10 +269,10 @@ ver: 1.0
 
 请求方法：POST，要求携带用户Cookie，并包含以下参数
 
-| 参数名     | 说明         |
-| ---------- | ------------ |
-| article_id | 要操作的文章 |
-| content    | 评论内容     |
+| 参数名     | 说明                     |
+| ---------- | ------------------------ |
+| article_id | 要操作的文章             |
+| content    | 评论内容，使用base64编码 |
 
 服务端返回：json，包含以下字段
 
@@ -263,7 +283,41 @@ ver: 1.0
 
 ### 获取文章的评论
 
+接口路径：`/api/v1/content/GetComments`
+
+请求方法：GET，包含以下参数
+
+| 参数名     | 说明         |
+| ---------- | ------------ |
+| article_id | 要操作的文章 |
+| page       | 请求的页数   |
+
+服务端返回：json，包含以下字段。如果页数有误则pageNum返回-1。unixtimestamp精确到秒。每一页的最大评论数为5条。comment使用base64进行编码
+
+```json
+{"pageNum": 1, "maxPageNum": 4, "commentList": [{"username": "test1", "avatar": "lxhcat.jpg", "re": "Lxh", "comment": "test comment", "time": "2019-02-32"},
+{"username": "test1", "avatar": "lxhcat.jpg", "re": "", "comment": "test comment", "time": "unixtimestamp"},
+{"username": "test1", "avatar": "lxhcat.jpg", "re": "", "comment": "test comment", "time": "unixtimestamp"},
+{"username": "test1", "avatar": "lxhcat.jpg", "re": "", "comment": "test comment", "time": "unixtimestamp"},
+{"username": "test1", "avatar": "lxhcat.jpg", "re": "", "comment": "test comment", "time": "unixtimestamp"},
+{"username": "test1", "avatar": "lxhcat.jpg", "re": "", "comment": "test comment", "time": "unixtimestamp"}]
+```
+
 ### 获取文章推送列表
+
+接口路径：`/api/v1/content/GetComments`
+
+请求方法：GET，包含以下参数
+
+| 参数名     | 说明                       |
+| ---------- | -------------------------- |
+| article_id | 上次查询的最后一个文章的id |
+
+服务端返回：经stringify的数组。每次请求最多返回15条文章信息。每个元素为一个json，包含以下字段。
+
+```json
+{"article_id": 12450, "title": "文章标题1", "brief": "简要1", "tags": [id1, id2], "interInfo": {"vote": 123, "comments": 123}, "authorInfo":{"name": "user", "avatar": "xxxxx"}}
+```
 
 ### 获取时间线推送列表
 

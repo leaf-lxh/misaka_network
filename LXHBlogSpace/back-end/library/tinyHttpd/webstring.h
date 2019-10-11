@@ -2,6 +2,8 @@
 #include <vector>
 #include <map>
 
+#include <boost/property_tree/ptree.hpp>
+
 namespace webstring
 {
 	std::string strip(const std::string & str, const std::string chr = " ");
@@ -19,6 +21,10 @@ namespace webstring
 	返回：字符个数
 	*/
 	std::size_t UTF8Strlen(const std::string& utf8String);
+
+	/*!
+	substr函数，utf8编码*/
+	std::string UTF8Substr(const std::string& str, unsigned int start, unsigned int leng);
 
 	/*!
 	解析HTTP请求参数(&key=value&key=value的参数格式)
@@ -58,6 +64,11 @@ namespace webstring
 	将string类型的map转化为JSON字符串
 	*/
 	std::string JsonStringify(std::map<std::string, std::string> object);
+
+	/*!
+	将ptree对象转换为字符串
+	*/
+	std::string JsonStringify(boost::property_tree::ptree propertyTree);
 
 	/*!
 	base64编解码, 自动进行补全操作

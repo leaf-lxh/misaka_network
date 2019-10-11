@@ -2,6 +2,7 @@ drop database lxhblogspace_passport;
 create database lxhblogspace_passport;
 use lxhblogspace_passport;
 
+
 create table user_info(
     user_uuid tinytext  not null,
     register_date int unsigned not null,
@@ -33,4 +34,3 @@ create table user_email_code(
     email_code tinytext not null,
     code_date int unsigned not null
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
-

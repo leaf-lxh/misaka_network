@@ -17,7 +17,7 @@ namespace HTTPPacket
 		BadRequest = 400,
 		Unauthorized = 401,
 		Forbidden = 403,
-		NotFouond = 404,
+		NotFound = 404,
 		MethodNotAllowed = 405,
 		InternalServerError = 500,
 		NotImplemented = 501,

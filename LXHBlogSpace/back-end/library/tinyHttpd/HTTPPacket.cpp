@@ -178,7 +178,7 @@ namespace HTTPPacket
 		case ResponseCode::Forbidden:
 			msg = "Forbidden";
 			break;
-		case ResponseCode::NotFouond:
+		case ResponseCode::NotFound:
 			msg = "Not Fouond";
 			break;
 		case ResponseCode::MethodNotAllowed:

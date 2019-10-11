@@ -9,10 +9,11 @@ function GetTimeBlock(time)
 {
     if (time != null)
     {
+        time = new Date(parseInt(time) * 1000);
         return (
             <div className="blog-brief-timestamp">
                 <div className="blog-brief-timestamp-iconitem"><AccessTime /></div>
-                <div className="blog-brief-timestamp-timeitem">{time}</div>
+                <div className="blog-brief-timestamp-timeitem">{time.toLocaleDateString() + " " + time.toLocaleTimeString('zh-CN', {hour12: false})}</div>
             </div>
         )
     }
@@ -26,10 +27,6 @@ function BlogBriefBox(title, article, tags, interInfo, userInfo, href, time)  {
             {GetTimeBlock(time)}
             <div className="blog-brief-head">
                 <div className="title">{title}</div>
-                <div className="user-info">
-                    <div className="username">{userInfo["name"]}</div>
-                    <Avatar className="avatar" src={userInfo["avatar"]} style={{borderRadius: 0}}/>
-                </div>
             </div>
 
             <div className="blog-brief-content-block">

@@ -1,31 +1,107 @@
 import React from 'react';
 // eslint-disable-next-line
-import { makeStyles } from '@material-ui/core/styles'
+import "./css/MainContainer.css"
 
 import BlogBriefBox from './BlogBriefBox'
+import CircularProgress from "@material-ui/core/CircularProgress"
 
-var testBlogBriefData1 = '{"title": "测试标题", "article": "测试内容…                                                                   ", "tags": ["programer", "华为", "996"], "interInfo": {"vote": "100", "comments": "999"}, "userInfo":{"name":"LegendLXH", "avatar":"lxhcat.jpg"}, "href": "/blogs/114514"}';
+var onloadding = false;
+var lastPos = null;
+class BlogBrief extends React.Component
+{
+    constructor(props)
+    {
+        super(props);
+        this.state = {
+            src: 
+            <div className="blog-brief-list">
+                <div className="container-loading">
+                    <div style={{paddingTop: "300px"}}>
+                        <CircularProgress style={{display: "inline-block"}} variant="indeterminate"/>
+                        <div className="container-loading-text">
+                            加载中...
+                        </div>
+                    </div>
 
-var blog = '{"title": "系统运维从修补到宕机", "article": "目录：Linux服务 openssh-server", "tags": ["系统运维", "Linux系统加固"], "interInfo": {"vote": "100", "comments": "999"}, "userInfo":{"name":"LegendLXH", "avatar":"lxhcat.jpg"}, "href": "/blogs"}';
-var bunchData = [blog, testBlogBriefData1, testBlogBriefData1, testBlogBriefData1, testBlogBriefData1, testBlogBriefData1, testBlogBriefData1, testBlogBriefData1, testBlogBriefData1, testBlogBriefData1, testBlogBriefData1, testBlogBriefData1, testBlogBriefData1, testBlogBriefData1, testBlogBriefData1, testBlogBriefData1, testBlogBriefData1, testBlogBriefData1,testBlogBriefData1,testBlogBriefData1];
-function GetBlogBrief(){
-    //由array.map函数来进行动态的批量JSX元素生成
-    //数据由此处的AJAX请求来获得
-    //var request = new XMLHttpRequest();
+                </div>
+            </div>
+        }
+        this.lastNode = null;
+    }
 
-    return bunchData.map((blogText, index) =>{
-        var blogData = JSON.parse(blogText);
-        return BlogBriefBox(blogData["title"], blogData["article"], blogData["tags"], blogData["interInfo"], blogData["userInfo"], blogData["href"]);
-    })
-}
+    render()
+    {
+        return (
+            <>
+                {this.state.src}
+            </>
+        )
+    }
 
+    LoadMoreArticle()
+    {
+        fetch("/api/v1/content/GetPublishArticleList?article_id=" + this.lastNode)
+        .then(response=>response.json())
+        .then(response=>{
+            if (response.length === 0)
+            {
+                window.onscroll = null;
+            }
+            
+            this.setState({
+                src: 
+                <>
+                    <>
+                        {this.state.src}
+                    </>
+                    <>
+                    {
+                        response.map((blogText, index) =>{
+                        var blogData = blogText;
+                        this.lastNode = blogData["article_id"];
+                        return BlogBriefBox(window.decodeURIComponent(escape(window.atob(blogData["title"]))), window.decodeURIComponent(escape(window.atob(blogData["brief"]))), blogData["tags"], blogData["interInfo"], blogData["authorInfo"], blogData["article_id"]);
+                        })
+                    }
+                    </>
+                </>
+            });
+            document.documentElement.scrollTop = lastPos;
+            onloadding = false;
+        })
+    }
 
-function BlogBrief (){
-    return(
-        <>
-            <GetBlogBrief />
-        </>
-    )
+    ScrollHook()
+    {
+        if ( document.documentElement.scrollHeight - (document.documentElement.scrollTop + document.documentElement.clientHeight) < 500)
+        {
+            console.log("shit")
+            if (onloadding === false)
+            {
+                onloadding = true;
+                lastPos = document.documentElement.scrollTop;
+                this.LoadMoreArticle()
+            }
+
+        }
+    }
+
+    componentDidMount()
+    {
+        fetch("/api/v1/content/GetPublishArticleList")
+        .then(response=>response.json())
+        .then(response=>{
+            console.log(response)
+            this.setState({
+                src: 
+                response.map((blogText, index) =>{
+                    var blogData = blogText;
+                    this.lastNode = blogData["article_id"];
+                    return BlogBriefBox(window.decodeURIComponent(escape(window.atob(blogData["title"]))), window.decodeURIComponent(escape(window.atob(blogData["brief"]))), blogData["tags"], blogData["interInfo"], blogData["authorInfo"], blogData["article_id"]);
+                })
+            });
+            window.onscroll = this.ScrollHook.bind(this);
+        })
+    }
 }
 
 export default BlogBrief;

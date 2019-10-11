@@ -41,6 +41,14 @@ class NavBar extends React.Component
         }
     }
 
+    KeyDownHandler(props)
+    {
+        if(props.key === "Enter")
+        {
+            this.DoLoginAction();
+        }
+    }
+    
     render()
     {
         return(
@@ -85,6 +93,7 @@ class NavBar extends React.Component
                                             autoComplete="password"
                                             margin="normal"
                                             style={{marginTop: "15px", minWidth: "300px"}}
+                                            onKeyUp={this.KeyDownHandler.bind(this)}
                                         />
                                     </div>
                                 </DialogContent>
@@ -106,7 +115,6 @@ class NavBar extends React.Component
         this.setState({
             loginDialogOpenState: true
         })
-        console.log(this.state);
     }
     
     HideDialog()
@@ -216,7 +224,7 @@ class NavBar extends React.Component
                         </div>
                     </>
                     , document.getElementsByClassName("navstyle-status")[0]);
-                        
+                    window.user_info = {"username": userinfo.username, "avatar": userinfo.avatar};           
                 }
             });
     }

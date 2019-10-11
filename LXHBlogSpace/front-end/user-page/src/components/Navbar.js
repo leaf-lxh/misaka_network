@@ -22,8 +22,6 @@ import AssignmentIcon from '@material-ui/icons/Assignment'
 
 import "./css/Navbar.css"
 
-var API_PROVIDER_SERVER = "http://api.leaflxh.com";
-
 
 //以下为重构的代码
 class NavBar extends React.Component
@@ -45,9 +43,9 @@ class NavBar extends React.Component
         return(
             <AppBar position="fixed" style={{minWidth: 960, background: "#f5f5f5", zIndex: 1201}}>
                 <ToolBar >
-                    <Typography className ="navstyle-title" variant="h5">
+                    <Link className ="navstyle-title" variant="h5" href="/" underline="none">
                         LXH's Blog Space
-                    </Typography>
+                    </Link>
                     <div className="navstyle-status">
                         <>
                             <Button className= "navstyle-button" onClick={this.ShowDialog.bind(this)}>
@@ -182,7 +180,7 @@ class NavBar extends React.Component
                 });
             })
             .then((userinfo)=>{
-                if (userinfo !== undefined && userinfo.vaild == "true")
+                if (userinfo !== undefined && userinfo.vaild === "true")
                 {
                     ReactDOM.render(
                     <>

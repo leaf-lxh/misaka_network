@@ -91,7 +91,7 @@ std::map<std::string, std::string> TinyHttpd::Init(std::string confPath) noexcep
 		{
 			serverProperty.bind = { stoi(setting["port"]), webstring::strip(setting["address"], "\"\'") };
 		}
-		catch (std::runtime_error e)
+		catch(...)
 		{
 			throw runtime_error("Invaild port or address, examine your configuration file.");
 		}
@@ -116,7 +116,7 @@ std::map<std::string, std::string> TinyHttpd::Init(std::string confPath) noexcep
 				throw std::runtime_error("?");
 			}
 		}
-		catch (std::runtime_error e)
+		catch (...)
 		{
 			throw runtime_error(std::string("Invaild maxClients: ") + setting["maxClients"]);
 		}
@@ -161,7 +161,7 @@ std::map<std::string, std::string> TinyHttpd::Init(std::string confPath) noexcep
 				break;
 			}
 		}
-		catch (std::runtime_error e)
+		catch (...)
 		{
 			throw runtime_error("Invaild verbose level.");
 		}
@@ -177,7 +177,7 @@ std::map<std::string, std::string> TinyHttpd::Init(std::string confPath) noexcep
 		{
 			serverProperty.timeout = stoi(setting["KeepAliveTimeout"]);
 		}
-		catch (runtime_error e)
+		catch (...)
 		{
 			throw runtime_error("Invaild timeout value.");
 		}
@@ -193,7 +193,7 @@ std::map<std::string, std::string> TinyHttpd::Init(std::string confPath) noexcep
 		{
 			serverProperty.maxRequestsNum = stoi(setting["KeepAliveMaxRequestNum"]);
 		}
-		catch (runtime_error e)
+		catch (...)
 		{
 			throw runtime_error("Invaild timeout value.");
 		}

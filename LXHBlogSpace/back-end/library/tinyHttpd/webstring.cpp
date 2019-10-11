@@ -240,6 +240,32 @@ namespace webstring
 		return length;
 	}
 
+	//http://www.zedwood.com/article/cpp-utf-8-mb_substr-function
+	//没有进行代码审计
+	std::string UTF8Substr(const std::string& str, unsigned int start, unsigned int leng)
+	{
+		using std::string;
+		if (leng == 0) { return ""; }
+		std::size_t c, i, ix, q, min = string::npos, max = string::npos;
+		for (q = 0, i = 0, ix = str.length(); i < ix; i++, q++)
+		{
+			if (q == start) { min = i; }
+			if (q <= start + leng || leng == string::npos) { max = i; }
+
+			c = (unsigned char)str[i];
+			if (c >= 0 && c <= 127) i += 0;
+			else if ((c & 0xE0) == 0xC0) i += 1;
+			else if ((c & 0xF0) == 0xE0) i += 2;
+			else if ((c & 0xF8) == 0xF0) i += 3;
+			//else if (($c & 0xFC) == 0xF8) i+=4; // 111110bb //byte 5, unnecessary in 4 byte UTF-8
+			//else if (($c & 0xFE) == 0xFC) i+=5; // 1111110b //byte 6, unnecessary in 4 byte UTF-8
+			else return "";//invalid utf8
+		}
+		if (q <= start + leng || leng == string::npos) { max = i; }
+		if (min == string::npos || max == string::npos) { return ""; }
+		return str.substr(min, max);
+	}
+
 	std::map<std::string, std::string> ParseKeyValue(std::string param, char assginChar, char splitChar)
 	{
 		using namespace std;
@@ -347,6 +373,14 @@ namespace webstring
 		std::ostringstream buffer;
 		boost::property_tree::write_json(buffer, jsonTree, false);
 		return buffer.str();
+	}
+
+	std::string JsonStringify(boost::property_tree::ptree propertyTree) noexcept(false)
+	{
+		std::ostringstream stream;
+		boost::property_tree::write_json(stream, propertyTree);
+
+		return stream.str();
 	}
 
 	//copy from https://stackoverflow.com/questions/46349697/decode-base64-string-using-boost

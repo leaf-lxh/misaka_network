@@ -57,20 +57,7 @@ void BlogSpacePassport::ModuleInit() noexcept(false)
 
 
 	//其他的初始化
-	InitRouteTabel();
 	InitMysqlConnection();
-}
-
-void BlogSpacePassport::InitRouteTabel() noexcept
-{
-	AddRoutePath("/api/v1/passport/");
-	AddRoutePath("/api/v1/passport/login");
-	AddRoutePath("/api/v1/passport/register");
-	AddRoutePath("/api/v1/passport/GetUserInfo");
-	AddRoutePath("/api/v1/passport/IsLogin");
-	AddRoutePath("/api/v1/passport/CheckUserExist");
-	AddRoutePath("/api/v1/passport/CheckEmailExist");
-	AddRoutePath("/api/v1/passport/SendEmailAuth");
 }
 
 void BlogSpacePassport::InitMysqlConnection() noexcept(false)
@@ -92,15 +79,6 @@ void BlogSpacePassport::InitMysqlConnection() noexcept(false)
 
 void BlogSpacePassport::HTTPPacketHandler(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept
 {
-	if (serverProperty.routeTable.count(request.requestPath) == 0)
-	{
-		RaiseHTPPError(clientfd, 404);
-		LogRequestError(clientfd, request, "404");
-		return;
-	}
-
-
-
 	HTTPPacket::HTTPResponsePacket response;
 
 	if (mysqlProperty.connection->isValid() == false)
@@ -131,6 +109,23 @@ void BlogSpacePassport::HTTPPacketHandler(int clientfd, HTTPPacket::HTTPRequestP
 		try
 		{
 			response = Login(clientfd, request);
+			response.responseHeaders.insert({ "Access-Control-Allow-Origin", "http://blog.leaflxh.com" });
+
+			connectedClients[clientfd].writeBuffer += response.ToString();
+			LogResponse(clientfd, request, response.code);
+		}
+		catch (std::runtime_error e)
+		{
+			LogRequestError(clientfd, request, e.what());
+		}
+		return;
+	}
+
+	if (request.requestPath == "/api/v1/passport/logout")
+	{
+		try
+		{
+			response = Logout(clientfd, request);
 			response.responseHeaders.insert({ "Access-Control-Allow-Origin", "http://blog.leaflxh.com" });
 
 			connectedClients[clientfd].writeBuffer += response.ToString();
@@ -245,7 +240,27 @@ void BlogSpacePassport::HTTPPacketHandler(int clientfd, HTTPPacket::HTTPRequestP
 		return;
 	}
 	
-	RaiseHTPPError(clientfd, 501);
+	if (request.requestPath == "/api/v1/passport/UpdateUserDetails")
+	{
+		try
+		{
+			response = UpdateUserDetails(clientfd, request);
+			response.responseHeaders.insert({ "Access-Control-Allow-Origin", "http://blog.leaflxh.com" });
+
+			connectedClients[clientfd].writeBuffer += response.ToString();
+			LogResponse(clientfd, request, response.code);
+		}
+		catch (std::runtime_error e)
+		{
+			LogRequestError(clientfd, request, e.what());
+		}
+		return;
+	}
+
+	response.SetServer(SERVER_SIGNATURE);
+	response.SetResponseCode(HTTPPacket::ResponseCode::NotFound);
+	connectedClients[clientfd].writeBuffer += response.ToString();
+	LogResponse(clientfd, request, response.code);
 }
 
 HTTPPacket::HTTPResponsePacket BlogSpacePassport::CheckUserExist(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false)
@@ -482,6 +497,51 @@ HTTPPacket::HTTPResponsePacket BlogSpacePassport::Login(int clientfd, HTTPPacket
 		}
 	}
 	return response;
+}
+
+HTTPPacket::HTTPResponsePacket BlogSpacePassport::Logout(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false)
+{
+	HTTPPacket::HTTPResponsePacket response;
+
+	if (request.method != "POST")
+	{
+		response.SetResponseCode(HTTPPacket::ResponseCode::MethodNotAllowed);
+		return response;
+	}
+
+	try
+	{
+		if (CheckUserToken(request) == false)
+		{
+			response.SetResponseCode(HTTPPacket::ResponseCode::Forbidden);
+			return response;
+		}
+
+		PtrPreparedStatement statement(mysqlProperty.connection->prepareStatement("UPDATE user_token SET token_date=0 WHERE user_uuid=? AND token_value=?"));
+		statement->setString(1, request.GetCookieValue("_uuid"));
+		statement->setString(2, request.GetCookieValue("_sessionToken"));
+		if (statement->executeQuery() == 0)
+		{
+			return response;
+		}
+
+		response.SetLocation("/");
+		response.SetResponseCode(HTTPPacket::ResponseCode::Found);
+		return response;
+	}
+	catch (sql::SQLException e)
+	{
+		response.SetResponseCode(HTTPPacket::ResponseCode::ServiceUnavailable);
+		if (serverProperty.verbose >= VerboseLevel::essential)
+		{
+			LogRequestError(clientfd, request, std::string("BlogSpacePassport::Login(): MySQL exception occured with code ") + std::to_string(e.getErrorCode()) + ", msg: " + e.what());
+		}
+		else
+		{
+			LogRequestError(clientfd, request, std::string("BlogSpacePassport::Login(): MySQL exception occured with code ") + std::to_string(e.getErrorCode()));
+		}
+		return response;
+	}	
 }
 
 HTTPPacket::HTTPResponsePacket BlogSpacePassport::Register(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false)
@@ -856,7 +916,7 @@ HTTPPacket::HTTPResponsePacket BlogSpacePassport::GetUserInfo(int clientfd, HTTP
 	try
 	{
 		mysqlProperty.connection->setSchema("lxhblogspace_passport");
-		PtrPreparedStatement statement(mysqlProperty.connection->prepareStatement("SELECT user_uuid, register_date, is_locked WHERE username=?"));
+		PtrPreparedStatement statement(mysqlProperty.connection->prepareStatement("SELECT user_uuid, register_date, is_locked FROM user_info WHERE username=?"));
 		statement->setString(1, username);
 		PtrResultSet userInfo(statement->executeQuery());
 		if (userInfo->rowsCount() == 0)
@@ -873,7 +933,7 @@ HTTPPacket::HTTPResponsePacket BlogSpacePassport::GetUserInfo(int clientfd, HTTP
 			user_uuid = userInfo->getString("user_uuid");
 			resultJson["register_date"] = userInfo->getString("register_date");
 			resultJson["is_locked"] = userInfo->getString("is_locked");
-			resultJson["username"] = userInfo->getString("username");
+			resultJson["username"] = username;
 		}
 		
 		statement.reset(mysqlProperty.connection->prepareStatement("SELECT avatar, description FROM user_details WHERE user_uuid=?"));
@@ -881,10 +941,20 @@ HTTPPacket::HTTPResponsePacket BlogSpacePassport::GetUserInfo(int clientfd, HTTP
 		PtrResultSet userDetails(statement->executeQuery());
 		while (userDetails->next())
 		{
-			resultJson["avatar"] = userInfo->getString("avatar");
-			resultJson["description"] = userInfo->getString("description");
+			resultJson["avatar"] = userDetails->getString("avatar");
+			resultJson["description"] = userDetails->getString("description");
 		}
 
+		resultJson["current_user"] = "false";
+		if (CheckUserToken(request) == true)
+		{
+			if (user_uuid == request.GetCookieValue("_uuid"))
+			{
+				resultJson["current_user"] = "true";
+			}
+		}
+
+		
 		resultJson["ecode"] = "0";
 		response.body = webstring::JsonStringify(resultJson);
 	}
@@ -990,6 +1060,57 @@ HTTPPacket::HTTPResponsePacket BlogSpacePassport::IsLogin(int clientfd, HTTPPack
 	return response;
 }
 
+HTTPPacket::HTTPResponsePacket BlogSpacePassport::UpdateUserDetails(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false)
+{
+	HTTPPacket::HTTPResponsePacket response;
+	response.SetServer(SERVER_SIGNATURE);
+
+	if (request.method != "POST")
+	{
+		response.SetResponseCode(HTTPPacket::ResponseCode::MethodNotAllowed);
+		return response;
+	}
+
+	auto requestParam = webstring::ParseKeyValue(request.body);
+
+	try
+	{
+		if (CheckUserToken(request) == false)
+		{
+			response.SetResponseCode(HTTPPacket::ResponseCode::Forbidden);
+			return response;
+		}
+
+		std::string user_uuid = request.GetCookieValue("__uuid");
+		mysqlProperty.connection->setSchema("lxhblogspace_passport");
+		PtrPreparedStatement statement(mysqlProperty.connection->prepareStatement("UPDATE user_details SET desciption=?, avatar=? WHERE user_uuid=?"));
+		statement->setString(2, webstring::URLdecode(requestParam["avatar_path"]));
+		statement->setString(1, webstring::URLdecode(requestParam["description"]));
+		statement->execute();
+
+		std::map<std::string, std::string> resultJson;
+		resultJson["ecode"] = "0";
+		response.SetContentType("application/json; charset=UTF-8");
+		response.body = webstring::JsonStringify(resultJson);
+
+		return response;
+	}
+	catch (sql::SQLException& e)
+	{
+		response.SetResponseCode(HTTPPacket::ResponseCode::ServiceUnavailable);
+		if (serverProperty.verbose >= VerboseLevel::essential)
+		{
+			LogRequestError(clientfd, request, std::string("BlogSpacePassport::UpdateUserDetails(): MySQL exception occured with code ") + std::to_string(e.getErrorCode()) + ", msg: " + e.what());
+		}
+		else
+		{
+			LogRequestError(clientfd, request, std::string("BlogSpacePassport::UpdateUserDetails(): MySQL exception occured with code ") + std::to_string(e.getErrorCode()));
+		}
+
+		return response;
+	}
+}
+
 bool BlogSpacePassport::CheckUserExist(std::string username) noexcept(false)
 {
 	std::string userUUID;
@@ -1085,4 +1206,74 @@ bool BlogSpacePassport::IsVaildEmailAddress(std::string email) noexcept
 	}
 
 	return false;
+}
+
+bool BlogSpacePassport::CheckUserToken(HTTPPacket::HTTPRequestPacket& request) noexcept(false)
+{
+	std::string uuid = request.GetCookieValue("_uuid");
+	std::string token = request.GetCookieValue("_sessionToken");
+
+	if (uuid == "" || token == "")
+	{
+		return false;
+	}
+
+	bool logined = false;
+	bool locked = true;
+	std::string schema = mysqlProperty.connection->getSchema();
+
+	mysqlProperty.connection->setSchema("lxhblogspace_passport");
+	PtrPreparedStatement statement(mysqlProperty.connection->prepareStatement("SELECT token_value, token_date FROM user_token WHERE user_uuid = ?"));
+	statement->setString(1, uuid);
+
+	PtrResultSet result(statement->executeQuery());
+	
+	if (schema != "")
+	{
+		mysqlProperty.connection->setSchema(schema);
+	}
+
+	while (result->next())
+	{
+		if (result->getString(1) == token)
+		{
+			//30天有效期
+			time_t currentTime = time(nullptr);
+			if (currentTime == -1)
+			{
+				break;
+			}
+
+			if ((currentTime - result->getInt64(2)) < 2592000)
+			{
+				logined = true;
+				break;
+			}
+		}
+	}
+
+	if (logined == false)
+	{
+		return false;
+	}
+
+	mysqlProperty.connection->setSchema("lxhblogspace_passport");
+	statement.reset(mysqlProperty.connection->prepareStatement("SELECT is_locked FROM user_info WHERE user_uuid = ?"));
+	statement->setString(1, uuid);
+	result.reset(statement->executeQuery());
+	
+	if (schema != "")
+	{
+		mysqlProperty.connection->setSchema(schema);
+	}
+
+	while (result->next())
+	{
+		if (result->getInt(1) != 0)
+		{
+			return false;
+		}
+	}
+
+	return true;
 }

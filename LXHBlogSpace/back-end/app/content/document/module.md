@@ -104,7 +104,7 @@ create table article_info(
 
 ```mysql
 create table article_vote_history(
-    article_id int unsigned not null primary key auto_increment,
+    article_id int unsigned not null,
     user_uuid tinytext not null,
     action_date int unsigned not null
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -120,7 +120,7 @@ create table article_vote_history(
 
 ```mysql
 create table article_subscribe_history(
-    article_id int unsigned not null primary key auto_increment,
+    article_id int unsigned not null,
     user_uuid tinytext not null,
     action_date int unsigned not null
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -180,8 +180,8 @@ create table article_comment(
 ```mysql
 create table article_comment(
     article_id int unsigned not null,
-    user_uuid tinytext not null,
-    last_heat int unsigned not null
+    title tinytext not null,
+    heat int unsigned not null
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 ```
 
@@ -190,4 +190,6 @@ create table article_comment(
 | article_id | 文章id                 |
 | user_uuid  | 作者的uuid             |
 | last_heat  | 上次比较时产生的热度值 |
+
+
 

@@ -62,6 +62,7 @@ class App extends React.Component
             return "<table border='1' cellspacing='0'>" +g1 + "</table>" ;
         });
 
+        
         return converted;
     }
 
@@ -126,6 +127,9 @@ class App extends React.Component
                         <div  dangerouslySetInnerHTML={{ __html: this.RenderMarkdown()}} />
                     </>
                 })
+                window.blog_info = {"vote_num": response.vote_num, "comment_num": response.comment_num};
+                document.title = this.articleTitle + " - LXHBlogSpace";
+
                 ReactDOM.render(<FunctionButtons />, document.getElementById('function-buttons'));
             }
             else

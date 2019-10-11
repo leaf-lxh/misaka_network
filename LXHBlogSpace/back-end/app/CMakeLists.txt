@@ -5,3 +5,4 @@ set (CMAKE_CXX_STANDARD 11)
 
 add_subdirectory(passport)
 add_subdirectory(content)
+add_subdirectory(member)

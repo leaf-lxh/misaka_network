@@ -1,0 +1,109 @@
+.blog-brief-root{
+    padding-top: 10px;
+    margin-left: 10px;
+    margin-right: 10px;
+    margin-bottom: 5px;
+
+    border-bottom: 2px solid rgb(169, 176, 177);
+}
+
+.blog-brief-timestamp{
+    color: black;
+    display: flex;
+    margin-bottom: 10px;
+}
+
+.blog-brief-timestamp-iconitem{
+    padding-right: 10px;
+    margin-top: auto;
+    margin-bottom: auto;
+}
+
+.blog-brief-timestamp-timeitem{
+    margin-top: auto;
+    margin-bottom: auto;
+}
+
+.blog-brief-head{
+    flex-grow: 1;
+    display: flex;
+}
+
+.blog-brief-footer{
+    flex-grow: 1;
+    display: flex;
+}
+
+.title{
+    font-size: 24px;
+    font-weight: 400;
+    max-width: 600px;
+    margin:0;
+    margin-right: auto;
+}
+
+.user-info{
+    display: flex;
+}
+
+.username{
+    flex-grow: 1;
+    text-align: right;
+    margin: auto;
+    padding: 5px;
+}
+
+.avatar{
+    padding: 0px;
+}
+
+.blog-brief-content-block{
+    padding-top: 9px;
+    padding-bottom: 9px;
+}
+
+.brief-content{
+    word-break: break-word;
+}
+
+.brief-moto{
+    padding-left: 10px;
+    margin-right: 0;
+    border:none;
+    color: rgb(64, 128, 187);
+    background-color: inherit;
+    cursor: pointer;
+    outline: none;
+    font-size: 16px;
+    
+}
+.blog-brief-tag-list{
+    padding-top: 10px;
+    padding-bottom: 10px;
+    margin-right: auto;
+}
+
+.tag-item{
+    margin-right:5px;
+    background: #ebeff1 !important;
+}
+
+.blog-inter-info{
+    margin-right:5px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+.info-vote{
+    display: inline-block;
+    margin-right:5px;
+    width: 110px;
+    background: #ebeff1 !important;
+}
+
+.info-comments{
+    display: inline-block;
+    margin-right:5px;
+    width: 110px;
+    background: #ebeff1 !important;
+}
