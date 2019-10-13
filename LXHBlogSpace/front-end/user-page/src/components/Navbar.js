@@ -192,7 +192,7 @@ class NavBar extends React.Component
                         </div>
                     </>
                     , document.getElementsByClassName("navstyle-status")[0]);
-                        
+                    window.logined_username = userinfo.username;
                 }
             });
     }

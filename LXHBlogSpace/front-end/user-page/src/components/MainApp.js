@@ -40,9 +40,10 @@ class MainApp extends React.Component
             selectedDraft:"",
             selectedHistory: "",
             srcContainer: <></>,
-            srcArticleList: <></>
+            srcArticleList: <></>,
+            paddingState: "none"
         };
-        this.currentLoginUser = null;
+        this.currentLoginUser = false;
         this.avatarChangable = "none"
     }
 
@@ -302,6 +303,44 @@ class MainApp extends React.Component
 
     }
 
+    Unsubscribe(article_id)
+    {
+        fetch("/api/v1/content/subscribe",{
+            "method": "POST",
+            "credentials":"include",
+            "headers":{
+                "Content-Type": "application/x-www-form/urlencoded"
+            },
+            "body": "action=cancle&article_id=" + article_id
+        })
+        .then(r=>{
+            if (r.ok)
+            {
+                return r.json();
+            }
+            else if (r.status === 403)
+            {
+                alert("请先登录");
+                return;
+            }
+            else
+            {
+                alert("服务器未响应，请稍后再试");
+                return;
+            }
+        })
+        .then(response=>{
+            if (response !== undefined && response.ecode === "0")
+            {
+                window.location.reload();
+            }
+            else
+            {
+                alert("操作失败，原因：" + response.reason);
+            }
+        })
+    }
+
     RenderMyCollection()
     {
         fetch("/api/v1/content/GetSubscribedList", {"credentials":"include"})
@@ -326,13 +365,14 @@ class MainApp extends React.Component
                             res.map((collection, index)=>{
                                 var time = new Date(collection.add_time * 1000);
                                 return (
-                                    <ExpansionPanel className="msg-panel" expanded={true} onChange={()=>{window.open("/blogs/" +collection.article_id)}}>
+                                    <ExpansionPanel className="msg-panel" expanded={true} onChange={()=>{window.open("/blogs/" + collection.article_id)}}>
                                         <ExpansionPanelSummary style={{color: "#3f51b5", fontWeight: 700, fontSize: 18}}>
                                             {collection.title}
                                         </ExpansionPanelSummary>
                                         <ExpansionPanelDetails className="msg-panel-details" style={{display: "block"}}>
-                                            <div>
-                                                {"收藏时间：" + time.toLocaleDateString() + " " + time.toLocaleTimeString('zh-CN', {hour12: false})}
+                                            <div style={{display: "flex"}}>
+                                                <div>{"收藏时间：" + time.toLocaleDateString() + " " + time.toLocaleTimeString('zh-CN', {hour12: false})}</div>
+                                                <Button onClick={()=>this.Unsubscribe(collection.article_id)} style={{background: "rgb(122, 176, 202)", color:"white", marginLeft: "auto"}}>取消收藏</Button>
                                             </div>
                                             <div style={{display: "flex", paddingTop: 5}}>
                                                 作者：
@@ -463,8 +503,10 @@ class MainApp extends React.Component
             selectedDraft: "",
             selectedHistory: ""
         });
+        
         if (page === "个人资料")
         {
+            window.location.hash = "";
             this.setState({
                 selectedUserInfo: "panel-selected-button",
             })
@@ -472,6 +514,7 @@ class MainApp extends React.Component
         }
         else if (page === "系统通知")
         {
+            window.location.hash = "#sysmsg";
             this.setState({
                 selectedSystemMsg: "panel-selected-button"
             })
@@ -479,6 +522,7 @@ class MainApp extends React.Component
         }
         else if (page === "我的消息")
         {
+            window.location.hash = "#usermsg";
             this.setState({
                 selectedMyMsg: "panel-selected-button"
             })
@@ -486,6 +530,7 @@ class MainApp extends React.Component
         }
         else if (page === "我的收藏")
         {
+            window.location.hash = "#collection";
             this.setState({
                 selectedMyFavorite: "panel-selected-button"
             })
@@ -493,6 +538,7 @@ class MainApp extends React.Component
         }
         else if (page === "我的草稿")
         {
+            window.location.hash = "draftlist";
             this.setState({
                 selectedDraft: "panel-selected-button"
             })
@@ -500,6 +546,7 @@ class MainApp extends React.Component
         }
         else if (page === "浏览历史")
         {
+            window.location.hash = "history";
             this.setState({
                 selectedHistory: "panel-selected-button"
             })
@@ -513,9 +560,10 @@ class MainApp extends React.Component
         var selectedState = [this.state.selectedUserInfo, this.state.selectedSystemMsg, this.state.selectedMyMsg, this.state.selectedMyFavorite, this.state.selectedDraft, this.state.selectedHistory]
         var icons = [<AccountBox />, <Feedback />, <Message />, <Class />,<VerticalSplit/>, <History/>]
         var buttons = ["个人资料", "系统通知", "我的消息", "我的收藏", "我的草稿", "浏览历史"]
+
         return (
             <>
-                <Drawer variant="persistent" open={true} style={{width: 280}}>
+                <Drawer variant="persistent" open={this.state.currentLoginUser} style={{width: 280, display:this.state.paddingState}}>
                     <div className="toolbar-padding"></div>
                     <List>
                         {buttons.map((buttonText, index)=>{
@@ -530,7 +578,7 @@ class MainApp extends React.Component
                         })}
                     </List>
                 </Drawer>
-                <div className="drawer-padding"/>
+                <div className="drawer-padding" style={{display:this.state.paddingState}}/>
                 {this.state.srcContainer}
             </>
             
@@ -539,7 +587,64 @@ class MainApp extends React.Component
 
     componentDidMount()
     {
-        this.switchContainer("个人资料");
+        
+        fetch("/api/v1/passport/IsLogin", {'credentials':'include'})
+        .then(res=>{
+            if (res.ok)
+            {
+                return res.json()
+            }
+        })
+        .then(res=>{
+            if (res === undefined)
+            {
+                this.switchContainer("个人资料");
+                return;
+            }
+
+            var username = window.location.pathname.match(/\/member\/(.+)/);
+            if (username !== null)
+            {
+                username = username[1];
+            }
+
+            if (res.username === username)
+            {
+                this.setState({
+                    paddingState: "inline",
+                    currentLoginUser: true
+                })
+
+                if (window.location.hash === "#sysmsg")
+                {
+                    this.switchContainer("系统通知");
+                }
+                else if (window.location.hash === "#usermsg")
+                {
+                    this.switchContainer("我的消息");
+                }
+                else if (window.location.hash === "#collection")
+                {
+                    this.switchContainer("我的收藏");
+                }
+                else if (window.location.hash === "#draftlist")
+                {
+                    this.switchContainer("我的草稿");
+                }
+                else if (window.location.hash === "#history")
+                {
+                    this.switchContainer("浏览历史");
+                }
+                else
+                {
+                    this.switchContainer("个人资料");
+                }
+            }
+            else
+            {
+                this.switchContainer("个人资料");
+            }
+        })        
     }
 
 }

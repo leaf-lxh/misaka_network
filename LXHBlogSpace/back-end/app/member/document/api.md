@@ -146,7 +146,7 @@ ver1.0
 
 
 
-### 获取未读消息数据
+### 获取未读消息数量
 
 接口路径：`/api/v1/member/GetUnreadedMsgNum`
 
