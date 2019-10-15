@@ -277,13 +277,6 @@ void TinyHttpd::StartListen() noexcept(false)
 	{
 		throw std::runtime_error("listen error");
 	}
-
-	/*
-	int flags = fcntl(serverProperty.listenfd, F_GETFL, 0);
-	flags |= O_NONBLOCK;
-	fcntl(serverProperty.listenfd, F_SETFL, flags);
-	*/
-	
 }
 
 void TinyHttpd::StartHandleRequest() noexcept

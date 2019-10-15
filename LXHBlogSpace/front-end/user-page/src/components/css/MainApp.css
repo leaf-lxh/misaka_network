@@ -105,6 +105,7 @@
 
 .subscribe-button
 {
+    display: none !important;
     background: rgb(192, 206, 211) !important;
     color: white !important;
     width: 80px !important;
@@ -128,7 +129,7 @@
 {
     background: 0% !important;
     margin-bottom: 10px !important;
-    display: block !important;
+    display: none !important;
 }
 
 .msg-container

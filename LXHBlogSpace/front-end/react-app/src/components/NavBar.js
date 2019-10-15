@@ -36,6 +36,7 @@ class NavBar extends React.Component
             srcStatusZone: <></>,
             currentTab: "main",
             loginDialogOpenState: false,
+            resetDialogOpenState: false,
             noticeOpenState: false,
             noticeMsg: ""
         }
@@ -49,6 +50,30 @@ class NavBar extends React.Component
         }
     }
     
+    toResetDialog()
+    {
+        this.HideDialog();
+        this.setState({
+            resetDialogOpenState:true
+        })
+    }
+
+    HideResetDialog()
+    {
+        this.setState({
+            resetDialogOpenState:false
+        })
+    }
+
+    DoSendEmailCode()
+    {
+
+    }
+
+    DoResetPassword()
+    {
+
+    }
     render()
     {
         return(
@@ -99,9 +124,51 @@ class NavBar extends React.Component
                                 </DialogContent>
                                 <DialogAction>
                                     <Button onClick={props=>this.DoLoginAction(props)}>登录</Button>
-                                    <Button onClick={this.HideDialog.bind(this)}>关闭</Button>
+                                    <Button onClick={this.toResetDialog.bind(this)}>忘记密码</Button>
                                 </DialogAction>
                                 <Snackbar  open={this.state.noticeOpenState} onClose={this.setNoticeClose.bind(this)} message={this.state.noticeMsg} autoHideDuration={3000} />
+                            </Dialog>
+                            <Dialog open={this.state.resetDialogOpenState} onClose={this.HideResetDialog.bind(this)}>
+                                <DialogTitle>重置密码</DialogTitle>
+                                <DialogContent >
+                                    <div>
+                                        <TextField
+                                            id="reset-login-username"
+                                            label="邮箱"
+                                            type="email"
+                                            name="email"
+                                            autoComplete="email"
+                                            margin="normal"
+                                            style={{margin: "0 auto 0 auto", minWidth: "300px"}}
+                                        />
+                                    </div>
+                                    <div>
+                                        <TextField
+                                            id="reset-login-password"
+                                            label="密码"
+                                            type="password"
+                                            name="password"
+                                            autoComplete="password"
+                                            margin="normal"
+                                            style={{marginTop: "15px", minWidth: "300px"}}
+                                        />
+                                    </div>
+                                    <div>
+                                        <TextField
+                                            id="reset-email-code"
+                                            label="验证码"
+                                            type="text"
+                                            name="text"
+                                            autoComplete="text"
+                                            margin="normal"
+                                            style={{marginTop: "15px", minWidth: "300px"}}
+                                        />
+                                    </div>
+                                </DialogContent>
+                                <DialogAction>
+                                    <Button onClick={this.DoSendEmailCode}>发送验证码</Button>
+                                    <Button onClick={this.DoResetPassword}>重置</Button>
+                                </DialogAction>
                             </Dialog>
                         </>
                     </div>
@@ -139,7 +206,7 @@ class NavBar extends React.Component
         return(
             <Tabs value = {this.state.currentTab} onChange={handleChange.bind(this)} indicatorColor="primary" >
                 <Tab className="indexstyle-tabmod" label="首页"  value="main"/>
-                <Tab className="indexstyle-tabmod" label="时间线"  value="timeline" />
+                <Tab disabled={true} className="indexstyle-tabmod" label="时间线"  value="timeline" />
                 <Tab disabled={true} className="indexstyle-tabmod" label="深水池"  value="water"/>
                 
             </Tabs>

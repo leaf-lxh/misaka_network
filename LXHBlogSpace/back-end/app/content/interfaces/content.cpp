@@ -1665,8 +1665,8 @@ HTTPPacket::HTTPResponsePacket BlogSpaceContent::CheckUserOperation(int clientfd
 	std::string articleId = request.ParseURLParamter()["article_id"];
 	if (articleId == "")
 	{
-		resultJson["ecode"] = "-5";
-		resultJson["reason"] = "请求参数有误";
+		resultJson["ecode"] = "-4";
+		resultJson["reason"] = "指定文章不存在";
 		response.body = webstring::JsonStringify(resultJson);
 
 		return response;
@@ -1674,6 +1674,17 @@ HTTPPacket::HTTPResponsePacket BlogSpaceContent::CheckUserOperation(int clientfd
 
 	try
 	{
+		if (CheckUserToken(request) == false)
+		{
+			
+			resultJson["ecode"] = "0";
+			resultJson["isAuthor"] = "0";
+			resultJson["can_vote"] = "0";
+			resultJson["can_subscribe"] = "0";
+
+			response.body = webstring::JsonStringify(resultJson);
+		}
+
 		std::string user_uuid = request.GetCookieValue("_uuid");
 		mysqlProperty.connection->setSchema("lxhblogspace_content");
 		PtrPreparedStatement statement(mysqlProperty.connection->prepareStatement("SELECT user_uuid FROM article_info WHERE article_id=?"));

@@ -41,20 +41,191 @@ class MainApp extends React.Component
             selectedHistory: "",
             srcContainer: <></>,
             srcArticleList: <></>,
-            paddingState: "none"
+            paddingState: "none",
+            followButtonLabel: "关注",
+            avatarSrc: "img-blog.leaflxh.com/images/default_avatar.jpg"
         };
         this.currentLoginUser = false;
         this.avatarChangable = "none"
+        this.followed = false;
+        this.currentUsername = null;
     }
 
     ChangeAvatar()
     {
-        alert("未开启头像更换功能");
+        var avatarInput = document.getElementById("avatar-changer-input");
+        avatarInput.click();
+        avatarInput.onchange = function(){
+            var file = avatarInput.files[0];
+            if (file.type !== "image/png" && file.type !== "image/jpeg" && file.type !== "image/bmp")
+            {
+                alert("仅允许使用png, jpeg或bmp格式的图片");
+                return;
+            }
+            
+            fetch("/api/v1/content/UploadImage", {
+                method: "POST",
+                credentials: "include",
+                body: avatarInput.files[0]
+            })
+            .then(res=>{
+                if (res.ok === false)
+                {
+                    alert("服务器未响应，上传失败");
+                    return;
+                }
+                else
+                {
+                    return res.json();
+                }
+            })
+            .then(function(response){
+                console.log(this)
+                if (response === undefined)
+                {    
+                    return;
+                }
+
+                if (response.ecode === "0")
+                {
+                    fetch("/api/v1/passport/UpdateUserDetails", {
+                        "method":"POST",
+                        "credentials":"include",
+                        "headers":{
+                            "Content-Type": "application/x-www-form/urlencoded"
+                        },
+                        "body": "avatar_path=" + encodeURI(response.img_path) + "&description=" + encodeURI(this.state.userDescription)
+                    })
+                    .then(r=>{
+                        if (r.ok)
+                        {
+                            return r.json();
+                        }
+                        else
+                        {
+                            alert("更换头像失败，请稍后再试");
+                        }
+                    })
+                    .then(r=>{
+                        if (r !== undefined && r.ecode === "0")
+                        {
+                            console.log(this.state.avatarSrc)
+                            this.setState({
+                                avatarSrc: "http://img-blog.leaflxh.com" + response.img_path
+                            })
+                            console.log(this.state.avatarSrc)
+                        }
+                    })
+                    avatarInput.value = null;
+                }
+                else
+                {
+                    alert("上传失败，原因：" + response.reason);
+                }
+                return;
+            }.bind(this))
+        }.bind(this)
     }
 
-    FollowAction()
+    FollowHandler()
     {
+        console.log(this.state);
+        if (this.followed === true)
+        {
+            fetch("/api/v1/member/RemoveFollow", {
+                'method': "POST",
+                "credentials": "include",
+                "body": {
+                    "Content-Type": "application/x-www-form/urlencoded"
+                },
+                "body": "username=" + this.currentUsername
+            })
+            .then(r=>{
+                if (r.ok)
+                {
+                    return r.json();
+                }
+            })
+            .then(r=>{
+                if (r !== undefined && r.ecode === "0")
+                {
+                    this.followed = false;
+                    this.setState({
+                        followButtonLabel: "关注"
+                    })
+                }
+                else
+                {
+                    alert("取消关注失败，原因："+ r.reason);
+                }
+            })
+        }
+        else
+        {
+            fetch("/api/v1/member/AddFollow", {
+                'method': "POST",
+                "credentials": "include",
+                "body": {
+                    "Content-Type": "application/x-www-form/urlencoded"
+                },
+                "body": "username=" + this.currentUsername
+            })
+            .then(r=>{
+                if (r.ok)
+                {
+                    return r.json();
+                }
+            })
+            .then(r=>{
+                if (r !== undefined && r.ecode === "0")
+                {
+                    this.followed = true;
+                    this.setState({
+                        followButtonLabel: "取消关注"
+                    })
+                }
+                else
+                {
+                    alert("关注失败，原因："+ r.reason);
+                }
+            })
+        }
+    }
 
+    UpdateDescription()
+    {
+        console.log(this)
+        if (this.currentLoginUser === true)
+        {
+            fetch("/api/v1/passport/UpdateUserDetails", {
+                "method":"POST",
+                "credentials":"include",
+                "headers":{
+                    "Content-Type": "application/x-www-form/urlencoded"
+                },
+                "body": "avatar_path=" + encodeURI(this.state.avatarSrc) + "&description=" + encodeURI(document.getElementById("user-description-input").value)
+            })
+            .then(r=>{
+                if (r.ok)
+                {
+                    return r.json();
+                }
+                else
+                {
+                    alert("设置个人描述失败，请稍后再试");
+                }
+            })
+            .then(r=>{
+                if (r !== undefined && r.ecode === "0")
+                {
+                    this.setState({
+                        userDescription: document.getElementById("user-description-input").value
+                    })
+                    document.getElementById("user-description-input").value = "";
+                }
+            })
+            
+        }
     }
 
     RenderUserInfo()
@@ -70,6 +241,7 @@ class MainApp extends React.Component
             window.location = "/";
             return;
         }
+        this.currentUsername = username;
 
         fetch("/api/v1/passport/GetUserInfo?username=" + username)
         .then(response=>{
@@ -109,10 +281,12 @@ class MainApp extends React.Component
                         fetch("/api/v1/member/GetUserFollowInfo?username=" + encodeURI(username), {"credentials": "include"})
                         .then(r=>r.json())
                         .then(followInfo=>{
-                            var followButtonLabel = "关注";
                             if (followInfo.following === "true")
                             {
-                                followButtonLabel = "取消关注";
+                                this.followed = true;
+                                this.setState({
+                                    followButtonLabel: "取消关注"
+                                });
                             }
 
                             if (userinfo.current_user === "true")
@@ -143,16 +317,22 @@ class MainApp extends React.Component
                             }
 
                             this.setState({
+                                avatarSrc: "http://img-blog.leaflxh.com" + userinfo.avatar,
+                                userDescription: userinfo.description
+                            })
+
+                            this.setState({
                                 srcContainer:
                                 <Container fixed className="main-app-container">
                                     <div className="main-app-user-info">
                                         <div className="avatar-region">
-                                            <Avatar src={userinfo.avatar} style={{width: 150, height:150, borderRadius: 0}}></Avatar>
+                                            <input id="avatar-changer-input" type="file" style={{display: "none"}} />
+                                            <Avatar src={this.state.avatarSrc} style={{width: 150, height:150, borderRadius: 0}}></Avatar>
                                             <a style={{display:this.avatarChangable}} className="change-avatar" href="#" onClick={this.ChangeAvatar.bind(this)}>更换头像</a>
                                         </div>
                                         <div className="main-app-user-brief">
                                             <div className="main-app-user-brief-username" >{userinfo.username}</div>
-                                            <Input id="user-decription-input" disableUnderline readOnly={userinfo.current_user==="false"} className="main-app-user-brief-desciption" placeholder={userinfo.description}/>
+                                            <Input id="user-description-input" disableUnderline readOnly={userinfo.current_user==="false"} className="main-app-user-brief-desciption" placeholder={this.state.userDescription} onBlur={this.UpdateDescription}/>
                                         </div>
                                         <div className="main-app-follow-info">
                                             <Button className="main-app-follow-info-button">关注了 {followInfo.followed_num}</Button>
@@ -163,7 +343,7 @@ class MainApp extends React.Component
                                         <div className="main-app-label">
                                             文章
                                         </div>
-                                        <Button className="subscribe-button" disabled={userinfo.current_user==="true"}>{followButtonLabel}</Button>
+                                        <Button className="subscribe-button" disabled={userinfo.current_user==="true"} onClick={this.FollowHandler.bind(this)}>{this.state.followButtonLabel}</Button>
                                     </div>
                                     <div className="main-app-user-article">
                                         {
@@ -493,6 +673,11 @@ class MainApp extends React.Component
         })
     }
 
+    RenderMyHistory()
+    {
+
+    }
+
     switchContainer(page)
     {
         this.setState({
@@ -550,7 +735,7 @@ class MainApp extends React.Component
             this.setState({
                 selectedHistory: "panel-selected-button"
             })
-            
+            this.RenderMyHistory();
         }
 
     }

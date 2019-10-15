@@ -14,7 +14,7 @@ create table user_follow(
 
 | 字段名        | 说明                         |
 | ------------- | ---------------------------- |
-| user_uuid     | 用户的uuid                   |
+| user_uuid     | 用户的UUID                   |
 | follower_uuid | 关注者的UUID                 |
 | following     | 关注状态，0为未关注，1为关注 |
 
@@ -42,7 +42,7 @@ create table user_follow_info(
 create table user_comment_notice(
     notice_id int unsigned primary key auto_increment,
     recipient_uuid tinytext not null,
-    comment_id text not null,
+    comment_id int unsigned not null,
     readed tinyint unsigned not null
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 ```
@@ -69,12 +69,14 @@ create table sys_notice(
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 ```
 
-| 字段名         | 说明         |
-| -------------- | ------------ |
-| notice_id      | 消息id       |
-| recipient_uuid | 接收者的uuid |
-| msg            | 提示消息     |
-| readed         | 是否已经读取 |
+| 字段名         | 说明             |
+| -------------- | ---------------- |
+| notice_id      | 消息id           |
+| recipient_uuid | 接收者的UUID     |
+| msg            | 提示消息         |
+| msg_title      | 消息的标题       |
+| create_date    | 创建的Unix时间戳 |
+| readed         | 是否已经读取     |
 
 
 

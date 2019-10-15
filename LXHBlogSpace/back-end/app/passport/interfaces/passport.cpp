@@ -525,6 +525,9 @@ HTTPPacket::HTTPResponsePacket BlogSpacePassport::Logout(int clientfd, HTTPPacke
 			return response;
 		}
 
+		response.SetCookie("_sessionToken", request.GetCookieValue("_sessionToken"), -100, "blog.leaflxh.com", "/");
+		response.SetCookie("_uuid", request.GetCookieValue("_uuid"), -100, "blog.leaflxh.com", "/");
+
 		response.SetLocation("/");
 		response.SetResponseCode(HTTPPacket::ResponseCode::Found);
 		return response;
@@ -1081,11 +1084,12 @@ HTTPPacket::HTTPResponsePacket BlogSpacePassport::UpdateUserDetails(int clientfd
 			return response;
 		}
 
-		std::string user_uuid = request.GetCookieValue("__uuid");
+		std::string user_uuid = request.GetCookieValue("_uuid");
 		mysqlProperty.connection->setSchema("lxhblogspace_passport");
-		PtrPreparedStatement statement(mysqlProperty.connection->prepareStatement("UPDATE user_details SET desciption=?, avatar=? WHERE user_uuid=?"));
-		statement->setString(2, webstring::URLdecode(requestParam["avatar_path"]));
+		PtrPreparedStatement statement(mysqlProperty.connection->prepareStatement("UPDATE user_details SET description=?, avatar=? WHERE user_uuid=?"));
 		statement->setString(1, webstring::URLdecode(requestParam["description"]));
+		statement->setString(2, webstring::URLdecode(requestParam["avatar_path"]));
+		statement->setString(3, user_uuid);
 		statement->execute();
 
 		std::map<std::string, std::string> resultJson;

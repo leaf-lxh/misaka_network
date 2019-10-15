@@ -272,3 +272,5 @@ paket-files/
 __pycache__/
 *.pyc
 *.gdb_history
+/LXHBlogSpace/back-end/.build
+/LXHBlogSpace/back-end/app/.admin

@@ -311,8 +311,8 @@ HTTPPacket::HTTPResponsePacket BlogSpaceMember::AddFollow(int clientfd, HTTPPack
 
 		//使用事务做同步
 		mysqlProperty.connection->setSchema("lxhblogspace_member");
-		PtrPreparedStatement transactionST(mysqlProperty.connection->prepareStatement("BEGIN"));
-		transactionST->execute();
+		PtrStatement transactionST(mysqlProperty.connection->createStatement());
+		transactionST->execute("BEGIN");
 
 		//设置关注关系
 		PtrPreparedStatement statement(mysqlProperty.connection->prepareStatement("UPDATE user_follow SET following=1 WHERE user_uuid=? AND follower_uuid=?"));
@@ -328,8 +328,9 @@ HTTPPacket::HTTPResponsePacket BlogSpaceMember::AddFollow(int clientfd, HTTPPack
 		}
 
 		//更新被关注者的粉丝数
-		statement.reset(mysqlProperty.connection->prepareStatement("UPDATE user_follow_info SET fans_num=fans_num+1 WHERE user_uuid=?"));
+		statement.reset(mysqlProperty.connection->prepareStatement("UPDATE user_follow_info JOIN (SELECT COUNT(*) as num FROM user_follow WHERE user_uuid=?) b SET fans_num=b.num WHERE user_uuid=?"));
 		statement->setString(1, followedUuid);
+		statement->setString(2, followedUuid);
 		if (statement->executeUpdate() == 0)
 		{
 			statement.reset(mysqlProperty.connection->prepareStatement("INSERT INTO user_follow_info VALUES(?,?,?)"));
@@ -340,8 +341,9 @@ HTTPPacket::HTTPResponsePacket BlogSpaceMember::AddFollow(int clientfd, HTTPPack
 		}
 
 		//更新关注者的关注数量
-		statement.reset(mysqlProperty.connection->prepareStatement("UPDATE user_follow_info SET followed_num=followed_num+1 WHERE user_uuid=?"));
+		statement.reset(mysqlProperty.connection->prepareStatement("UPDATE user_follow_info JOIN (SELECT COUNT(*) as num FROM user_follow WHERE follower_uuid=?) b SET followed_num=b.num WHERE user_uuid=?"));
 		statement->setString(1, request.GetCookieValue("_uuid"));
+		statement->setString(2, request.GetCookieValue("_uuid"));
 		if (statement->executeUpdate() == 0)
 		{
 			statement.reset(mysqlProperty.connection->prepareStatement("INSERT INTO user_follow_info VALUES(?,?,?)"));
@@ -413,6 +415,18 @@ HTTPPacket::HTTPResponsePacket BlogSpaceMember::RemoveFollow(int clientfd, HTTPP
 		PtrPreparedStatement statement(mysqlProperty.connection->prepareStatement("UPDATE user_follow SET following=0 WHERE user_uuid=? AND follower_uuid=?"));
 		statement->setString(1, followedUuid);
 		statement->setString(2, request.GetCookieValue("_uuid"));
+
+		//更新被关注者的粉丝数
+		statement.reset(mysqlProperty.connection->prepareStatement("UPDATE user_follow_info JOIN (SELECT COUNT(*) as num FROM user_follow WHERE user_uuid=?) b SET fans_num=b.num WHERE user_uuid=?"));
+		statement->setString(1, followedUuid);
+		statement->setString(2, followedUuid);
+		statement->executeUpdate();
+
+		//更新关注者的关注数量
+		statement.reset(mysqlProperty.connection->prepareStatement("UPDATE user_follow_info JOIN (SELECT COUNT(*) as num FROM user_follow WHERE follower_uuid=?) b SET followed_num=b.num WHERE user_uuid=?"));
+		statement->setString(1, request.GetCookieValue("_uuid"));
+		statement->setString(2, request.GetCookieValue("_uuid"));
+		statement->executeUpdate();
 
 		responseJson["ecode"] = "0";
 		responseJson["reason"] = "已取消关注";
@@ -644,6 +658,7 @@ HTTPPacket::HTTPResponsePacket BlogSpaceMember::GetUserFollowInfo(int clientfd, 
 		}
 		else
 		{
+			result->next();
 			responseJson["fans_num"] = result->getString(1);
 			responseJson["followed_num"] = result->getString(2);
 		}
