@@ -316,12 +316,20 @@ ver: 1.0
 服务端返回：经stringify的数组。每次请求最多返回15条文章信息。每个元素为一个json，包含以下字段。
 
 ```json
-{"article_id": 12450, "title": "文章标题1", "brief": "简要1", "tags": [id1, id2], "interInfo": {"vote": 123, "comments": 123}, "authorInfo":{"name": "user", "avatar": "xxxxx"}}
+{"article_id": 12450, "title": "文章标题1", "brief": "简要1", "create_date": 114514, "tags": [id1, id2], "interInfo": {"vote": 123, "comments": 123}, "authorInfo":{"name": "user", "avatar": "xxxxx"}}
 ```
 
 ### 获取时间线推送列表
 
 
+
+### 获取友情链接
+
+接口路径：`/api/v1/content/GetFriendLink`
+
+请求方法：GET
+
+服务端返回：
 
 ### 错误码对照表
 

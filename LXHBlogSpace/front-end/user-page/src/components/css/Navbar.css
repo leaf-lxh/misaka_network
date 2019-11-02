@@ -1,6 +1,12 @@
 .MuiTabs-indicator{
     background: black !important;
 }
+
+.MuiAvatar-root
+{
+    border-radius: 4px !important;
+}
+
 .navstyle-title{
     color : black;
     margin-left : 3% !important;

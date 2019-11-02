@@ -38,7 +38,10 @@ class NavBar extends React.Component
             loginDialogOpenState: false,
             resetDialogOpenState: false,
             noticeOpenState: false,
-            noticeMsg: ""
+            noticeMsg: "",
+            setIntervalID: null,
+            sendEmailButtonDisabled: false,
+            sendEmailButtonContent: "发送验证码"
         }
     }
 
@@ -54,26 +57,209 @@ class NavBar extends React.Component
     {
         this.HideDialog();
         this.setState({
-            resetDialogOpenState:true
+            resetDialogOpenState:true,
+            
         })
     }
 
     HideResetDialog()
     {
         this.setState({
-            resetDialogOpenState:false
+            resetDialogOpenState:false,
+            noticeOpenState: false,
+            noticeMsg: ""
         })
     }
 
+    CheckEmailFmt(email)
+    {
+        if (email === "")
+        {
+            return false;
+        }
+
+        return (email.match(/[0-9a-zA-Z.+-_]+?@[0-9a-zA-Z.]*?(qq.com|163.com|gmail.com|foxmail.com|126.com|sina.com)/) !== null)
+    }
+
+    SendEmailTimeoutHook()
+    {
+        
+        if (this.state.time >= 1)
+        {
+            this.setState({
+                time: this.state.time - 1,
+                sendEmailButtonDisabled: true,
+                sendEmailButtonContent: this.state.time + " 秒"
+            })
+        }
+        else
+        {
+            this.setState({
+                time: 0,
+                sendEmailButtonDisabled: false,
+                sendEmailButtonContent: "发送验证码"
+            })
+            clearTimeout(this.state.setIntervalID);
+        }
+    }
+
+
     DoSendEmailCode()
     {
+        var email = document.getElementById("reset-login-email").value;
+        if (this.CheckEmailFmt(email) === false)
+        {
+            this.setState({
+                noticeMsg: "请检查邮箱格式",
+                noticeOpenState: true
+            })
+            return;
+        }
 
+        fetch("/api/v1/passport/SendEmailAuth", {
+            method: "POST",
+            body: encodeURI("email="+email),
+            headers : {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        }).then(res=>res.json())
+        .then((response)=>{
+            if (response === undefined)
+            {
+                this.setState({
+                    noticeMsg: "服务器未响应，请稍后再试",
+                    noticeOpenState: true
+                })
+                return;
+            }
+
+            if (response.ecode === "0")
+            {
+                this.setState({
+                    noticeMsg: "认证码发送成功",
+                    noticeOpenState: true,
+
+                    time: 60,
+                    sendEmailButtonContent: "已发送(60s)",
+                    sendEmailButtonDisabled: true
+                })
+                var id = setInterval(this.SendEmailTimeoutHook.bind(this), 1000);
+                this.setState({
+                    setIntervalID: id
+                })
+            }
+            else
+            {
+                this.setState({
+                    noticeMsg: "发送失败，原因：" + response.reason,
+                    noticeOpenState: true
+                })
+            }
+        })
+    }
+
+    CheckPassword(password)
+    {
+        if (password === "")
+        {
+            return false;
+        }
+
+        if (password.length >= 8 && password.length <= 15)
+        {
+            var foundAlpha = false;
+            var foundDigit = false;
+            for (var i = 0; i < password.length; ++i)
+            {
+                var chr = password.charAt(i);
+                if ((chr >= 'A' && chr <= 'Z') || (chr >= 'a' && chr <= 'z'))
+                {
+                    foundAlpha = true;
+                }
+                else if (chr >= '0' && chr <= '9')
+                {
+                    foundDigit = true;
+                }
+                else if (chr === '_')
+                {
+                    continue;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+    
+            if (foundAlpha === false || foundDigit === false)
+            {
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
+        else
+        {
+            return false;
+        }
     }
 
     DoResetPassword()
     {
+        var email = document.getElementById("reset-login-email").value;
+        var password = document.getElementById("reset-login-password").value;
+        var vcode = document.getElementById("reset-email-code").value;
 
+        if(this.CheckPassword(password) === false)
+        {
+            this.setState({
+                noticeMsg: "密码需要满足8-15个字符的长度，并包含字母和数字。可添加下划线",
+                noticeOpenState: true
+            })
+            return ;
+        }
+
+        fetch("/api/v1/passport/UpdatePassword", {
+            'method': 'POST',
+            'headers':{
+                'Content-Type': "application/x-www-form/urlencoded"
+            },
+            'body': "email=" + email +"&vcode="+vcode + "&password=" + password
+        })
+        .then(res=>{
+            if (res.ok !== true)
+            {
+                this.setState({
+                    noticeOpenState: true,
+                    noticeMsg: "服务器未响应，请稍后再试"
+                })
+                return;
+            }
+            else
+            {
+                return res.json()
+            }
+        })
+        .then(res=>{
+            if (res !== undefined && res.ecode === 0)
+            {
+                this.setState({
+                    noticeOpenState: true,
+                    noticeMsg: "更新密码成功，即将跳转至登录框"
+                })
+                setTimeout(function(){this.setState({resetDialogOpenState:false, loginDialogOpenState:true})}.bind(this), 2000);
+            }
+            else
+            {
+                this.setState({
+                    noticeOpenState: true,
+                    noticeMsg: "修改密码失败，原因：" + res.reason
+                })
+            }
+        })
     }
+
     render()
     {
         return(
@@ -87,7 +273,7 @@ class NavBar extends React.Component
                     </div>
                     <div className="navstyle-status">
                         <>
-                            <Button className= "navstyle-button" onClick={this.ShowDialog.bind(this)}>
+                            <Button className= "navstyle-button" id="open-login-dialog" onClick={this.ShowDialog.bind(this)}>
                                 登录
                                 <AccountBoxIcon className="navstyle-icon" />
                             </Button>
@@ -126,14 +312,14 @@ class NavBar extends React.Component
                                     <Button onClick={props=>this.DoLoginAction(props)}>登录</Button>
                                     <Button onClick={this.toResetDialog.bind(this)}>忘记密码</Button>
                                 </DialogAction>
-                                <Snackbar  open={this.state.noticeOpenState} onClose={this.setNoticeClose.bind(this)} message={this.state.noticeMsg} autoHideDuration={3000} />
+                                <Snackbar style={{zIndex: 1301}}  open={this.state.noticeOpenState} onClose={this.setNoticeClose.bind(this)} message={this.state.noticeMsg} autoHideDuration={3000} />
                             </Dialog>
                             <Dialog open={this.state.resetDialogOpenState} onClose={this.HideResetDialog.bind(this)}>
                                 <DialogTitle>重置密码</DialogTitle>
                                 <DialogContent >
                                     <div>
                                         <TextField
-                                            id="reset-login-username"
+                                            id="reset-login-email"
                                             label="邮箱"
                                             type="email"
                                             name="email"
@@ -166,9 +352,10 @@ class NavBar extends React.Component
                                     </div>
                                 </DialogContent>
                                 <DialogAction>
-                                    <Button onClick={this.DoSendEmailCode}>发送验证码</Button>
-                                    <Button onClick={this.DoResetPassword}>重置</Button>
+                                    <Button onClick={this.DoSendEmailCode.bind(this)} disabled={this.state.sendEmailButtonDisabled}>{this.state.sendEmailButtonContent}</Button>
+                                    <Button onClick={this.DoResetPassword.bind(this)}>重置</Button>
                                 </DialogAction>
+                                <Snackbar style={{zIndex: 1301}}  open={this.state.noticeOpenState} onClose={this.setNoticeClose.bind(this)} message={this.state.noticeMsg} autoHideDuration={3000} />
                             </Dialog>
                         </>
                     </div>
@@ -187,7 +374,9 @@ class NavBar extends React.Component
     HideDialog()
     {
         this.setState({
-            loginDialogOpenState: false
+            loginDialogOpenState: false,
+            noticeOpenState: false,
+            noticeMsg: ""
         })
         
     }
@@ -198,17 +387,14 @@ class NavBar extends React.Component
                 currentTab: newTab
             });
 
-            ReactDOM.render(MainContainer("container-loading"), document.getElementById('main-panel-root'));
-            //ReactDOM.render(MainContainer(newTab), document.getElementById('main-panel-root'));
-            setTimeout(function(){ReactDOM.render(MainContainer(newTab), document.getElementById('main-panel-root'));}, 1000);
+            ReactDOM.render(MainContainer("container-loading"), document.getElementById('main-panel-root'), function(){ReactDOM.render(MainContainer(newTab), document.getElementById('main-panel-root'));});
         };
     
         return(
             <Tabs value = {this.state.currentTab} onChange={handleChange.bind(this)} indicatorColor="primary" >
                 <Tab className="indexstyle-tabmod" label="首页"  value="main"/>
-                <Tab disabled={true} className="indexstyle-tabmod" label="时间线"  value="timeline" />
-                <Tab disabled={true} className="indexstyle-tabmod" label="深水池"  value="water"/>
-                
+                <Tab disabled={false} className="indexstyle-tabmod" label="时间线"  value="timeline" />
+                <Tab disabled={true} className="indexstyle-tabmod"  style={{display:"none"}} label="深水池"  value="water"/>
             </Tabs>
         );
     }
@@ -231,7 +417,7 @@ class NavBar extends React.Component
                     noticeOpenState: true,
                     noticeMsg: "登录成功"
                 })
-                setTimeout(()=>{window.location="/"}, 3000);
+                setTimeout(()=>{window.location="/"}, 1500);
                 return;
             }
             else if (res.status === 200)

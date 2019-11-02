@@ -25,30 +25,463 @@ import Button from "@material-ui/core/Button"
 import "./css/MainApp.css"
 
 import BlogBriefBox from "./BlogBriefBox"
+import Dialog from "@material-ui/core/Dialog"
+import DialogTitle from "@material-ui/core/DialogTitle"
+import DialogContent from "@material-ui/core/DialogContent"
 
-
-class MainApp extends React.Component
+class UserInfo extends React.Component
 {
     constructor(props)
     {
         super(props)
         this.state = {
-            selectedUserInfo: "panel-selected-button",
-            selectedSystemMsg: "",
-            selectedMyMsg: "",
-            selectedMyFavorite: "",
-            selectedDraft:"",
-            selectedHistory: "",
-            srcContainer: <></>,
-            srcArticleList: <></>,
-            paddingState: "none",
+            avatarSrc: "default_avatar.jpg",
+            avatarLoadSrc: null,
             followButtonLabel: "关注",
-            avatarSrc: "img-blog.leaflxh.com/images/default_avatar.jpg"
-        };
-        this.currentLoginUser = false;
-        this.avatarChangable = "none"
+            userinfo: {username: "", current_user: "false"},
+            dialogOpenState: false,
+            dialogTitle: "null",
+            dialogContent: <></>,
+            fans_num: 0,
+            followed_num: 0
+        }
         this.followed = false;
         this.currentUsername = null;
+    }
+
+    InFollowListHandler(buttonId, targetName)
+    {
+        if (window.logined_username === undefined)
+        {
+            document.getElementById("open-login-button").click();
+            return ;
+        }
+
+        var button = document.getElementById(buttonId);
+        if (button.innerText === "取消关注")
+        {
+            fetch("/api/v1/member/RemoveFollow", {
+                'method': "POST",
+                "credentials": "include",
+                "body": {
+                    "Content-Type": "application/x-www-form/urlencoded"
+                },
+                "body": "username=" + targetName
+            })
+            .then(r=>{
+                if (r.ok)
+                {
+                    return r.json();
+                }
+            })
+            .then(r=>{
+                if (r !== undefined && r.ecode === "0")
+                {
+                    button.innerText = "关注"
+                    if (window.logined_username === this.currentUsername)
+                    {
+                        this.setState({
+                            followed_num: this.state.followed_num - 1
+                        })
+                    }
+                }
+                else
+                {
+                    alert("取消关注失败，原因："+ r.reason);
+                }
+            })
+        }
+        else
+        {
+            fetch("/api/v1/member/AddFollow", {
+                'method': "POST",
+                "credentials": "include",
+                "body": {
+                    "Content-Type": "application/x-www-form/urlencoded"
+                },
+                "body": "username=" + targetName
+            })
+            .then(r=>{
+                if (r.ok)
+                {
+                    return r.json();
+                }
+            })
+            .then(r=>{
+                if (r !== undefined && r.ecode === "0")
+                {
+                    button.innerText = "取消关注";
+                    if (window.logined_username === this.currentUsername)
+                    {
+                        this.setState({
+                            followed_num: this.state.followed_num + 1
+                        })
+                    }
+                }
+                else
+                {
+                    alert("关注失败，原因："+ r.reason);
+                }
+            })
+        }
+    }
+
+    RenderFollowList(type, elementNum, page)
+    {
+        var pageParam = "";
+
+        if (page !== undefined)
+        {
+            pageParam = "&page=" + page;
+        }
+
+        var url = "/api/v1/member/GetFollowerList?username=";
+        if (type=== "followed")
+        {
+            url = "/api/v1/member/GetFollowedList?username=";
+        }
+
+        fetch(url + this.currentUsername + pageParam)
+        .then(res=>{
+            if (res.ok)
+            {
+                return res.json();
+            }
+        })
+        .then(res=>{
+            if (res === undefined)
+            {
+                return;
+            }
+
+            this.setState({
+                dialogContent: 
+                <>
+                    {
+                        function()
+                        {
+                            if (res.user_list.length === 0)
+                            {
+                                if (type === "follower")
+                                {
+                                    return (
+                                        <div className="none-follow">
+                                            Ta目前还没有粉丝~
+                                        </div>
+                                    )
+                                }
+                                else
+                                {
+                                    return (
+                                        <div className="none-follow">
+                                            Ta目前还没有关注其他用户~
+                                        </div>
+                                    )
+                                }
+
+                            }
+                            else
+                            {
+                                return (
+                                    <>
+                                        <div className="follow-list">
+                                            {
+                                                res.user_list.map(function(element, index)
+                                                {
+                                                    return(
+                                                        <div className="follow-info-block">
+                                                            <a className="follow-info-user" href={"/member/" + element.username} target="_blank">
+                                                                <Avatar className="follow-info-useravatar" src={"http://img-blog.leaflxh.com/" + element.avatar}/>
+                                                                <div className="follow-info-username">{element.username}</div>
+                                                            </a>
+                                                            <div >
+                                                                {
+                                                                    function()
+                                                                    {
+                                                                        var text = "关注"
+                                                                        if (element.followed === true)
+                                                                        {
+                                                                            text = "取消关注"
+                                                                        }
+                                                                        return <Button className="follow-info-button" id={"follower-index-" + index} onClick={this.InFollowListHandler.bind(this, "follower-index-" + index, element.username)}>{text}</Button>
+                                                                    }.bind(this)()
+                                                                }
+                                                            </div>
+                                                        </div>
+                                                    )
+                                                }.bind(this))
+                                            }
+                                        </div>
+                                        <div className="follow-list-page">
+                                        {
+                                            function()
+                                            {
+                                                if (this.state.fans_num === 0)
+                                                {
+                                                    return;
+                                                }
+                                                
+                                                //设定当前选中的页面，以及页数
+                                                var currentPage = 1;
+                                                var maxPage = 1;
+                                                if (page !== undefined)
+                                                {
+                                                    currentPage = page;
+                                                }
+                                                maxPage = parseInt(elementNum / 9);
+                                                if ((elementNum % 9) != 0)
+                                                {
+                                                    maxPage++;
+                                                }
+
+                                                if (maxPage === 1)
+                                                {
+                                                    return;
+                                                }
+
+                                                //准备生成页数列表
+                                                var pageList = [];
+                                                if (maxPage > 4)
+                                                {
+                                                    if (maxPage - currentPage > 2)
+                                                    {
+                                                        for (var index = 0; index <3; index++)
+                                                        {
+                                                            pageList[index] = currentPage + index//[1,2,3,'...', maxPage];
+                                                        }
+                                                        pageList.push("---");
+                                                        pageList.push(maxPage);
+                                                    }
+                                                    else
+                                                    {
+                                                        pageList[0] = 1;
+                                                        pageList[1] = "---";
+                                                        for (index = 1; index <= 3; index++)
+                                                        {
+                                                            pageList.push(maxPage - (3-index));
+                                                        }
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    for (var i = 0; i < maxPage; ++i)
+                                                    {
+                                                        pageList[i] = i+1;
+                                                    }
+                                                }
+
+                                                if (currentPage !== 1)
+                                                {
+                                                    pageList.push("上一页");
+                                                }
+                                                if (currentPage !== maxPage )
+                                                {
+                                                    pageList.push("下一页");
+                                                }
+
+                                                return pageList.map(pageNum=>{
+                                                    if(pageNum === "下一页")
+                                                    {
+                                                        return <Button className="page-element" onClick={this.RenderFollowList.bind(this, type=type, elementNum=elementNum, page=currentPage+1)}>{pageNum}</Button>
+                                                    }
+                                                    if(pageNum === "上一页")
+                                                    {
+                                                        return <Button className="page-element" onClick={this.RenderFollowList.bind(this, type=type, elementNum=elementNum, page=currentPage-1)}>{pageNum}</Button>
+                                                    }
+
+                                                    if (pageNum === currentPage)
+                                                    {
+                                                        return <Button className="follow-list-current-page page-element">{pageNum}</Button>
+                                                    }
+                                                    if (pageNum === "---")
+                                                    {
+                                                        return <Button className="follow-list-omitted-page page-element">{pageNum}</Button>
+                                                    }
+                                                    return <Button className="follow-list-other-page page-element" onClick={this.RenderFollowList.bind(this, type=type, elementNum=elementNum, page=pageNum)}>{pageNum}</Button>
+                                                })
+
+                                            }.bind(this)()
+                                        }
+                                    </div>
+                                    </>
+                                )
+                            }
+                        }.bind(this)()
+                    }
+                </>
+            })
+        })
+    }
+
+    ShowFollower(page)
+    {
+        this.setState({
+            dialogOpenState: true,
+            dialogTitle: "粉丝列表",
+            dialogContent: <>列表加载中</>
+        })
+
+        this.RenderFollowList.bind(this,"follower", this.state.fans_num)();
+        
+    }
+
+    ShowFollowed()
+    {
+        this.setState({
+            dialogOpenState: true,
+            dialogTitle: "关注列表",
+            dialogContent: <>列表加载中</>
+        })
+
+        this.RenderFollowList.bind(this,"followed", this.state.followed_num)();
+    }
+
+    render()
+    {
+        return (
+            <Container fixed className="main-app-container">
+                <div className="main-app-user-info">
+                    <div className="avatar-region">
+                        <input id="avatar-changer-input" type="file" style={{display: "none"}} />
+                        <Avatar src={this.state.avatarLoadSrc} style={{width: 150, height:150, borderRadius: 4}}></Avatar>
+                        <a className="change-avatar" href="#" onClick={this.ChangeAvatar.bind(this)}>更换头像</a>
+                    </div>
+                    <div className="main-app-user-brief">
+                        <div className="main-app-user-brief-username" >{this.state.userinfo.username}</div>
+                        <Input id="user-description-input" disableUnderline readOnly={!(this.state.userinfo.current_user==="true")} className="main-app-user-brief-desciption" placeholder={this.state.userDescription} onBlur={this.UpdateDescription.bind(this)} onFocus={this.SetDescription.bind(this)}/>
+                    </div>
+                    <div className="main-app-follow-info">
+                        <Button className="main-app-follow-info-button" onClick={this.ShowFollowed.bind(this)}>关注了 {this.state.followed_num}</Button>
+                        <Button className="main-app-follow-info-button" onClick={this.ShowFollower.bind(this)}>关注者 {this.state.fans_num}</Button>
+                        <Dialog maxWidth={false} open={this.state.dialogOpenState} onClose={function(){this.setState({dialogOpenState: false})}.bind(this)}>
+                            <DialogTitle>{this.state.dialogTitle}</DialogTitle>
+                            <DialogContent className="follow-dialog">
+                                {this.state.dialogContent}
+                            </DialogContent>
+                        </Dialog>
+                    </div>
+                </div>
+                <div className="main-app-toolbar">
+                    <div className="main-app-label">
+                        文章
+                    </div>
+                    <Button className="subscribe-button" style={this.state.userinfo.current_user==="true" ? {display: "none"}: {}} onClick={this.PanelFollowHandler.bind(this)}>{this.state.followButtonLabel}</Button>
+                </div>
+                <div className="main-app-user-article">
+                    {
+                        this.state.srcArticleList
+                    }
+                </div>
+            </Container>
+        )
+    }
+
+    componentDidMount()
+    {
+        var username = window.location.pathname.match(/\/member\/(.+)/);
+        document.title = username + " - LXHBlogSpace"
+        if (username !== null)
+        {
+            username = username[1];
+        }
+        else
+        {
+            alert("指定用户不存在");
+            window.location = "/";
+            return;
+        }
+        this.currentUsername = username;
+
+        fetch("/api/v1/passport/GetUserInfo?username=" + username)
+        .then(response=>{
+            if (response.status === 200)
+            {
+                return response.json();
+            }
+            else
+            {
+                alert("服务器未响应，请稍后再试")
+                return;
+            }
+        })
+        .then(userinfo=>{
+            if (userinfo.ecode === "0")
+            {
+                fetch("/api/v1/content/GetUserArticleList?username=" + username)
+                .then(response=>{
+                    if (response.status === 200)
+                    {
+                        return response.json();
+                    }
+                    else
+                    {
+                        alert("服务器未响应，请稍后再试")
+                        return;
+                    }
+                })
+                .then(response=>{
+                    if (response !== [])
+                    {                       
+                        fetch("/api/v1/member/GetUserFollowInfo?username=" + encodeURI(username), {"credentials": "include"})
+                        .then(r=>r.json())
+                        .then(followInfo=>{
+                            if (followInfo.following === "true")
+                            {
+                                this.followed = true;
+                                this.setState({
+                                    followButtonLabel: "取消关注"
+                                });
+                            }
+
+                            if (userinfo.current_user === "true")
+                            {
+                                if (userinfo.description === "")
+                                {
+                                    userinfo.description = "点击此处添加个人简介"
+                                }
+                                document.getElementsByClassName("change-avatar")[0].style.display = "inherite";
+                            }
+                            else
+                            {
+                                document.getElementsByClassName("change-avatar")[0].style.display = "none";
+                            }
+
+                            if (response.length === 0)
+                            {
+                                this.setState({
+                                    srcArticleList:
+                                    <div style={{paddingTop: 20, paddingBottom:20, textAlign:"center"}}>
+                                        该用户暂未发表文章
+                                    </div>
+                                })
+                            }
+                            else
+                            {
+                                this.setState({
+                                    srcArticleList: response.map((article,index)=>{
+                                        return BlogBriefBox(window.decodeURIComponent(escape(window.atob(article.title))), window.decodeURIComponent(escape(window.atob(article.brief))), [], {"vote":article.vote_num, "comments":article.comment_num}, [], article.article_id, article.create_date )
+                                    })
+                                })
+                            }
+
+                            this.setState({
+                                avatarSrc: userinfo.avatar,
+                                avatarLoadSrc: "http://img-blog.leaflxh.com/" + userinfo.avatar, 
+                                userDescription: userinfo.description,
+                                userinfo: userinfo,
+                                fans_num: parseInt(followInfo.fans_num), 
+                                followed_num: parseInt(followInfo.followed_num)
+                            })
+                        })
+                    }
+                })
+            }
+            else
+            {
+                alert("查询失败，原因：" + userinfo.reason);
+                window.location = "/";
+            }
+        })
     }
 
     ChangeAvatar()
@@ -109,14 +542,17 @@ class MainApp extends React.Component
                     .then(r=>{
                         if (r !== undefined && r.ecode === "0")
                         {
-                            console.log(this.state.avatarSrc)
                             this.setState({
-                                avatarSrc: "http://img-blog.leaflxh.com" + response.img_path
+                                avatarSrc: response.img_path
                             })
-                            console.log(this.state.avatarSrc)
+
+                            var avatars = document.getElementsByClassName("MuiAvatar-img");
+                            for (var i = 0; i < avatars.length; ++i)
+                            {
+                                avatars[i].src = this.state.avatarSrc;
+                            }
                         }
                     })
-                    avatarInput.value = null;
                 }
                 else
                 {
@@ -127,9 +563,14 @@ class MainApp extends React.Component
         }.bind(this)
     }
 
-    FollowHandler()
+    PanelFollowHandler()
     {
-        console.log(this.state);
+        if (window.logined_username === undefined)
+        {
+            document.getElementById("open-login-button").click();
+            return;
+        }
+
         if (this.followed === true)
         {
             fetch("/api/v1/member/RemoveFollow", {
@@ -151,6 +592,7 @@ class MainApp extends React.Component
                 {
                     this.followed = false;
                     this.setState({
+                        fans_num: this.state.fans_num - 1,
                         followButtonLabel: "关注"
                     })
                 }
@@ -181,6 +623,7 @@ class MainApp extends React.Component
                 {
                     this.followed = true;
                     this.setState({
+                        fans_num: this.state.fans_num + 1,
                         followButtonLabel: "取消关注"
                     })
                 }
@@ -192,10 +635,20 @@ class MainApp extends React.Component
         }
     }
 
+    SetDescription()
+    {
+        //do login check
+        var input = document.getElementById("user-description-input");
+        if (input.placeholder !== "点击此处添加个人简介")
+        {
+            input.value = this.state.userDescription;
+        }
+    }
+
     UpdateDescription()
     {
         console.log(this)
-        if (this.currentLoginUser === true)
+        if (this.state.userinfo.current_user === "true")
         {
             fetch("/api/v1/passport/UpdateUserDetails", {
                 "method":"POST",
@@ -227,143 +680,39 @@ class MainApp extends React.Component
             
         }
     }
+}
+
+class MainApp extends React.Component
+{
+    constructor(props)
+    {
+        super(props)
+        this.state = {
+            selectedUserInfo: "panel-selected-button",
+            selectedSystemMsg: "",
+            selectedMyMsg: "",
+            selectedMyFavorite: "",
+            selectedDraft:"",
+            selectedHistory: "",
+            srcContainer: <></>,
+            srcArticleList: <></>,
+            paddingState: "none",
+            followButtonLabel: "关注",
+            avatarSrc: "img-blog.leaflxh.com/images/default_avatar.jpg"
+        };
+        this.currentLoginUser = false;
+        this.avatarChangable = "none"
+        this.followed = false;
+        this.currentUsername = null;
+    }
+
 
     RenderUserInfo()
     {
-        var username = window.location.pathname.match(/\/member\/(.+)/);
-        if (username !== null)
-        {
-            username = username[1];
-        }
-        else
-        {
-            alert("指定用户不存在");
-            window.location = "/";
-            return;
-        }
-        this.currentUsername = username;
-
-        fetch("/api/v1/passport/GetUserInfo?username=" + username)
-        .then(response=>{
-            if (response.status === 200)
-            {
-                return response.json();
-            }
-            else
-            {
-                alert("服务器未响应，请稍后再试")
-                return;
-            }
-        })
-        .then(userinfo=>{
-            if (userinfo.ecode === "0")
-            {
-                fetch("/api/v1/content/GetUserArticleList?username=" + username)
-                .then(response=>{
-                    if (response.status === 200)
-                    {
-                        return response.json();
-                    }
-                    else
-                    {
-                        alert("服务器未响应，请稍后再试")
-                        return;
-                    }
-                })
-                .then(response=>{
-                    if (response !== [])
-                    {
-                        if (userinfo.description == "")
-                        {
-                            userinfo.decription = "此用户暂无简介"
-                        }
-                        
-                        fetch("/api/v1/member/GetUserFollowInfo?username=" + encodeURI(username), {"credentials": "include"})
-                        .then(r=>r.json())
-                        .then(followInfo=>{
-                            if (followInfo.following === "true")
-                            {
-                                this.followed = true;
-                                this.setState({
-                                    followButtonLabel: "取消关注"
-                                });
-                            }
-
-                            if (userinfo.current_user === "true")
-                            {
-                                this.avatarChangable = "inherite";
-                            }
-                            else
-                            {
-                                this.avatarChangable = "none";
-                            }
-
-                            if (response.length === 0)
-                            {
-                                this.setState({
-                                    srcArticleList:
-                                    <div style={{paddingTop: 20, paddingBottom:20, textAlign:"center"}}>
-                                        该用户暂未发表文章
-                                    </div>
-                                })
-                            }
-                            else
-                            {
-                                this.setState({
-                                    srcArticleList: response.map((article,index)=>{
-                                        return BlogBriefBox(window.decodeURIComponent(escape(window.atob(article.title))), window.decodeURIComponent(escape(window.atob(article.brief))), [], {"vote":article.vote_num, "comments":article.comment_num}, [], article.article_id, article.create_date )
-                                    })
-                                })
-                            }
-
-                            this.setState({
-                                avatarSrc: "http://img-blog.leaflxh.com" + userinfo.avatar,
-                                userDescription: userinfo.description
-                            })
-
-                            this.setState({
-                                srcContainer:
-                                <Container fixed className="main-app-container">
-                                    <div className="main-app-user-info">
-                                        <div className="avatar-region">
-                                            <input id="avatar-changer-input" type="file" style={{display: "none"}} />
-                                            <Avatar src={this.state.avatarSrc} style={{width: 150, height:150, borderRadius: 0}}></Avatar>
-                                            <a style={{display:this.avatarChangable}} className="change-avatar" href="#" onClick={this.ChangeAvatar.bind(this)}>更换头像</a>
-                                        </div>
-                                        <div className="main-app-user-brief">
-                                            <div className="main-app-user-brief-username" >{userinfo.username}</div>
-                                            <Input id="user-description-input" disableUnderline readOnly={userinfo.current_user==="false"} className="main-app-user-brief-desciption" placeholder={this.state.userDescription} onBlur={this.UpdateDescription}/>
-                                        </div>
-                                        <div className="main-app-follow-info">
-                                            <Button className="main-app-follow-info-button">关注了 {followInfo.followed_num}</Button>
-                                            <Button className="main-app-follow-info-button">关注者 {followInfo.fans_num}</Button>
-                                        </div>
-                                    </div>
-                                    <div className="main-app-toolbar">
-                                        <div className="main-app-label">
-                                            文章
-                                        </div>
-                                        <Button className="subscribe-button" disabled={userinfo.current_user==="true"} onClick={this.FollowHandler.bind(this)}>{this.state.followButtonLabel}</Button>
-                                    </div>
-                                    <div className="main-app-user-article">
-                                        {
-                                            this.state.srcArticleList
-                                        }
-                                    </div>
-                                </Container>
-    
-                            })
-                        })
-                    }
-                })
-            }
-            else
-            {
-                alert("查询失败，原因：" + userinfo.reason);
-            }
+        this.setState({
+            srcContainer: <UserInfo/>
         })
     }
-
     HandleReadMsg(event, state, type, notice_id)
     {
         if (state === false)
@@ -744,13 +1093,13 @@ class MainApp extends React.Component
     {
         var selectedState = [this.state.selectedUserInfo, this.state.selectedSystemMsg, this.state.selectedMyMsg, this.state.selectedMyFavorite, this.state.selectedDraft, this.state.selectedHistory]
         var icons = [<AccountBox />, <Feedback />, <Message />, <Class />,<VerticalSplit/>, <History/>]
-        var buttons = ["个人资料", "系统通知", "我的消息", "我的收藏", "我的草稿", "浏览历史"]
+        var buttons = ["个人资料", "系统通知", "我的消息", "我的收藏", "我的草稿"]//, "浏览历史"]
 
         return (
             <>
-                <Drawer variant="persistent" open={this.state.currentLoginUser} style={{width: 280, display:this.state.paddingState}}>
+                <Drawer variant="persistent" className="left-drawer" open={this.state.currentLoginUser} style={{width: 280, display:this.state.paddingState}}>
                     <div className="toolbar-padding"></div>
-                    <List>
+                    <List style={{width: 280}}>
                         {buttons.map((buttonText, index)=>{
                                 return (
                                     <>
@@ -781,11 +1130,12 @@ class MainApp extends React.Component
             }
         })
         .then(res=>{
-            if (res === undefined)
+            if (res === undefined || res.vaild === "false")
             {
                 this.switchContainer("个人资料");
                 return;
             }
+            var bodyNode = document.getElementsByTagName("body")[0];
 
             var username = window.location.pathname.match(/\/member\/(.+)/);
             if (username !== null)
@@ -799,6 +1149,7 @@ class MainApp extends React.Component
                     paddingState: "inline",
                     currentLoginUser: true
                 })
+                bodyNode.style.backgroundPositionX = '280px';
 
                 if (window.location.hash === "#sysmsg")
                 {

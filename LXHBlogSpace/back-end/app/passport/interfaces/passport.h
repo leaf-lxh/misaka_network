@@ -54,6 +54,7 @@ private:
 	HTTPPacket::HTTPResponsePacket Login(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false);
 	HTTPPacket::HTTPResponsePacket Logout(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false);
 
+	HTTPPacket::HTTPResponsePacket UpdatePassword(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false);
 	HTTPPacket::HTTPResponsePacket CheckUserExist(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false);
 	HTTPPacket::HTTPResponsePacket CheckEmailExist(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false);
 	HTTPPacket::HTTPResponsePacket Register(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false);
@@ -63,6 +64,9 @@ private:
 	HTTPPacket::HTTPResponsePacket IsLogin(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false);
 
 	HTTPPacket::HTTPResponsePacket UpdateUserDetails(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false);
+
+	std::string insiderAccessKey;
+	HTTPPacket::HTTPResponsePacket InsiderRegister(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false);
 
 
 	/*****************内部调用接口**************/
@@ -77,10 +81,10 @@ private:
 	/*!
 	检查指定用户是否存在
 	参数：email | 指定的用户名
-	返回：存在为true, 不存在为false
+	返回：存在为返回用户的uuid,不存在则返回空字符串。
 	异常：在MySQL调用过程中发生异常时抛出sql::SQLException
 	*/
-	bool CheckEmailExist(std::string email) noexcept(false);
+	std::string CheckEmailExist(std::string email) noexcept(false);
 
 	bool IsVaildUserName(std::string username) noexcept;
 

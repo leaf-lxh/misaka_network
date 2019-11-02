@@ -1,5 +1,4 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
 import "./css/HotTopic.css"
 
 import List from "@material-ui/core/List"
@@ -7,55 +6,70 @@ import ListSubheader from "@material-ui/core/ListSubheader"
 import ListItem from "@material-ui/core/ListItem"
 import Chip from "@material-ui/core/Chip"
 
-// eslint-disable-next-line
-import Icon from "@material-ui/core/Icon"
-
-// eslint-disable-next-line
-function RenderHotTopic(className){
-    var request = new XMLHttpRequest();
-    request.onreadystatechange = function(){
-        if (request.readyState === 4 && request.status === 200)
-        {
-            var topic = JSON.parse(request.responseText);
-            ReactDOM.render(
-                HotTopic(topic),
-                document.getElementsByClassName(className)[0]
-            );
-        }
-    }
-
-    request.open("GET", "/api/v1/GetHotTopic");
-    request.send(null);
-}
-
-
-function HotTopic(param){
-    if (param.ecode !== 0)
+class HotTopic extends React.Component
+{
+    constructor(props)
     {
-        param = JSON.parse('{"ecode": -1, "topics": ["热点加载中","","","","","","","","",""]}');
-        RenderHotTopic("recommand-panel");
-    }
+        super(props);
+        var param = JSON.parse('{"list_len": 10, "list": [{"article_id": "/", "title": "文章加载中"}]}');
+		this.state = {
+            srcListPanel:
+            param["list"].map((elements, index) =>{
+                return (
+                    <ListItem button className="topic-list-elements" href={"/blogs/" + elements.article_id}>
+                        <Chip style={{borderRadius: 0, width: 25, height: 25}} label={index + 1} />
+                        <div className="topic-label">
+                            {elements.title}
+                        </div>
+                    </ListItem>
+                )
+            })
+        }
+	}
 
-    return (
-        <>
-            <List>
-                <ListSubheader component="div" disableSticky="false">热点博文</ListSubheader>
-                {
-                    param["topics"].map((elements, index) =>{
+	render()
+	{
+    	return (
+        	<>
+            	<List>
+                	<ListSubheader component="div" disableSticky="false">友情链接</ListSubheader>
+                	{
+                    	this.state.srcListPanel
+                	}
+            	</List>
+        	</>
+    	)
+    }
+    
+    componentDidMount()
+    {
+        fetch("/api/v1/content/GetFriendLink")
+        .then(res=>{
+            if (res.ok)
+            {
+                return res.json()
+            }
+        })
+        .then(res=>{
+            if (res !== undefined)
+            {
+                var articleList = res;
+                this.setState({srcListPanel:
+                    articleList.map((elements, index) =>{
                         return (
-                            <ListItem button className="topic-list-elements">
+                            <ListItem button className="topic-list-elements" onClick={()=>{window.open(elements.href)}}>
                                 <Chip style={{borderRadius: 0, width: 25, height: 25}} label={index + 1} />
                                 <div className="topic-label">
-                                    {elements}
+                                    {elements.title}
                                 </div>
                             </ListItem>
                         )
                     })
-                }
-            </List>
-            
-        </>
-    );
+                })
+            }
+        })
+
+    }
 }
 
 export default HotTopic;

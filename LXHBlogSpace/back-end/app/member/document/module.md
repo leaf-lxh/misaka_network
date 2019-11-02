@@ -8,15 +8,13 @@
 create table user_follow(
     user_uuid tinytext not null,
     follower_uuid tinytext not null,
-    following tinyint unsigned not null
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 ```
 
-| 字段名        | 说明                         |
-| ------------- | ---------------------------- |
-| user_uuid     | 用户的UUID                   |
-| follower_uuid | 关注者的UUID                 |
-| following     | 关注状态，0为未关注，1为关注 |
+| 字段名        | 说明         |
+| ------------- | ------------ |
+| user_uuid     | 用户的UUID   |
+| follower_uuid | 关注者的UUID |
 
 ### 用户关注信息表
 

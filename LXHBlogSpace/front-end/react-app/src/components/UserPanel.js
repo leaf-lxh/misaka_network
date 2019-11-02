@@ -26,7 +26,7 @@ class UserPanel extends React.Component {
     {
         if (this.state.logined === false)
         {
-            alert("请先登录");
+            document.getElementById("open-login-dialog").click();
             return;
         }
 

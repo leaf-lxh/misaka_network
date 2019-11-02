@@ -1,4 +1,4 @@
-drop database lxhblogspace_content;
+drop database if exists lxhblogspace_content;
 create database lxhblogspace_content;
 use lxhblogspace_content;
 
@@ -52,7 +52,6 @@ create table article_content(
     content mediumtext not null
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-
 create table article_comment(
     comment_id int unsigned not null primary key auto_increment,
     article_id int unsigned not null,
@@ -60,4 +59,16 @@ create table article_comment(
     to_uuid tinytext not null,
     create_date int unsigned not null,
     content text not null
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+create table article_hottopic(
+	article_id int unsigned not null,
+	title tinytext not null,
+	heat int unsigned not null
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+create table friendlink(
+	sitename tinytext not null,
+	href tinytext not null,
+    priority int unsigned not null
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;

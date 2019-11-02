@@ -59,7 +59,7 @@ class BlogBrief extends React.Component
                         response.map((blogText, index) =>{
                         var blogData = blogText;
                         this.lastNode = blogData["article_id"];
-                        return BlogBriefBox(window.decodeURIComponent(escape(window.atob(blogData["title"]))), window.decodeURIComponent(escape(window.atob(blogData["brief"]))), blogData["tags"], blogData["interInfo"], blogData["authorInfo"], blogData["article_id"]);
+                        return BlogBriefBox(window.decodeURIComponent(escape(window.atob(blogData["title"]))), window.decodeURIComponent(escape(window.atob(blogData["brief"]))), blogData["tags"], blogData["interInfo"], blogData["authorInfo"], blogData["article_id"], blogData["create_date"]);
                         })
                     }
                     </>
@@ -96,7 +96,7 @@ class BlogBrief extends React.Component
                 response.map((blogText, index) =>{
                     var blogData = blogText;
                     this.lastNode = blogData["article_id"];
-                    return BlogBriefBox(window.decodeURIComponent(escape(window.atob(blogData["title"]))), window.decodeURIComponent(escape(window.atob(blogData["brief"]))), blogData["tags"], blogData["interInfo"], blogData["authorInfo"], blogData["article_id"]);
+                    return BlogBriefBox(window.decodeURIComponent(escape(window.atob(blogData["title"]))), window.decodeURIComponent(escape(window.atob(blogData["brief"]))), blogData["tags"], blogData["interInfo"], blogData["authorInfo"], blogData["article_id"], blogData["create_date"]);
                 })
             });
             window.onscroll = this.ScrollHook.bind(this);

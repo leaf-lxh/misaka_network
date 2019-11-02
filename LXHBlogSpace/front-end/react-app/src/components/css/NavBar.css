@@ -6,6 +6,10 @@
     margin-left : 3% !important;
 }
 
+.MuiAvatar-root
+{
+    border-radius: 4px !important;
+}
 
 .navstyle-index{
     margin-left: 60px !important;

@@ -48,7 +48,7 @@ class NavBar extends React.Component
                     </Link>
                     <div className="navstyle-status">
                         <>
-                            <Button className= "navstyle-button" onClick={this.ShowDialog.bind(this)}>
+                            <Button className= "navstyle-button" id="open-login-button" onClick={this.ShowDialog.bind(this)}>
                                 登录
                                 <AccountBoxIcon className="navstyle-icon" />
                             </Button>

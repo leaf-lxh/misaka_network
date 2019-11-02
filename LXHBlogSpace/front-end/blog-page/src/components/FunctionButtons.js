@@ -386,7 +386,7 @@ class FunctionButtons extends React.Component
                 删除文章
                 </div>
             </Button>
-            <Dialog open={this.state.dialogDisplayState} onClose={this.HideDialog.bind(this)} maxWidth="false">
+            <Dialog style={{maxHeight: 592}} open={this.state.dialogDisplayState} onClose={this.HideDialog.bind(this)} maxWidth="false">
                 <DialogTitle>本文章的评论区</DialogTitle>
                 <DialogContent style={{borderTop: "1px solid gray", borderBottom: "1px solid gray", marginLeft: "5px", marginRight: "5px"}}>
                     <div >

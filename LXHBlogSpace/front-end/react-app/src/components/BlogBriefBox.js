@@ -2,7 +2,7 @@ import React from 'react';
 import Avatar from '@material-ui/core/Avatar'
 import Chip from '@material-ui/core/Chip'
 import "./css/BlogBriefBox.css"
-
+import Link from "@material-ui/core/Link"
 import AccessTime from "@material-ui/icons/AccessTime"
 
 function GetTimeBlock(time)
@@ -21,13 +21,13 @@ function GetTimeBlock(time)
     }
 }
 function BlogBriefBox(title, article, tags, interInfo, userInfo, href, time)  {
+    var date = new Date(parseInt(time) * 1000)
     return(
         <div className="blog-brief-root">
-            {GetTimeBlock(time)}
             <div className="blog-brief-head">
                 <div className="title">{title}</div>
                 <div className="user-info">
-                    <div className="username">{userInfo["name"]}</div>
+                    <Link underline="none" className="username" href={"/member/" + userInfo["name"]}>{userInfo["name"]}</Link>
                     <Avatar className="avatar" src={userInfo["avatar"]} style={{borderRadius: 0}}/>
                 </div>
             </div>
@@ -40,9 +40,11 @@ function BlogBriefBox(title, article, tags, interInfo, userInfo, href, time)  {
             <div className="blog-brief-footer">
                 <div className="blog-brief-tag-list">
                     {
-                        tags.map((tag, index) =>{
+                        "创建于：" + date.toLocaleDateString() + " " + date.toLocaleTimeString('zh-CN', {"hour12": false})
+                        /*tags.map((tag, index) =>{
                             return <Chip className="tag-item" label={tag} style={{borderRadius:3}}/>
                         })
+                        */
                     }
                 </div>
                 <div className="blog-inter-info">

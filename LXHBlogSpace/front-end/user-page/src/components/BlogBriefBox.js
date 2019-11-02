@@ -22,9 +22,9 @@ function GetTimeBlock(time)
     }
 }
 function BlogBriefBox(title, article, tags, interInfo, userInfo, href, time)  {
+    time = new Date(parseInt(time) * 1000);
     return(
         <div className="blog-brief-root">
-            {GetTimeBlock(time)}
             <div className="blog-brief-head">
                 <div className="title">{title}</div>
             </div>
@@ -36,15 +36,11 @@ function BlogBriefBox(title, article, tags, interInfo, userInfo, href, time)  {
 
             <div className="blog-brief-footer">
                 <div className="blog-brief-tag-list">
-                    {
-                        tags.map((tag, index) =>{
-                            return <Chip className="tag-item" label={tag} style={{borderRadius:3}}/>
-                        })
-                    }
+                发表于：{time.toLocaleDateString() + " " + time.toLocaleTimeString('zh-CN', {hour12: false})}
                 </div>
                 <div className="blog-inter-info">
-                    <Chip className="info-vote" style={{borderRadius: 0}} label={"赞同 " + interInfo["vote"]} />
-                    <Chip className="info-comments" style={{borderRadius: 0}} label={interInfo["comments"] + " 条评论" } />
+                    <Chip className="info-vote" label={"赞同 " + interInfo["vote"]} />
+                    <Chip className="info-comments" label={interInfo["comments"] + " 条评论" } />
                 </div>
             </div>
         </div>

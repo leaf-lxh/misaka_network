@@ -59,7 +59,7 @@ private:
 
 	
 	HTTPPacket::HTTPResponsePacket GetExplored(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false);
-	HTTPPacket::HTTPResponsePacket GetHottopic(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false);
+
 	
 
 	

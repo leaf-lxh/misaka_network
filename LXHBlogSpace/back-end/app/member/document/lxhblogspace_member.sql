@@ -5,7 +5,6 @@ use lxhblogspace_member;
 create table user_follow(
     user_uuid tinytext not null,
     follower_uuid tinytext not null,
-    following tinyint unsigned not null
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 create table user_follow_info(

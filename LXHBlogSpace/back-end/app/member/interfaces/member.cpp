@@ -255,21 +255,7 @@ void BlogSpaceMember::HTTPPacketHandler(int clientfd, HTTPPacket::HTTPRequestPac
 		return;
 	}
 
-	if (request.requestPath == "/api/v1/member/GetHottopic")
-	{
-		try
-		{
-			response = GetHottopic(clientfd, request);
-
-			connectedClients[clientfd].writeBuffer += response.ToString();
-			LogResponse(clientfd, request, response.code);
-		}
-		catch (std::runtime_error e)
-		{
-			LogRequestError(clientfd, request, e.what());
-		}
-		return;
-	}
+	
 
 	RaiseHTPPError(clientfd, 404);
 	return;
@@ -308,50 +294,67 @@ HTTPPacket::HTTPResponsePacket BlogSpaceMember::AddFollow(int clientfd, HTTPPack
 			return response;
 		}
 
+		if (followedUuid == request.GetCookieValue("_uuid"))
+		{
+			responseJson["ecode"] = "-6";
+			responseJson["reason"] = "用户不能关注自己";
+
+			response.SetContentType("application/json; charset=UTF-8");;
+			response.body = webstring::JsonStringify(responseJson);
+			return response;
+		}
+
+		PtrPreparedStatement followST(mysqlProperty.connection->prepareStatement("SELECT user_uuid, follower_uuid FROM user_follow WHERE user_uuid=? AND follower_uuid=?"));
+		followST->setString(1, followedUuid);
+		followST->setString(2, request.GetCookieValue("_uuid"));
+		PtrResultSet result(followST->executeQuery());
+		if (result->rowsCount() != 0)
+		{
+			responseJson["ecode"] = "-7";
+			responseJson["reason"] = "已关注该用户";
+
+			response.SetContentType("application/json; charset=UTF-8");;
+			response.body = webstring::JsonStringify(responseJson);
+			return response;
+		}
 
 		//使用事务做同步
 		mysqlProperty.connection->setSchema("lxhblogspace_member");
 		PtrStatement transactionST(mysqlProperty.connection->createStatement());
 		transactionST->execute("BEGIN");
 
-		//设置关注关系
-		PtrPreparedStatement statement(mysqlProperty.connection->prepareStatement("UPDATE user_follow SET following=1 WHERE user_uuid=? AND follower_uuid=?"));
-		statement->setString(1, followedUuid);
-		statement->setString(2, request.GetCookieValue("_uuid"));
-		if (statement->executeUpdate() == 0)
-		{
-			PtrPreparedStatement insertStatement(mysqlProperty.connection->prepareStatement("INSERT INTO user_follow VALUES(?,?,?)"));
-			insertStatement->setString(1, followedUuid);
-			insertStatement->setString(2, request.GetCookieValue("_uuid"));
-			insertStatement->setInt(3, 1);
-			insertStatement->execute();
-		}
-
-		//更新被关注者的粉丝数
-		statement.reset(mysqlProperty.connection->prepareStatement("UPDATE user_follow_info JOIN (SELECT COUNT(*) as num FROM user_follow WHERE user_uuid=?) b SET fans_num=b.num WHERE user_uuid=?"));
-		statement->setString(1, followedUuid);
-		statement->setString(2, followedUuid);
-		if (statement->executeUpdate() == 0)
-		{
-			statement.reset(mysqlProperty.connection->prepareStatement("INSERT INTO user_follow_info VALUES(?,?,?)"));
-			statement->setString(1, followedUuid);
-			statement->setString(2, "1");
-			statement->setString(3, "0");
-			statement->execute();
-		}
+		//添加关注
+		followST.reset(mysqlProperty.connection->prepareStatement("INSERT INTO user_follow(user_uuid, follower_uuid) VALUES(?,?)"));
+		followST->setString(1, followedUuid);
+		followST->setString(2, request.GetCookieValue("_uuid"));
+		followST->execute();
 
 		//更新关注者的关注数量
-		statement.reset(mysqlProperty.connection->prepareStatement("UPDATE user_follow_info JOIN (SELECT COUNT(*) as num FROM user_follow WHERE follower_uuid=?) b SET followed_num=b.num WHERE user_uuid=?"));
-		statement->setString(1, request.GetCookieValue("_uuid"));
-		statement->setString(2, request.GetCookieValue("_uuid"));
-		if (statement->executeUpdate() == 0)
+		PtrPreparedStatement updateST(mysqlProperty.connection->prepareStatement("UPDATE user_follow_info JOIN (SELECT COUNT(*) as num FROM user_follow WHERE follower_uuid=?) b SET followed_num=b.num WHERE user_uuid=?"));
+		updateST->setString(1, request.GetCookieValue("_uuid"));
+		updateST->setString(2, request.GetCookieValue("_uuid"));
+		if (updateST->executeUpdate() == 0)
 		{
-			statement.reset(mysqlProperty.connection->prepareStatement("INSERT INTO user_follow_info VALUES(?,?,?)"));
-			statement->setString(1, request.GetCookieValue("_uuid"));
-			statement->setString(2, "0");
-			statement->setString(3, "1");
-			statement->execute();
+			updateST.reset(mysqlProperty.connection->prepareStatement("INSERT INTO user_follow_info(user_uuid, fans_num, followed_num) VALUES(?,?,?)"));
+			updateST->setString(1, request.GetCookieValue("_uuid"));
+			updateST->setString(2, "0");
+			updateST->setString(3, "1");
+			updateST->execute();
 		}
+
+		//更新被关注者的粉丝数量
+		updateST.reset(mysqlProperty.connection->prepareStatement("UPDATE user_follow_info JOIN (SELECT COUNT(*) as num FROM user_follow WHERE user_uuid=?) b SET fans_num=b.num WHERE user_uuid=?"));
+		updateST->setString(1, followedUuid);
+		updateST->setString(2, followedUuid);
+		if (updateST->executeUpdate() == 0)
+		{
+			updateST.reset(mysqlProperty.connection->prepareStatement("INSERT INTO user_follow_info(user_uuid, fans_num, followed_num) VALUES(?,?,?)"));
+			updateST->setString(1, followedUuid);
+			updateST->setString(2, "1");
+			updateST->setString(3, "0");
+			updateST->execute();
+		}
+
 		transactionST->execute("COMMIT");
 
 		responseJson["ecode"] = "0";
@@ -410,11 +413,11 @@ HTTPPacket::HTTPResponsePacket BlogSpaceMember::RemoveFollow(int clientfd, HTTPP
 			return response;
 		}
 
-
 		mysqlProperty.connection->setSchema("lxhblogspace_member");
-		PtrPreparedStatement statement(mysqlProperty.connection->prepareStatement("UPDATE user_follow SET following=0 WHERE user_uuid=? AND follower_uuid=?"));
+		PtrPreparedStatement statement(mysqlProperty.connection->prepareStatement("DELETE FROM user_follow WHERE user_uuid=? AND follower_uuid=?"));
 		statement->setString(1, followedUuid);
 		statement->setString(2, request.GetCookieValue("_uuid"));
+		statement->execute();
 
 		//更新被关注者的粉丝数
 		statement.reset(mysqlProperty.connection->prepareStatement("UPDATE user_follow_info JOIN (SELECT COUNT(*) as num FROM user_follow WHERE user_uuid=?) b SET fans_num=b.num WHERE user_uuid=?"));
@@ -453,21 +456,42 @@ HTTPPacket::HTTPResponsePacket BlogSpaceMember::RemoveFollow(int clientfd, HTTPP
 
 HTTPPacket::HTTPResponsePacket BlogSpaceMember::GetFollowerList(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false)
 {
-	using boost::property_tree::ptree;
-	using boost::property_tree::write_json;
-
 	HTTPPacket::HTTPResponsePacket response;
 	response.SetServer(SERVER_SIGNATURE);
 
-	std::map<std::string, std::string> responseJson;
-	std::string username = request.ParseURLParamter()["username"];
-	if (username == "")
+	nlohmann::json responseJson;
+
+	auto requestParams = request.ParseURLParamter();
+	std::string username = requestParams["username"];
+	int requestPage = 1;
+	try
 	{
-		responseJson["ecode"] = "-1";
-		responseJson["reaspon"] = " 请求参数有误"; 
+		if (requestParams.count("page") != 0)
+		{
+			requestPage = std::stoi(requestParams["page"]);
+			if (requestPage <= 0)
+			{
+				requestPage = 1;
+			}
+		}
+	}
+	catch (...)
+	{
+		responseJson["ecode"] = -1;
+		responseJson["reaspon"] = "请求参数有误";
 
 		response.SetContentType("application/json; charset=UTF-8");
-		response.body = webstring::JsonStringify(responseJson);
+		response.body = responseJson.dump();
+		return response;
+	}
+
+	if (username == "")
+	{
+		responseJson["ecode"] = -1;
+		responseJson["reaspon"] = "请求参数有误"; 
+
+		response.SetContentType("application/json; charset=UTF-8");
+		response.body = responseJson.dump();
 		return response;
 	}
 
@@ -476,36 +500,52 @@ HTTPPacket::HTTPResponsePacket BlogSpaceMember::GetFollowerList(int clientfd, HT
 		std::string queriedUserUUID = GetUUIDByUsername(username);
 		if (queriedUserUUID == "")
 		{
-			responseJson["ecode"] = "-2";
+			responseJson["ecode"] = -2;
 			responseJson["reason"] = "查询的用户不存在";
 
-			response.SetContentType("applicatoin/json; charset=UTF-8");
-			response.body = webstring::JsonStringify(responseJson);
+			response.SetContentType("application/json; charset=UTF-8");
+			response.body = responseJson.dump();
 
 			return response;
 		}
 
-		ptree userListRoot;
+		bool loggedin = CheckUserToken(request);
+		std::string currentUserUUID = request.GetCookieValue("_uuid");
+
+		std::vector<nlohmann::json> userList;
 		mysqlProperty.connection->setSchema("lxhblogspace_member");
-		PtrPreparedStatement queryStatement(mysqlProperty.connection->prepareStatement("SELECT follower_uuid FROM user_follow WHERE user_uuid=? AND following=1"));
+		PtrPreparedStatement queryStatement(mysqlProperty.connection->prepareStatement("SELECT follower_uuid FROM user_follow WHERE user_uuid=? LIMIT ?,9"));
 		queryStatement->setString(1, queriedUserUUID);
+		queryStatement->setInt(2, (requestPage - 1) * 9);
 		PtrResultSet result(queryStatement->executeQuery());
 		while (result->next())
 		{
-			ptree userListElement;
-			userListElement.put("username", GetUsernameByUUID(result->getString(1)));
-			userListElement.put("avatar", GetUserAvatar(result->getString(1)));
-			userListRoot.push_back(std::make_pair("", userListElement));
+			std::string followerUUID = result->getString(1);
+			bool followed = false;
+			if (loggedin == true)
+			{
+				PtrPreparedStatement followST(mysqlProperty.connection->prepareStatement("SELECT * FROM user_follow WHERE user_uuid=? AND follower_uuid=?"));
+				followST->setString(1, followerUUID);
+				followST->setString(2, currentUserUUID);
+				PtrResultSet followInfo(followST->executeQuery());
+				if (followInfo->rowsCount() != 0)
+				{
+					followed = true;
+				}
+			}
+
+			userList.push_back({
+				{"username", GetUsernameByUUID(followerUUID)},
+				{"avatar", GetUserAvatar(followerUUID)},
+				{"followed", followed}
+			});
 		}
 
-		ptree responseJsonTree;
-		responseJsonTree.put("ecode", "0");
-		responseJsonTree.add_child("user_list", userListRoot);
-		std::stringstream ss;
-		write_json(ss, responseJsonTree, false);
+		responseJson["ecode"] = 0;
+		responseJson["user_list"] = userList;
 
 		response.SetContentType("application/json; charset=UTF-8");
-		response.body = ss.str();
+		response.body = responseJson.dump();
 
 		return response;
 	}
@@ -537,15 +577,39 @@ HTTPPacket::HTTPResponsePacket BlogSpaceMember::GetFollowedList(int clientfd, HT
 		response.SetResponseCode(HTTPPacket::ResponseCode::MethodNotAllowed);
 		return response;
 	}
-	std::map<std::string, std::string> responseJson;
-	std::string username = request.ParseURLParamter()["username"];
+
+	nlohmann::json responseJson;
+	auto requestParam = request.ParseURLParamter();
+	std::string username = requestParam["username"];
+	int requestPage = 1;
+	if (requestParam.count("page") != 0)
+	{
+		try
+		{
+			requestPage = std::stoi(requestParam["page"]);
+			if (requestPage <= 0)
+			{
+				requestPage = 1;
+			}
+		}
+		catch (...)
+		{
+			responseJson["ecode"] = -1;
+			responseJson["reaspon"] = " 请求参数有误";
+
+			response.SetContentType("application/json; charset=UTF-8");
+			response.body = responseJson.dump();
+			return response;
+		}
+	}
+
 	if (username == "")
 	{
-		responseJson["ecode"] = "-1";
+		responseJson["ecode"] = -1;
 		responseJson["reaspon"] = " 请求参数有误";
 
 		response.SetContentType("application/json; charset=UTF-8");
-		response.body = webstring::JsonStringify(responseJson);
+		response.body = responseJson.dump();
 		return response;
 	}
 
@@ -554,36 +618,52 @@ HTTPPacket::HTTPResponsePacket BlogSpaceMember::GetFollowedList(int clientfd, HT
 		std::string queriedUserUUID = GetUUIDByUsername(username);
 		if (queriedUserUUID == "")
 		{
-			responseJson["ecode"] = "-2";
+			responseJson["ecode"] = -2;
 			responseJson["reason"] = "查询的用户不存在";
 
 			response.SetContentType("applicatoin/json; charset=UTF-8");
-			response.body = webstring::JsonStringify(responseJson);
+			response.body = responseJson.dump();
 
 			return response;
 		}
 
-		ptree userListRoot;
+		std::vector<nlohmann::json> userList;
 		mysqlProperty.connection->setSchema("lxhblogspace_member");
-		PtrPreparedStatement queryStatement(mysqlProperty.connection->prepareStatement("SELECT user_uuid FROM user_follow WHERE follower_uuid=? AND following=1"));
+		PtrPreparedStatement queryStatement(mysqlProperty.connection->prepareStatement("SELECT user_uuid FROM user_follow WHERE follower_uuid=? LIMIT ?,9"));
 		queryStatement->setString(1, queriedUserUUID);
+		queryStatement->setInt(2, (requestPage - 1) * 9);
+
 		PtrResultSet result(queryStatement->executeQuery());
+		bool loggedin = CheckUserToken(request);
+		std::string currentUser = request.GetCookieValue("_uuid");
 		while (result->next())
 		{
-			ptree userListElement;
-			userListElement.put("username", GetUsernameByUUID(result->getString(1)));
-			userListElement.put("avatar", GetUserAvatar(result->getString(1)));
-			userListRoot.push_back(std::make_pair("", userListElement));
+			std::string followedUserUUID = result->getString(1);
+			bool followed = false;
+			if (loggedin == true)
+			{
+				PtrPreparedStatement followST(mysqlProperty.connection->prepareStatement("SELECT * FROM user_follow WHERE user_uuid=? AND follower_uuid=?"));
+				followST->setString(1, followedUserUUID);
+				followST->setString(2, currentUser);
+				PtrResultSet followInfo(followST->executeQuery());
+				if (followInfo->rowsCount() != 0)
+				{
+					followed = true;
+				}
+			}
+
+			userList.push_back({
+				{"username", GetUsernameByUUID(followedUserUUID)},
+				{"avatar", GetUserAvatar(followedUserUUID)},
+				{"followed", followed}
+			});
 		}
 
-		ptree responseJsonTree;
-		responseJsonTree.put("ecode", "0");
-		responseJsonTree.add_child("user_list", userListRoot);
-		std::stringstream ss;
-		write_json(ss, responseJsonTree, false);
+		responseJson["ecode"] = 0;
+		responseJson["user_list"] = userList;
 
 		response.SetContentType("application/json; charset=UTF-8");
-		response.body = ss.str();
+		response.body = responseJson.dump();
 
 		return response;
 	}
@@ -665,7 +745,7 @@ HTTPPacket::HTTPResponsePacket BlogSpaceMember::GetUserFollowInfo(int clientfd, 
 
 		if (CheckUserToken(request) == true)
 		{
-			queryStatement.reset(mysqlProperty.connection->prepareStatement("SELECT * FROM user_follow WHERE user_uuid=? AND follower_uuid=? AND following=1"));
+			queryStatement.reset(mysqlProperty.connection->prepareStatement("SELECT * FROM user_follow WHERE user_uuid=? AND follower_uuid=?"));
 			queryStatement->setString(1, queriedUserUUID);
 			queryStatement->setString(2, request.GetCookieValue("_uuid"));
 
@@ -1093,12 +1173,6 @@ HTTPPacket::HTTPResponsePacket BlogSpaceMember::GetExplored(int clientfd, HTTPPa
 		}
 		return response;
 	}
-}
-
-HTTPPacket::HTTPResponsePacket BlogSpaceMember::GetHottopic(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false)
-{
-	HTTPPacket::HTTPResponsePacket response;
-
 }
 
 std::string BlogSpaceMember::GetUUIDByUsername(std::string username) noexcept(false)

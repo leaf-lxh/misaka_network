@@ -178,18 +178,34 @@ create table article_comment(
 ### 热点文章表
 
 ```mysql
-create table article_comment(
-    article_id int unsigned not null,
-    title tinytext not null,
-    heat int unsigned not null
+create table article_hottopic(
+	article_id int unsigned not null,
+	title tinytext not null,
+	heat int unsigned not null
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 ```
 
-| 字段名     | 说明                   |
-| ---------- | ---------------------- |
-| article_id | 文章id                 |
-| user_uuid  | 作者的uuid             |
-| last_heat  | 上次比较时产生的热度值 |
+| 字段名     | 说明         |
+| ---------- | ------------ |
+| article_id | 文章ID       |
+| title      | 文章的标题   |
+| heat       | 文章的热度值 |
 
 
+
+### 友情链接表
+
+```mysql
+create table friendlink(
+	sitename tinytext not null,
+	href tinytext not null,
+    priority int unsigned not null
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+```
+
+| 字段名   | 说明     |
+| -------- | -------- |
+| sitename | 网站名称 |
+| href     | 网站链接 |
+| priority | 优先级   |
 

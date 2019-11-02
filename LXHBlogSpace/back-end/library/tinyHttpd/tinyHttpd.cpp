@@ -290,7 +290,6 @@ void TinyHttpd::StartHandleRequest() noexcept
 	int clientfd;
 	while (true)
 	{
-		//这里应该使用异步IO来读取文件，因为fstream无法支持异步IO，无法与epoll进行结合
 		readyEvents = epoll_wait(epollfd, events.get(), serverProperty.maxClients, -1);
 		for (int index = 0; index < readyEvents; ++index)
 		{
@@ -867,7 +866,8 @@ void TinyHttpd::LogResponse(int clientfd, HTTPPacket::HTTPRequestPacket request,
 
 	stringstream ss;
 	ss << skipws;
-	ss << "requester ip: " << strBuffer.get() << " -> " << (int)rcode << " " << request.method << " " << request.fullURL << " User-Agent: " << request.GetUserAgent() << " X-Real-IP: " << request.GetRealIP();
+	ss << "requester ip: " << strBuffer.get() << " -> " << (int)rcode 
+	   << " " << request.method << " " << request.fullURL << " User-Agent: " << request.GetUserAgent() << " X-Real-IP: " << request.GetRealIP();
 
 	syslog(LOG_INFO | LOG_USER, "%s", ss.str().c_str());
 }
@@ -881,7 +881,8 @@ void TinyHttpd::LogRequestError(int clientfd, HTTPPacket::HTTPRequestPacket requ
 
 	stringstream ss;
 	ss << skipws;
-	ss << message << "; requester ip: " << strBuffer.get() << " -> " << request.method << " " << request.fullURL << " User-Agent: " << request.GetUserAgent() << " X-Real-IP: " << request.GetRealIP();
+	ss << message << "; requester ip: " << strBuffer.get() << " -> " << request.method << " "
+	   << request.fullURL << " User-Agent: " << request.GetUserAgent() << " X-Real-IP: " << request.GetRealIP();
 
 	syslog(LOG_INFO | LOG_USER, "%s", ss.str().c_str());
 }

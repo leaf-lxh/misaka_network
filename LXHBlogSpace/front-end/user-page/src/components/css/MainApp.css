@@ -22,7 +22,9 @@
     min-width: 1150px !important;
     margin-top: 70px;
     margin-right: auto !important;
-    box-shadow: 0 2px 4px -1px rgba(0,0,0,.2), 0 4px 5px 0 rgba(0,0,0,.14), 0 1px 10px 0 rgba(0,0,0,.12)
+    box-shadow: 0 2px 4px -1px rgba(0,0,0,.2), 0 4px 5px 0 rgba(0,0,0,.14), 0 1px 10px 0 rgba(0,0,0,.12);
+    border-radius: 4px;
+    background: rgba(255,255,255,0.85);
 }
 
 .main-app-user-info
@@ -30,6 +32,7 @@
     width: 100%;
     margin-left: 15%;
     margin-right: auto;
+    margin-top: 10px;
     display: flex;
 }
 
@@ -49,7 +52,8 @@
     color: rgb(39, 137, 175);
     margin-left: 5%;
     padding-top: 40px;
-    font-size: 30px
+    font-size: 30px;
+    cursor: default;
 }
 
 .main-app-user-brief-desciption
@@ -105,7 +109,6 @@
 
 .subscribe-button
 {
-    display: none !important;
     background: rgb(192, 206, 211) !important;
     color: white !important;
     width: 80px !important;
@@ -127,24 +130,27 @@
 
 .main-app-follow-info-button
 {
+    display: flex !important;
     background: 0% !important;
     margin-bottom: 10px !important;
-    display: none !important;
 }
 
 .msg-container
 {
     max-width: 1150px !important;
     min-width: 1150px !important;
+    padding-top: 10px;
     margin-top: 70px;
     margin-right: auto !important;
     display: block;
+    background-color: rgba(236, 236, 236, 0.85);
+    box-shadow: 0px 2px 4px -1px rgba(0,0,0,0.2), 0px 4px 5px 0px rgba(0,0,0,0.14), 0px 1px 10px 0px rgba(0,0,0,0.12);
 }
 
 .msg-panel
 {
     width: 100%;
-    margin-bottom: 20px;
+    margin-bottom: 20px !important;
 }
 
 .msg-panel-unreaded
@@ -162,4 +168,87 @@
 {
     padding: 20px 10px 20px 10px;
     text-align: center;
+}
+
+.left-drawer
+{
+    box-shadow: 0 2px 4px -1px rgba(0,0,0,.2), 0 4px 5px 0 rgba(0,0,0,.14), 0 1px 10px 0 rgba(0,0,0,.12);
+}
+
+.follow-dialog
+{
+    width: 600px;
+    height: 500px;;
+}
+
+.follow-info-block
+{
+    display: flex;
+    flex-grow: 1;
+    margin-top: 10px
+}
+
+.follow-info-useravatar
+{
+    width: 50px;
+    height: 50px;
+}
+
+.follow-info-user
+{
+    display: flex;
+    text-decoration: none;
+    margin-right: auto;
+}
+
+.follow-info-username
+{
+    color: gray;
+    margin-left: 10px;
+    line-height: 40px;
+}
+
+.follow-info-button
+{
+    width: 100px;
+    background:#70bddc !important;
+    color: white !important;
+    line-height: 50px;
+}
+
+.none-follow
+{
+    text-align: center;
+    padding-top: 200px;
+    color: gray;
+}
+
+.follow-list-page
+{
+    text-align: center;
+}
+
+.page-element
+{
+    margin: 5px !important;
+}
+
+.follow-list-current-page
+{
+    color: blue !important;
+}
+
+.follow-list-omitted-page
+{
+    color: black !important;
+}
+
+.follow-list-other-page
+{
+    color: gray !important;
+}
+
+.follow-list
+{
+    height: 440px;
 }
