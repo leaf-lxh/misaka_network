@@ -256,6 +256,7 @@ class BlogEdit extends React.Component
     {
         var article = document.getElementById("article-content-input").value;
         var md = new Remarkable({
+            breaks: true,
             highlight: function (str, lang) {
                 if (lang && hljs.getLanguage(lang)) {
                     var converted = hljs.highlight(lang, str).value;

@@ -1,4 +1,5 @@
 import React from 'react';
+import ReactDOM from 'react-dom';
 // eslint-disable-next-line
 import { makeStyles } from '@material-ui/core/styles'
 
@@ -12,50 +13,6 @@ import CircularProgress from "@material-ui/core/CircularProgress"
 
 import './css/MainContainer.css'
 
-
-function GenPage(requiredPage) {
-    if (requiredPage === "main")
-    {
-        return (
-            <div className="blog-brief-list">
-                <BlogBrief />
-            </div>
-        );
-    }
-    else if (requiredPage === "timeline")
-    {
-        return (
-            <div className="blog-brief-list">
-                <TimeLine />
-            </div>
-        );
-    }
-    else if (requiredPage === "water")
-    {
-        return (
-            <div className="blog-brief-list">
-                <Water/>
-            </div>
-        );
-    }
-    else
-    {
-        return (
-            <div className="blog-brief-list">
-                <div className="container-loading">
-                    <div style={{paddingTop: "300px"}}>
-                        <CircularProgress style={{display: "inline-block"}} variant="indeterminate"/>
-                        <div className="container-loading-text">
-                            加载中...
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-        );
-    }
-}
-
 function StickyRightPanel(){
     var briefList = document.getElementsByClassName("blog-brief-list")[0];
     var panelLeft = briefList.offsetLeft + briefList.offsetWidth + 20;
@@ -65,20 +22,110 @@ function StickyRightPanel(){
     panel.style.left= panelLeft + "px";
 }
 
-const MainContainer = (requiredPage) => {
+class MainContainer extends React.Component
+{
     //设置右边面板悬浮
-    window.onload = StickyRightPanel;
-    window.onresize = StickyRightPanel;
-
-    return(
-        <Container fixed className="main-container">
-            {GenPage(requiredPage)}
-            <div  className="index-right-panel">
-                <MainIndexRightPanel/>
+    constructor(props)
+    {
+        super(props)
+        window.onload = StickyRightPanel;
+        window.onresize = StickyRightPanel;
+        this.state = {
+            src:
+            <div className="blog-brief-list">
+                    <div className="container-loading">
+                        <div style={{paddingTop: "300px"}}>
+                            <CircularProgress style={{display: "inline-block"}} variant="indeterminate"/>
+                            <div className="container-loading-text">
+                                加载中...
+                            </div>
+                        </div>
+                    </div>
             </div>
-            
-        </Container>
-    )
+        }
+        document.addEventListener("container-switch", function(msg){
+            console.log(msg)
+            this.GenPage(msg.detail)
+        }.bind(this))
+    }
+
+    render()
+    {
+        return(
+            <Container fixed className="main-container">
+                {this.state.src}
+                <div  className="index-right-panel">
+                    <MainIndexRightPanel/>
+                </div>
+                
+            </Container>
+        )
+    }
+
+    componentDidMount()
+    {
+        this.GenPage(this.props.page)
+    }
+
+
+    GenPage(requiredPage) 
+    {
+        if (requiredPage === "main")
+        {
+            this.setState({
+                src:
+                <div className="blog-brief-list">
+                    <BlogBrief />
+                </div>
+            }
+            );
+        }
+        else if (requiredPage === "timeline")
+        {
+            fetch("/api/v1/content/GetFollowedArticleList", {'credentials': 'include'})
+            .then(res=>{
+                if (res.ok)
+                {
+                    return res.json()
+                }
+            })
+            .then(function(res)
+            {
+                this.setState({
+                    src:
+                    <div className="blog-brief-list">
+                        <TimeLine articleList={res}/>
+                    </div>
+                })
+            }.bind(this))
+        }
+        else if (requiredPage === "water")
+        {
+            this.setState({
+                src:
+                <div className="blog-brief-list">
+                    <Water/>
+                </div>
+            });
+        }
+        else
+        {
+            this.setState({
+                src:
+                <div className="blog-brief-list">
+                    <div className="container-loading">
+                        <div style={{paddingTop: "300px"}}>
+                            <CircularProgress style={{display: "inline-block"}} variant="indeterminate"/>
+                            <div className="container-loading-text">
+                                加载中...
+                            </div>
+                        </div>
+    
+                    </div>
+                </div>
+            });
+        }
+    }
 }
 
 export default MainContainer;

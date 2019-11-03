@@ -66,6 +66,7 @@ private:
 	HTTPPacket::HTTPResponsePacket GetComments(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false);
 
 	HTTPPacket::HTTPResponsePacket GetPublishArticleList(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false);
+	HTTPPacket::HTTPResponsePacket GetFollowedArticleList(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false);
 	HTTPPacket::HTTPResponsePacket GetHottopic(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false);
 
 	HTTPPacket::HTTPResponsePacket GetFriendLink(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false);

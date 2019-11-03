@@ -1,21 +1,60 @@
 import BlogBriefBox from "./BlogBriefBox"
+import React from "react"
 
-var testBlogBriefData1 = '{"title": "测试标题", "article": "测试内容…", "tags": ["programer", "华为", "996"], "interInfo": {"vote": "100", "comments": "999"}, "userInfo":{"name":"LegendLXH", "avatar":"lxhcat.jpg"}, "href": "/blogs/114514", "timestamp": "十分钟前"}';
-
-function GetTimeLine()
+class TimeLine extends React.Component
 {
-    //由array.map函数来进行动态的批量JSX元素生成
-    //数据由此处的AJAX请求来获得
-    var bunchData = [testBlogBriefData1, testBlogBriefData1, testBlogBriefData1, testBlogBriefData1, testBlogBriefData1, testBlogBriefData1,testBlogBriefData1];
-    return bunchData.map((blogText, index) =>{
-        var blogData = JSON.parse(blogText);
-        return BlogBriefBox(blogData["title"], blogData["article"], blogData["tags"], blogData["interInfo"], blogData["userInfo"], blogData["href"], blogData["timestamp"]);
-    })
-}
+    constructor(props)
+    {
+        super(props);
+        this.lastLoadInfo = {
+            time: null,
+            limit: null
+        }
+        this.state = {
+            articleList: this.props.articleList
+        }
+    }
 
-function TimeLine()
-{
-    return GetTimeLine();
-}
+    RenderBlogBreifBox(article)
+    {
+        return BlogBriefBox(window.decodeURIComponent(escape(window.atob(article.title))), window.decodeURIComponent(escape(window.atob(article.brief))), null, article.interInfo, article.authorInfo, "/blogs/"+article.article_id, article.create_date)
+    }
 
+    render()
+    {
+
+        if (this.props.articleList === undefined)
+        {
+            return (
+                <div className="nothing-onthe-line">
+                    服务器未响应，请稍后再试
+                </div>
+            )
+        }
+        if (this.props.articleList.length === 0)
+        {
+            return (
+                <div className="nothing-onthe-line">
+                    未获取到时间线上的文章列表
+                </div>
+            )
+        }
+        else
+        {
+            return (
+                <>
+                    {this.state.articleList.map((article, index)=>{return this.RenderBlogBreifBox(article, index)})}
+                </>
+            )
+        }
+    }
+
+    componentDidMount()
+    {
+        //mouse event
+    }
+
+
+
+}
 export default TimeLine;

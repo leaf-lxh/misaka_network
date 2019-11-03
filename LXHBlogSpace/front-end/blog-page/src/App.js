@@ -28,6 +28,7 @@ class App extends React.Component
     {
         var article = this.articleContent;
         var md = new Remarkable({
+            breaks: true,
             highlight: function (str, lang) {
                 if (lang && hljs.getLanguage(lang)) {
                     var converted = hljs.highlight(lang, str).value;
@@ -38,7 +39,7 @@ class App extends React.Component
                     // prevent xss and incorrect rendering
                     return str.replace(/[<]{1}?/g, '&lt;').replace(/[>]{1}?/g, '&gt;');
                 }
-            }
+            }            
         });
 
         var converted = md.render(article);
@@ -62,7 +63,6 @@ class App extends React.Component
             return "<table border='1' cellspacing='0'>" +g1 + "</table>" ;
         });
 
-        
         return converted;
     }
 

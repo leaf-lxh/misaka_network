@@ -43,6 +43,7 @@ class NavBar extends React.Component
             sendEmailButtonDisabled: false,
             sendEmailButtonContent: "发送验证码"
         }
+        this.container = <MainContainer page="main" />
     }
 
     KeyDownHandler(props)
@@ -262,6 +263,7 @@ class NavBar extends React.Component
 
     render()
     {
+        document.addEventListener("nav-loaded", function(){ReactDOM.render(this.container, document.getElementById('main-panel-root'))}.bind(this))
         return(
             <AppBar position="fixed" style={{minWidth: 960, background: "#f5f5f5"}}>
                 <ToolBar >
@@ -383,11 +385,16 @@ class NavBar extends React.Component
 
     IndexZone = () => {
         function handleChange(event, newTab) {
+            if (window.user_info === undefined)
+            {
+                document.getElementById("open-login-dialog").click();
+                return;
+            }
             this.setState({
                 currentTab: newTab
             });
-
-            ReactDOM.render(MainContainer("container-loading"), document.getElementById('main-panel-root'), function(){ReactDOM.render(MainContainer(newTab), document.getElementById('main-panel-root'));});
+            var event = new CustomEvent("container-switch", {"detail": newTab});
+            document.dispatchEvent(event)
         };
     
         return(
@@ -477,8 +484,10 @@ class NavBar extends React.Component
                         </div>
                     </>
                     , document.getElementsByClassName("navstyle-status")[0]);
-                    window.user_info = {"username": userinfo.username, "avatar": userinfo.avatar};           
+                    window.user_info = {"username": userinfo.username, "avatar": userinfo.avatar};
                 }
+                var event = new Event("nav-loaded")  ;
+                document.dispatchEvent(event)
             });
     }
 };
