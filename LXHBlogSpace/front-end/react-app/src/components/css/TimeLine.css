@@ -1,0 +1,12 @@
+.nothing-onthe-line
+{
+    height: 800px;
+    text-align: center;
+    font-family: "Roboto";
+}
+
+.nothing-onthe-line-text
+{
+    display: block;
+    padding-top: 10px;
+}

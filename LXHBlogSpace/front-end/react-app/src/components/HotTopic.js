@@ -11,13 +11,13 @@ class HotTopic extends React.Component
     constructor(props)
     {
         super(props);
-        var param = JSON.parse('{"list_len": 10, "list": [{"article_id": "/", "title": "文章加载中"}]}');
+        var param = JSON.parse('{"list_len": 10, "list": [{"article_id": "/", "title": "加载中"}]}');
 		this.state = {
             srcListPanel:
             param["list"].map((elements, index) =>{
                 return (
-                    <ListItem button className="topic-list-elements" href={"/blogs/" + elements.article_id}>
-                        <Chip style={{borderRadius: 0, width: 25, height: 25}} label={index + 1} />
+                    <ListItem button className="topic-list-elements">
+                        <Chip style={{borderRadius: 0, width: 25, height: 25}} label=" " />
                         <div className="topic-label">
                             {elements.title}
                         </div>
@@ -54,18 +54,34 @@ class HotTopic extends React.Component
             if (res !== undefined)
             {
                 var articleList = res;
-                this.setState({srcListPanel:
-                    articleList.map((elements, index) =>{
-                        return (
-                            <ListItem button className="topic-list-elements" onClick={()=>{window.open(elements.href)}}>
-                                <Chip style={{borderRadius: 0, width: 25, height: 25}} label={index + 1} />
-                                <div className="topic-label">
-                                    {elements.title}
-                                </div>
-                            </ListItem>
-                        )
+                if (articleList.length === 0)
+                {
+                    this.setState({
+                        srcListPanel:
+                                <ListItem button className="topic-list-elements">
+                                    <Chip style={{borderRadius: 0, width: 25, height: 25}} label="-" />
+                                    <div className="topic-label">
+                                        暂无
+                                    </div>
+                                </ListItem>
                     })
-                })
+                }
+                else
+                {
+                    this.setState({srcListPanel:
+                        articleList.map((elements, index) =>{
+                            return (
+                                <ListItem button className="topic-list-elements" onClick={()=>{window.open(elements.href)}}>
+                                    <Chip style={{borderRadius: 0, width: 25, height: 25}} label={index + 1} />
+                                    <div className="topic-label">
+                                        {elements.title}
+                                    </div>
+                                </ListItem>
+                            )
+                        })
+                    })
+                }
+                
             }
         })
 

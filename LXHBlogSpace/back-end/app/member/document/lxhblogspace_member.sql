@@ -4,7 +4,7 @@ use lxhblogspace_member;
 
 create table user_follow(
     user_uuid tinytext not null,
-    follower_uuid tinytext not null,
+    follower_uuid tinytext not null
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 create table user_follow_info(
@@ -17,7 +17,8 @@ create table user_comment_notice(
     notice_id int unsigned primary key auto_increment,
     recipient_uuid tinytext not null,
     comment_id int unsigned not null,
-    readed tinyint unsigned not null
+    readed tinyint unsigned not null,
+    deleted tinyint unsigned not null
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 create table sys_notice(

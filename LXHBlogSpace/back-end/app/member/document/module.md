@@ -41,7 +41,8 @@ create table user_comment_notice(
     notice_id int unsigned primary key auto_increment,
     recipient_uuid tinytext not null,
     comment_id int unsigned not null,
-    readed tinyint unsigned not null
+    readed tinyint unsigned not null,
+    deleted tinyint unsigned not null
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 ```
 
@@ -51,6 +52,7 @@ create table user_comment_notice(
 | recipient_uuid | 消息接收者的uuid |
 | comment_id     | 评论的ID         |
 | readed         | 该消息是否已读   |
+| deleted        | 该消息是否已删除 |
 
 
 

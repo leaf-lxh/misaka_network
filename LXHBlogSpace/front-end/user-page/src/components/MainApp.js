@@ -29,6 +29,9 @@ import Dialog from "@material-ui/core/Dialog"
 import DialogTitle from "@material-ui/core/DialogTitle"
 import DialogContent from "@material-ui/core/DialogContent"
 
+import ViewDay from "@material-ui/icons/ViewDay"
+import DeleteForever from "@material-ui/icons/DeleteForever"
+
 class UserInfo extends React.Component
 {
     constructor(props)
@@ -379,7 +382,7 @@ class UserInfo extends React.Component
     componentDidMount()
     {
         var username = window.location.pathname.match(/\/member\/(.+)/);
-        document.title = username + " - LXHBlogSpace"
+        document.title = username[1] + " - LXHBlogSpace"
         if (username !== null)
         {
             username = username[1];
@@ -783,6 +786,65 @@ class MainApp extends React.Component
         })
     }
 
+    UserCommentNoticeSetAllReaded()
+    {
+        fetch("/api/v1/member/SetUserMsgAllReaded",{"method": "POST", "credentials": "include"})
+        .then(res=>res.json())
+        .then(res=>{
+            window.location.reload();
+        })
+    }
+
+    UserCommentNoticeDeleteAll()
+    {
+        if (window.confirm("确定删除全部消息吗？"))
+        {
+            fetch("/api/v1/member/DeleteUserMsgAll",{"method": "POST", "credentials": "include"})
+            .then(res=>res.json())
+            .then(res=>{
+                window.location.reload();
+            })
+        }
+    }
+
+    UserCommentNoticeDelete(notice_id)
+    {
+        fetch("/api/v1/content/DeleteUserMsg",{
+            "method": "POST",
+            "credentials":"include",
+            "headers":{
+                "Content-Type": "application/x-www-form/urlencoded"
+            },
+            "body": "notice_id=" + notice_id
+        })
+        .then(r=>{
+            if (r.ok)
+            {
+                return r.json();
+            }
+            else if (r.status === 403)
+            {
+                alert("请先登录");
+                return;
+            }
+            else
+            {
+                alert("服务器未响应，请稍后再试");
+                return;
+            }
+        })
+        .then(response=>{
+            if (response !== undefined && response.ecode === "0")
+            {
+                window.location.reload();
+            }
+            else
+            {
+                alert("操作失败，原因：" + response.reason);
+            }
+        })
+    }
+
     RenderUserCommentNotice()
     {
         fetch("/api/v1/member/GetUserMsgList", {"credentials":"include"})
@@ -802,6 +864,7 @@ class MainApp extends React.Component
             this.setState({srcContainer:<></>});
             this.setState({
                 srcContainer: 
+                <>
                     <Container fixed className="msg-container" >
                         {
                             res.msg_list.map((msg, index)=>{
@@ -814,19 +877,47 @@ class MainApp extends React.Component
                                 return (
                                     <ExpansionPanel id={"msg-"+msg.notice_id} className={"msg-panel "+ additionalStyle} onChange={(e,s)=>this.HandleReadMsg(e, s, "user", msg.notice_id)}>
                                         <ExpansionPanelSummary>
-                                            用户 {msg.from} 在你的文章 {msg.title} 进行了评论
+                                            用户 <Link href={"/member/" + msg.from} target="_blank" className="notice-hyperlink">{msg.from}</Link> 在你的文章 <Link href={"/blogs/" + msg.article_id} target="_blank" className="notice-hyperlink">{msg.title}</Link> 进行了评论
                                         </ExpansionPanelSummary>
-                                        <ExpansionPanelDetails className="msg-panel-details">
-                                            {time.toLocaleDateString() + " " + time.toLocaleTimeString('zh-CN', {hour12: false})}
-                                            <br/>
-                                            {msg.content}
+                                        <ExpansionPanelDetails className="msg-panel-details" style={{display: "block"}}>
+                                            <div style={{display: "flex"}}>
+                                                <div>{time.toLocaleDateString() + " " + time.toLocaleTimeString('zh-CN', {hour12: false})}</div>
+                                                <Button onClick={()=>this.UserCommentNoticeDelete(msg.notice_id)} style={{background: "#ff4700", color:"white", marginLeft: "auto"}}>删除</Button>
+                                            </div>
+                                            <div style={{display: "flex", paddingTop: 5}}>
+                                                {msg.content}
+                                            </div>
                                         </ExpansionPanelDetails>
                                     </ExpansionPanel>
                                 )
                             })
                         }
                     </Container>
-                
+                    <div className="usermsg-function-panel" style={{display: "none"}}>                      
+                        <Button className="usermsg-function-button" onClick={this.UserCommentNoticeSetAllReaded.bind(this)}>
+                            <ViewDay />
+                            <div className="button-label">
+                                全部已读
+                            </div>
+                        </Button>
+                        <Button className="usermsg-function-button usermsg-function-button-warn" onClick={this.UserCommentNoticeDeleteAll.bind(this)}>
+                            <DeleteForever />
+                            <div className="button-label">
+                                删除全部
+                            </div>
+                        </Button>
+                    </div>
+
+                </>
+            },
+            ()=>{
+                var container =  document.getElementsByClassName("msg-container")[0];
+                var buttonPanel = document.getElementsByClassName("usermsg-function-panel")[0];
+
+                buttonPanel.style.position = "fixed";
+                buttonPanel.style.left = container.offsetLeft + container.offsetWidth + 20 + "px";
+                buttonPanel.style.top = container.offsetTop + "px";
+                buttonPanel.style.display = ""
             })
         })
 

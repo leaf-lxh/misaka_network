@@ -55,6 +55,11 @@ private:
 	HTTPPacket::HTTPResponsePacket GetUnreadedMsgNum(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false);
 
 	HTTPPacket::HTTPResponsePacket SetMessageReaded(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false);
+	HTTPPacket::HTTPResponsePacket SetUserMsgAllReaded(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false);
+
+	HTTPPacket::HTTPResponsePacket DeleteUserMsg(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false);
+	HTTPPacket::HTTPResponsePacket DeleteUserMsgAll(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false);
+
 	HTTPPacket::HTTPResponsePacket SetWatchedHistory(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false);
 
 	

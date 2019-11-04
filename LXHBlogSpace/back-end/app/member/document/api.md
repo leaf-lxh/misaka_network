@@ -182,6 +182,49 @@ ver1.0
 | "ecode"  | 错误码   |
 | "reason" | 错误说明 |
 
+### 设置用户消息全部已读
+
+接口路径：`/api/v1/member/SetUserMsgAllReaded`
+
+请求方式：POST，要求携带用户Cookie
+
+服务端返回：JSON对象，包含以下键
+
+| 键名     | 说明     |
+| -------- | -------- |
+| "ecode"  | 错误码   |
+| "reason" | 错误说明 |
+
+### 删除用户消息
+
+接口路径：`/api/v1/member/DeleteUserMsg`
+
+请求方式：POST，要求携带用户Cookie，并包含以下参数
+
+| 参数      | 说明   |
+| --------- | ------ |
+| notice_id | 消息id |
+
+服务端返回：JSON对象，包含以下键
+
+| 键名     | 说明     |
+| -------- | -------- |
+| "ecode"  | 错误码   |
+| "reason" | 错误说明 |
+
+### 删除全部的用户消息
+
+接口路径：`/api/v1/member/DeleteUserMsgAll`
+
+请求方式：POST，要求携带用户Cookie
+
+服务端返回：JSON对象，包含以下键
+
+| 键名     | 说明     |
+| -------- | -------- |
+| "ecode"  | 错误码   |
+| "reason" | 错误说明 |
+
 ## content模块相关
 
 ### 设置访问记录

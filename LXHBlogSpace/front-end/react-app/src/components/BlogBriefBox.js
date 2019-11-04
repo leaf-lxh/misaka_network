@@ -20,7 +20,7 @@ function GetTimeBlock(time)
         return "";
     }
 }
-function BlogBriefBox(title, article, tags, interInfo, userInfo, href, time)  {
+function BlogBriefBox(title, article, tags, interInfo, userInfo, href, time, customTime)  {
     var date = new Date(parseInt(time) * 1000)
     return(
         <div className="blog-brief-root">
@@ -40,7 +40,19 @@ function BlogBriefBox(title, article, tags, interInfo, userInfo, href, time)  {
             <div className="blog-brief-footer">
                 <div className="blog-brief-tag-list">
                     {
-                        "创建于：" + date.toLocaleDateString() + " " + date.toLocaleTimeString('zh-CN', {"hour12": false})
+                        function()
+                        {
+                            if (customTime === undefined)
+                            {
+                                return "创建于：" + date.toLocaleDateString() + " " + date.toLocaleTimeString('zh-CN', {"hour12": false})
+                            }
+                            else
+                            {
+                                return "创建于：" + customTime
+                            }
+                        }()
+
+                        
                         /*tags.map((tag, index) =>{
                             return <Chip className="tag-item" label={tag} style={{borderRadius:3}}/>
                         })

@@ -1,6 +1,7 @@
 import React from 'react';
 // eslint-disable-next-line
 import "./css/MainContainer.css"
+import "./css/BlogBrief.css"
 
 import BlogBriefBox from './BlogBriefBox'
 import CircularProgress from "@material-ui/core/CircularProgress"
@@ -24,16 +25,34 @@ class BlogBrief extends React.Component
                     </div>
 
                 </div>
-            </div>
+            </div>,
+            articleList: this.props.articleList
         }
         this.lastNode = null;
     }
 
     render()
     {
+        if (this.props.articleList.length === 0)
+        {
+            return (
+                <div className="nothing-onthe-line">
+                        <div style={{paddingTop: "300px"}}>
+                            <div className="nothing-onthe-line-text">
+                                暂时没有文章，快去创建第一篇文章吧=>
+                            </div>
+                        </div>
+                </div>
+            )
+        }
+
         return (
             <>
-                {this.state.src}
+                {this.state.articleList.map((blogText, index)=>{
+                    var blogData = blogText;
+                    this.lastNode = blogData["article_id"];
+                    return BlogBriefBox(window.decodeURIComponent(escape(window.atob(blogData["title"]))), window.decodeURIComponent(escape(window.atob(blogData["brief"]))), blogData["tags"], blogData["interInfo"], blogData["authorInfo"], blogData["article_id"], blogData["create_date"]);
+                })}
             </>
         )
     }
@@ -49,23 +68,8 @@ class BlogBrief extends React.Component
             }
             
             this.setState({
-                src: 
-                <>
-                    <>
-                        {this.state.src}
-                    </>
-                    <>
-                    {
-                        response.map((blogText, index) =>{
-                        var blogData = blogText;
-                        this.lastNode = blogData["article_id"];
-                        return BlogBriefBox(window.decodeURIComponent(escape(window.atob(blogData["title"]))), window.decodeURIComponent(escape(window.atob(blogData["brief"]))), blogData["tags"], blogData["interInfo"], blogData["authorInfo"], blogData["article_id"], blogData["create_date"]);
-                        })
-                    }
-                    </>
-                </>
+                articleList: this.state.articleList.concat(response)
             });
-            document.documentElement.scrollTop = lastPos;
             onloadding = false;
         })
     }
@@ -74,7 +78,6 @@ class BlogBrief extends React.Component
     {
         if ( document.documentElement.scrollHeight - (document.documentElement.scrollTop + document.documentElement.clientHeight) < 500)
         {
-            console.log("shit")
             if (onloadding === false)
             {
                 onloadding = true;
@@ -85,20 +88,16 @@ class BlogBrief extends React.Component
         }
     }
 
+
     componentDidMount()
     {
-        fetch("/api/v1/content/GetPublishArticleList")
-        .then(response=>response.json())
-        .then(response=>{
-            console.log(response)
-            this.setState({
-                src: 
-                response.map((blogText, index) =>{
-                    var blogData = blogText;
-                    this.lastNode = blogData["article_id"];
-                    return BlogBriefBox(window.decodeURIComponent(escape(window.atob(blogData["title"]))), window.decodeURIComponent(escape(window.atob(blogData["brief"]))), blogData["tags"], blogData["interInfo"], blogData["authorInfo"], blogData["article_id"], blogData["create_date"]);
-                })
-            });
+        document.documentElement.scrollTop = 0;
+        window.onscroll = this.ScrollHook.bind(this);
+        document.addEventListener("unload-brief-hook", ()=>{
+            window.onscroll = null;
+        })
+
+        document.addEventListener("load-brief-hook", ()=>{
             window.onscroll = this.ScrollHook.bind(this);
         })
     }

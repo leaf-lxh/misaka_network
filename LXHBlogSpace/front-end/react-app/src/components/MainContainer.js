@@ -44,8 +44,7 @@ class MainContainer extends React.Component
             </div>
         }
         document.addEventListener("container-switch", function(msg){
-            console.log(msg)
-            this.GenPage(msg.detail)
+            this.SwitchPage(msg.detail)
         }.bind(this))
     }
 
@@ -64,24 +63,31 @@ class MainContainer extends React.Component
 
     componentDidMount()
     {
-        this.GenPage(this.props.page)
+        this.SwitchPage(this.props.page)
     }
 
 
-    GenPage(requiredPage) 
+    SwitchPage(requiredPage) 
     {
         if (requiredPage === "main")
         {
-            this.setState({
-                src:
-                <div className="blog-brief-list">
-                    <BlogBrief />
-                </div>
-            }
-            );
+            var event = new Event("unload-timeline-hook");
+            document.dispatchEvent(event);
+            fetch("/api/v1/content/GetPublishArticleList")
+            .then(response=>response.json())
+            .then(response=>{
+                this.setState({
+                    src:
+                    <div className="blog-brief-list">
+                        <BlogBrief articleList={response}/>
+                    </div>
+                })
+            })
         }
         else if (requiredPage === "timeline")
         {
+            var event = new Event("unload-brief-hook");
+            document.dispatchEvent(event);
             fetch("/api/v1/content/GetFollowedArticleList", {'credentials': 'include'})
             .then(res=>{
                 if (res.ok)

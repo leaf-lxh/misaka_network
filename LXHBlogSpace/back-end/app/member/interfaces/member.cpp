@@ -223,6 +223,54 @@ void BlogSpaceMember::HTTPPacketHandler(int clientfd, HTTPPacket::HTTPRequestPac
 		return;
 	}
 
+	if (request.requestPath == "/api/v1/member/SetUserMsgAllReaded")
+	{
+		try
+		{
+			response = SetUserMsgAllReaded(clientfd, request);
+
+			connectedClients[clientfd].writeBuffer += response.ToString();
+			LogResponse(clientfd, request, response.code);
+		}
+		catch (std::runtime_error e)
+		{
+			LogRequestError(clientfd, request, e.what());
+		}
+		return;
+	}
+
+	if (request.requestPath == "/api/v1/member/DeleteUserMsg")
+	{
+		try
+		{
+			response = DeleteUserMsg(clientfd, request);
+
+			connectedClients[clientfd].writeBuffer += response.ToString();
+			LogResponse(clientfd, request, response.code);
+		}
+		catch (std::runtime_error e)
+		{
+			LogRequestError(clientfd, request, e.what());
+		}
+		return;
+	}
+
+	if (request.requestPath == "/api/v1/member/DeleteUserMsgAll")
+	{
+		try
+		{
+			response = DeleteUserMsgAll(clientfd, request);
+
+			connectedClients[clientfd].writeBuffer += response.ToString();
+			LogResponse(clientfd, request, response.code);
+		}
+		catch (std::runtime_error e)
+		{
+			LogRequestError(clientfd, request, e.what());
+		}
+		return;
+	}
+
 	if (request.requestPath == "/api/v1/member/SetWatchedHistory")
 	{
 		try
@@ -807,7 +855,7 @@ HTTPPacket::HTTPResponsePacket BlogSpaceMember::GetUserMsgList(int clientfd, HTT
 		std::string useruuid = request.GetCookieValue("_uuid");
 
 		mysqlProperty.connection->setSchema("lxhblogspace_member");
-		PtrPreparedStatement userNoticeST(mysqlProperty.connection->prepareStatement("SELECT tb.from_uuid, tc.article_id, tc.title, tb.content, tb.comment_id, tb.create_date, ta.notice_id, ta.readed FROM  user_comment_notice ta JOIN lxhblogspace_content.article_comment tb ON ta.comment_id=tb.comment_id AND ta.recipient_uuid=? JOIN lxhblogspace_content.article_content tc ON tc.article_id=tb.article_id ORDER BY ta.notice_id DESC"));
+		PtrPreparedStatement userNoticeST(mysqlProperty.connection->prepareStatement("SELECT tb.from_uuid, tc.article_id, tc.title, tb.content, tb.comment_id, tb.create_date, ta.notice_id, ta.readed FROM  user_comment_notice ta JOIN lxhblogspace_content.article_comment tb ON ta.comment_id=tb.comment_id AND ta.recipient_uuid=? AND ta.deleted=0 JOIN lxhblogspace_content.article_content tc ON tc.article_id=tb.article_id ORDER BY ta.notice_id DESC"));
 		userNoticeST->setString(1, useruuid);
 		PtrResultSet userNotice(userNoticeST->executeQuery());
 
@@ -1047,6 +1095,163 @@ HTTPPacket::HTTPResponsePacket BlogSpaceMember::SetMessageReaded(int clientfd, H
 		else
 		{
 			LogRequestError(clientfd, request, std::string("BlogSpaceContent::SetMessageReaded(): MySQL exception occured with code ") + std::to_string(e.getErrorCode()));
+		}
+		return response;
+	}
+}
+
+HTTPPacket::HTTPResponsePacket BlogSpaceMember::SetUserMsgAllReaded(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false)
+{
+	HTTPPacket::HTTPResponsePacket response;
+	response.SetServer(SERVER_SIGNATURE);
+
+	if (request.method != "POST")
+	{
+		response.SetResponseCode(HTTPPacket::ResponseCode::MethodNotAllowed);
+		return response;
+	}
+
+	try
+	{
+		if (CheckUserToken(request) == false)
+		{
+			response.SetResponseCode(HTTPPacket::ResponseCode::Forbidden);
+			return response;
+		}
+
+		nlohmann::json responseJson;
+
+		mysqlProperty.connection->setSchema("lxhblogspace_member");
+		PtrPreparedStatement statement(mysqlProperty.connection->prepareStatement("UPDATE user_comment_notice SET readed=1 WHERE recipient_uuid=?"));
+		statement->setString(1, request.GetCookieValue("_uuid"));
+		statement->execute();
+
+		responseJson["ecode"]= 0;
+
+		response.body = responseJson.dump();
+		response.SetContentType("application/json; charset=UTF-8");
+		return response;
+	}
+	catch (sql::SQLException e)
+	{
+		response.SetResponseCode(HTTPPacket::ResponseCode::ServiceUnavailable);
+		if (serverProperty.verbose >= VerboseLevel::essential)
+		{
+			LogRequestError(clientfd, request, std::string("BlogSpaceContent::SetUserMsgAllReaded(): MySQL exception occured with code ") + std::to_string(e.getErrorCode()) + ", msg: " + e.what());
+		}
+		else
+		{
+			LogRequestError(clientfd, request, std::string("BlogSpaceContent::SetUserMsgAllReaded(): MySQL exception occured with code ") + std::to_string(e.getErrorCode()));
+		}
+		return response;
+	}
+
+}
+
+HTTPPacket::HTTPResponsePacket BlogSpaceMember::DeleteUserMsg(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false)
+{
+	using boost::property_tree::ptree;
+
+	HTTPPacket::HTTPResponsePacket response;
+	response.SetServer(SERVER_SIGNATURE);
+
+	if (request.method != "POST")
+	{
+		response.SetResponseCode(HTTPPacket::ResponseCode::MethodNotAllowed);
+		return response;
+	}
+
+	try
+	{
+		if (CheckUserToken(request) == false)
+		{
+			response.SetResponseCode(HTTPPacket::ResponseCode::Forbidden);
+			return response;
+		}
+
+		auto postParams = webstring::ParseKeyValue(request.body);
+		nlohmann::json responseJson;
+
+		mysqlProperty.connection->setSchema("lxhblogspace_member");
+		PtrPreparedStatement statement(mysqlProperty.connection->prepareStatement("UPDATE user_comment_notice SET deleted=1 WHERE recipient_uuid=? AND notice_id=?"));
+		statement->setString(1, request.GetCookieValue("_uuid"));
+		statement->setString(2, postParams["notice_id"]);
+
+		if (statement->executeUpdate() == 0)
+		{
+			responseJson["ecode"] =  -3;
+			responseJson["reason"] = "指定消息不存在/消息已经被删除";
+
+			response.body = responseJson.dump();
+			response.SetContentType("application/json; charset=UTF-8");
+			return response;
+		}
+
+		responseJson["ecode"] = 0;
+
+		response.body = responseJson.dump();
+		response.SetContentType("application/json; charset=UTF-8");
+		return response;
+	}
+	catch (sql::SQLException e)
+	{
+		response.SetResponseCode(HTTPPacket::ResponseCode::ServiceUnavailable);
+		if (serverProperty.verbose >= VerboseLevel::essential)
+		{
+			LogRequestError(clientfd, request, std::string("BlogSpaceContent::DeleteUserMsg(): MySQL exception occured with code ") + std::to_string(e.getErrorCode()) + ", msg: " + e.what());
+		}
+		else
+		{
+			LogRequestError(clientfd, request, std::string("BlogSpaceContent::DeleteUserMsg(): MySQL exception occured with code ") + std::to_string(e.getErrorCode()));
+		}
+		return response;
+	}
+}
+
+HTTPPacket::HTTPResponsePacket BlogSpaceMember::DeleteUserMsgAll(int clientfd, HTTPPacket::HTTPRequestPacket request) noexcept(false)
+{
+	using boost::property_tree::ptree;
+
+	HTTPPacket::HTTPResponsePacket response;
+	response.SetServer(SERVER_SIGNATURE);
+
+	if (request.method != "POST")
+	{
+		response.SetResponseCode(HTTPPacket::ResponseCode::MethodNotAllowed);
+		return response;
+	}
+
+	try
+	{
+		if (CheckUserToken(request) == false)
+		{
+			response.SetResponseCode(HTTPPacket::ResponseCode::Forbidden);
+			return response;
+		}
+
+		nlohmann::json responseJson;
+
+		mysqlProperty.connection->setSchema("lxhblogspace_member");
+		PtrPreparedStatement statement(mysqlProperty.connection->prepareStatement("UPDATE user_comment_notice SET deleted=1 WHERE recipient_uuid=?"));
+		statement->setString(1, request.GetCookieValue("_uuid"));
+		statement->execute();
+
+		responseJson["ecode"] = 0;
+
+		response.body = responseJson.dump();
+		response.SetContentType("application/json; charset=UTF-8");
+		return response;
+	}
+	catch (sql::SQLException e)
+	{
+		response.SetResponseCode(HTTPPacket::ResponseCode::ServiceUnavailable);
+		if (serverProperty.verbose >= VerboseLevel::essential)
+		{
+			LogRequestError(clientfd, request, std::string("BlogSpaceContent::DeleteUserMsgAll(): MySQL exception occured with code ") + std::to_string(e.getErrorCode()) + ", msg: " + e.what());
+		}
+		else
+		{
+			LogRequestError(clientfd, request, std::string("BlogSpaceContent::DeleteUserMsgAll(): MySQL exception occured with code ") + std::to_string(e.getErrorCode()));
 		}
 		return response;
 	}

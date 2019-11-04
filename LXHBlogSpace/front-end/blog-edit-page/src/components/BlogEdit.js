@@ -333,7 +333,6 @@ class BlogEdit extends React.Component
         var backgroundPath = this.backgroundImage;
         var title = document.getElementById("article-title-input").value;
         var content = document.getElementById("article-content-input").value
-
         fetch("/api/v1/content/PublishArticle", {
             method: "POST",
             credentials: "include",

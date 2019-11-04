@@ -1851,7 +1851,7 @@ HTTPPacket::HTTPResponsePacket BlogSpaceContent::SendComment(int clientfd, HTTPP
 		statement->execute();
 
 		mysqlProperty.connection->setSchema("lxhblogspace_member");
-		PtrPreparedStatement pushst(mysqlProperty.connection->prepareStatement("INSERT INTO user_comment_notice(recipient_uuid, comment_id, readed) VALUES(?,@lastInserid,0)"));
+		PtrPreparedStatement pushst(mysqlProperty.connection->prepareStatement("INSERT INTO user_comment_notice(recipient_uuid, comment_id, readed, deleted) VALUES(?,@lastInserid,0,0)"));
 		pushst->setString(1, GetArticleAuthor(articleId));
 		pushst->execute();
 
@@ -2136,15 +2136,17 @@ HTTPPacket::HTTPResponsePacket BlogSpaceContent::GetFollowedArticleList(int clie
 		}
 
 		PtrPreparedStatement statement;
+		int index = 0;
+		long time = 0;
+
 		if (requestParam.count("time") != 0)
 		{
-			unsigned int time;
-			unsigned int limit;
+			
 			try
 			{
-				time = std::stoi(requestParam["time"]);
-				limit = std::stoi(requestParam["limit"]);
-				if (time < 0 || limit < 0)
+				time = std::stol(requestParam["time"]);
+				index = std::stoi(requestParam["index"]);
+				if (time < 0 || index < 0)
 				{
 					throw std::invalid_argument("...");
 				}
@@ -2170,7 +2172,7 @@ HTTPPacket::HTTPResponsePacket BlogSpaceContent::GetFollowedArticleList(int clie
 			);
 			statement->setString(1, request.GetCookieValue("_uuid"));
 			statement->setInt64(2, time);
-			statement->setInt64(3, limit);
+			statement->setInt64(3, index);
 		}
 		else
 		{
@@ -2187,22 +2189,36 @@ HTTPPacket::HTTPResponsePacket BlogSpaceContent::GetFollowedArticleList(int clie
 
 		nlohmann::json articleList(nlohmann::json::array());
 		PtrResultSet result(statement->executeQuery());
+		
 		while (result->next())
 		{
 			std::string content = result->getString(5);
+			long create_date = result->getInt(3);
 			if (webstring::UTF8Strlen(content) > 100)
 			{
 				content = webstring::UTF8Substr(content, 0, 100);
 			}
 
+			//计算当前元素在查询结果中的偏移
+			if (time == create_date)
+			{
+				index++;
+			}
+			else
+			{
+				index = 1;
+				time = create_date;
+			}
+			
 			articleList.push_back(
 				{
 					{"article_id", result->getInt(1)},
 					{"title", webstring::Base64Encode(result->getString(2))},
-					{"brief", webstring::Base64Encode(content)},
-					{"create_date", result->getInt(3)},
+					{"brief", webstring::Base64Encode(MarkdownBriefPretty(content))},
+					{"create_date", create_date},
 					{"interInfo", {{"vote", result->getInt(4)}, {"comments", GetArticleCommentNum(result->getString(1))}}},
-					{"authorInfo", {{"name", result->getString(6)}, {"avatar", result->getString(7)}}}
+					{"authorInfo", {{"name", result->getString(6)}, {"avatar", result->getString(7)}}},
+					{"index", index}
 				}
 			);
 		}
@@ -2287,7 +2303,7 @@ HTTPPacket::HTTPResponsePacket BlogSpaceContent::GetFriendLink(int clientfd, HTT
 		PtrStatement selectST(mysqlProperty.connection->createStatement());
 		PtrResultSet result(selectST->executeQuery("SELECT sitename, href FROM friendlink ORDER BY priority DESC"));
 
-		nlohmann::json links;
+		nlohmann::json links = nlohmann::json::array();
 		while (result->next())
 		{
 			links.push_back
@@ -2472,6 +2488,8 @@ std::string BlogSpaceContent::GetUsernameByUUID(std::string uuid) noexcept(false
 int BlogSpaceContent::GetArticleCommentNum(std::string articleId) noexcept(false)
 {
 	std::string schema = mysqlProperty.connection->getSchema();
+
+	mysqlProperty.connection->setSchema("lxhblogspace_content");
 	PtrPreparedStatement statement(mysqlProperty.connection->prepareStatement("SELECT COUNT(*) FROM article_comment WHERE article_id=?"));
 	statement->setString(1, articleId);
 	PtrResultSet result(statement->executeQuery());

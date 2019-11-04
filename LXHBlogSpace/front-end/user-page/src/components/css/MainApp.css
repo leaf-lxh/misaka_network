@@ -91,7 +91,7 @@
 
 .main-app-user-article
 {
-    
+    margin-bottom: 10px;
     border-top: 2px black solid;
 }
 
@@ -251,4 +251,38 @@
 .follow-list
 {
     height: 440px;
+}
+
+.usermsg-function-panel
+{
+    width: 120px
+}
+
+.usermsg-function-button
+{
+    width: 100%;
+    display: flex;
+    background: #f5f5f5 !important;
+    border-radius: 3px !important;
+    margin-bottom: 10px !important;
+    box-shadow: 0px 2px 4px -1px rgba(0,0,0,0.2), 0px 4px 5px 0px rgba(0,0,0,0.14), 0px 1px 10px 0px rgba(0,0,0,0.12);
+}
+
+.usermsg-function-button:hover{
+    background: #e0e0e0 !important;
+}
+
+.button-label{
+    flex-grow: 1;
+    text-align: center;
+}
+
+.usermsg-function-button-warn
+{
+    color: red !important;
+}
+
+.notice-hyperlink
+{
+    margin: 0px 10px !important;
 }
