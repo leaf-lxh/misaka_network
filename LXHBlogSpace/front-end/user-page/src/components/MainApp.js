@@ -641,6 +641,11 @@ class UserInfo extends React.Component
     SetDescription()
     {
         //do login check
+        if (this.state.userinfo.current_user !== "true")
+        {
+            return;
+        }
+        
         var input = document.getElementById("user-description-input");
         if (input.placeholder !== "点击此处添加个人简介")
         {
@@ -674,9 +679,18 @@ class UserInfo extends React.Component
             .then(r=>{
                 if (r !== undefined && r.ecode === "0")
                 {
-                    this.setState({
-                        userDescription: document.getElementById("user-description-input").value
-                    })
+                    if (document.getElementById("user-description-input").value !== "")
+                    {
+                        this.setState({
+                            userDescription: document.getElementById("user-description-input").value
+                        })
+                    }
+                    else
+                    {
+                        this.setState({
+                            userDescription: "点击此处添加个人简介"
+                        })
+                    }
                     document.getElementById("user-description-input").value = "";
                 }
             })
@@ -809,7 +823,7 @@ class MainApp extends React.Component
 
     UserCommentNoticeDelete(notice_id)
     {
-        fetch("/api/v1/content/DeleteUserMsg",{
+        fetch("/api/v1/member/DeleteUserMsg",{
             "method": "POST",
             "credentials":"include",
             "headers":{
@@ -834,7 +848,7 @@ class MainApp extends React.Component
             }
         })
         .then(response=>{
-            if (response !== undefined && response.ecode === "0")
+            if (response !== undefined && response.ecode === 0)
             {
                 window.location.reload();
             }
@@ -1105,6 +1119,8 @@ class MainApp extends React.Component
                         srcContainer:
                         <Container fixed className="main-app-container none-notice">
                             暂无草稿
+                            <br/>
+                            <Link href="/edit/" style={{textDecorationLine: "none"}} target="_blank">去创建文章></Link>
                         </Container>
                     })
                 }

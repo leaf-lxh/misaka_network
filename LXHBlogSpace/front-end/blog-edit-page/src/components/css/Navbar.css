@@ -73,3 +73,7 @@
     background-color: orange;
 }
 
+.MuiAvatar-root
+{
+    border-radius: 4px !important;
+}

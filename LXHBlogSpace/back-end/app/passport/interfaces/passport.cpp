@@ -413,7 +413,7 @@ HTTPPacket::HTTPResponsePacket BlogSpacePassport::CheckUserExist(int clientfd, H
 
 	
 	std::map<std::string, std::string> requestParam = request.ParseURLParamter();
-	std::string username = requestParam["username"];
+	std::string username = webstring::URLdecode(requestParam["username"]);
 	if (request.GetContentType() == "application/x-www-form-urlencoded")
 	{
 		username = webstring::URLdecode(username);
