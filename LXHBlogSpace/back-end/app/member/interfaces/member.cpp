@@ -510,7 +510,7 @@ HTTPPacket::HTTPResponsePacket BlogSpaceMember::GetFollowerList(int clientfd, HT
 	nlohmann::json responseJson;
 
 	auto requestParams = request.ParseURLParamter();
-	std::string username = requestParams["username"];
+	std::string username = webstring::URLdecode(requestParams["username"]);
 	int requestPage = 1;
 	try
 	{
@@ -628,7 +628,7 @@ HTTPPacket::HTTPResponsePacket BlogSpaceMember::GetFollowedList(int clientfd, HT
 
 	nlohmann::json responseJson;
 	auto requestParam = request.ParseURLParamter();
-	std::string username = requestParam["username"];
+	std::string username = webstring::URLdecode(requestParam["username"]);
 	int requestPage = 1;
 	if (requestParam.count("page") != 0)
 	{

@@ -382,7 +382,7 @@ class UserInfo extends React.Component
     componentDidMount()
     {
         var username = window.location.pathname.match(/\/member\/(.+)/);
-        document.title = username[1] + " - LXHBlogSpace"
+        document.title = decodeURI(username[1]) + " - LXHBlogSpace"
         if (username !== null)
         {
             username = username[1];
@@ -425,7 +425,7 @@ class UserInfo extends React.Component
                 .then(response=>{
                     if (response !== [])
                     {                       
-                        fetch("/api/v1/member/GetUserFollowInfo?username=" + encodeURI(username), {"credentials": "include"})
+                        fetch("/api/v1/member/GetUserFollowInfo?username=" + username, {"credentials": "include"})
                         .then(r=>r.json())
                         .then(followInfo=>{
                             if (followInfo.following === "true")
@@ -1250,7 +1250,7 @@ class MainApp extends React.Component
                 username = username[1];
             }
 
-            if (res.username === username)
+            if (res.username === decodeURI(username))
             {
                 this.setState({
                     paddingState: "inline",

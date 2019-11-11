@@ -1367,7 +1367,7 @@ HTTPPacket::HTTPResponsePacket BlogSpaceContent::GetUserArticleList(int clientfd
 		return response;
 	}
 
-	std::string username = request.ParseURLParamter()["username"];
+	std::string username = webstring::URLdecode(request.ParseURLParamter()["username"]);
 	std::vector<std::string> articleInfoList;
 	std::map<std::string, std::string> articleInfo;
 

@@ -536,12 +536,8 @@ HTTPPacket::HTTPResponsePacket BlogSpacePassport::Login(int clientfd, HTTPPacket
 	}
 	else
 	{
-
-		if (request.GetContentType() == "application/x-www-form-urlencoded")
-		{
-			username = webstring::URLdecode(username);
-			password = webstring::URLdecode(password);
-		}
+		username = webstring::URLdecode(username);
+		password = webstring::URLdecode(password);
 
 		try
 		{
@@ -1043,7 +1039,7 @@ HTTPPacket::HTTPResponsePacket BlogSpacePassport::GetUserInfo(int clientfd, HTTP
 	response.SetServer(SERVER_SIGNATURE);
 	response.SetKeepAlive(serverProperty.timeout, serverProperty.maxRequestsNum);
 
-	std::string username = request.ParseURLParamter()["username"];
+	std::string username = webstring::URLdecode(request.ParseURLParamter()["username"]);
 	std::map<std::string, std::string> resultJson;
 	response.SetContentType("application/json; charset=UTF-8");
 
