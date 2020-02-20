@@ -1,11 +1,4 @@
 # misaka_network
   这个项目包含一系列的网络服务。
  
- ## httpserver
-  HTTP服务器，同时具备反向代理和负载均衡功能。
- ## LXHBlogSpace
-  我的博客网站。
- ## auto_sign_in
-  使用C++重写的[LXH_SignAssist](https://github.com/leaf-lxh/LXH_SignAssist)，更加可靠。
- ## LXHPassNote-server
-  个人密码存储服务-服务端实现
+打算对整个项目进行重构，历史代码已经移动到了[old_work](https://github.com/leaf-lxh/misaka_network/tree/old_work)分支。
