@@ -125,7 +125,7 @@ std::vector<std::string> HTTPRequest::GetHeaderFieldValue(std::string fieldName,
 std::string HTTPRequest::GetResponseStatusCode(std::string response)
 {
 	std::smatch result;
-	std::regex format("HTTP/1\..*? (.*?) .*?");
+	std::regex format("HTTP/1\\..*? (.*?) .*?");
 	if (!std::regex_search(response, result, format))
 	{
 		return "0";
