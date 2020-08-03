@@ -22,7 +22,7 @@ import Snackbar from '@material-ui/core/Snackbar'
 import AccountBoxIcon from '@material-ui/icons/AccountBox'
 import AssignmentIcon from '@material-ui/icons/Assignment'
 
-import "./css/NavBar.css"
+import "./css/Navbar.css"
 
 
 //以下为重构的代码

@@ -23,7 +23,7 @@ import AccountBoxIcon from '@material-ui/icons/AccountBox'
 import AssignmentIcon from '@material-ui/icons/Assignment'
 
 import MainContainer from './MainContainer'
-import "./css/NavBar.css"
+import "./css/Navbar.css"
 
 
 //以下为重构的代码
